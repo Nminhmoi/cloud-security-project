@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký · CloudBox{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<main class="auth-shell">
+  <div class="brand">
+    <div class="brand-mark">✦</div>
+    <h1>Tạo tài khoản</h1>
+    <p>Bắt đầu không gian lưu trữ của riêng bạn</p>
+  </div>
+
+  <section class="glass-card">
+    <form method="POST">
+      <div class="field">
+        <label for="username">Tên đăng nhập</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Ví dụ: Nguyen@2026"
+            minlength="6"
+            maxlength="24"
+            pattern="(?=.*[A-Za-z])(?=.*[0-9])(?=.*[^A-Za-z0-9])[\x21-\x7E]{6,24}"
+            title="Dài 6–24 ký tự, gồm chữ A–Z không dấu, số, ký tự đặc biệt và không có khoảng trắng"
+            required
+            autofocus
+            autocomplete="username"
+          >
+        </div>
+        <small
+          id="username-status"
+          class="validation-message"
+          aria-live="polite"
+        >
+          Dùng 6–24 ký tự, gồm chữ A–Z không dấu, số và ký tự đặc biệt.
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉</span>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="ban@example.com"
+            required
+            autocomplete="email"
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Mật khẩu</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Tạo mật khẩu an toàn"
+            minlength="6"
+            required
+            autocomplete="new-password"
+          >
+        </div>
+      </div>
+
+      <button id="register-button" class="primary-btn" type="submit">
+        Tạo tài khoản <span>➜</span>
+      </button>
+    </form>
+
+    <p class="center-link">
+      Đã có tài khoản?
+      <a href="{{ url_for('auth.login') }}">Đăng nhập ngay</a>
+    </p>
+  </section>
+</main>
+
+<script>
+  const usernameInput = document.getElementById("username");
+  const usernameStatus = document.getElementById("username-status");
+  const registerButton = document.getElementById("register-button");
+  let checkTimer;
+
+  usernameInput.addEventListener("input", () => {
+    clearTimeout(checkTimer);
+    usernameStatus.className = "validation-message checking";
+    usernameStatus.textContent = "Đang kiểm tra tên đăng nhập...";
+    registerButton.disabled = true;
+
+    checkTimer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ username: usernameInput.value });
+        const response = await fetch(
+          `{{ url_for('auth.check_username') }}?${params}`,
+        );
+        const result = await response.json();
+
+        usernameStatus.textContent = result.message;
+        usernameStatus.className = result.available
+          ? "validation-message available"
+          : "validation-message unavailable";
+        registerButton.disabled = !result.available;
+      } catch (error) {
+        usernameStatus.textContent = "Không thể kiểm tra lúc này.";
+        usernameStatus.className = "validation-message unavailable";
+        registerButton.disabled = false;
+      }
+    }, 400);
+  });
+</script>
+{% endblock %}

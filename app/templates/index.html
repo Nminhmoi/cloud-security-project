@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý tài liệu · CloudBox{% endblock %}
+{% block body_class %}document-page{% endblock %}
+
+{% block content %}
+<div class="document-app">
+  <aside class="document-sidebar">
+    <a class="sidebar-brand" href="{{ url_for('documents.index') }}">
+      <span class="mini-mark">★</span>
+      <span>CloudBox</span>
+    </a>
+    <p class="sidebar-label">QUẢN LÝ TÀI LIỆU</p>
+    <nav class="document-nav">
+      <button class="nav-item" data-view="mine">
+        <span>◼</span> Tài liệu của tôi <b>{{ documents|length }}</b>
+      </button>
+      <button class="nav-item" data-view="favorite">
+        <span>★</span> Tài liệu yêu thích
+        <b>{{ documents|selectattr('is_favorite', 'equalto', 1)|list|length }}</b>
+      </button>
+      <button class="nav-item" data-view="shared">
+        <span>♧</span> Tài liệu chia sẻ <b>{{ shared_documents|length }}</b>
+      </button>
+      <button class="nav-item" data-view="deleted">
+        <span>♲</span> Tài liệu đã xóa <b>{{ deleted_documents|length }}</b>
+      </button>
+    </nav>
+  </aside>
+
+  <div class="document-main">
+    <header class="document-header">
+      <div></div>
+      <div class="account-menu">
+        <a class="home-link" href="{{ url_for('documents.index') }}" title="Trang chủ">⌂</a>
+        <span class="avatar">{{ session['username'][0]|upper }}</span>
+        <strong>{{ session['username'] }}</strong>
+        <a class="logout" href="{{ url_for('auth.logout') }}">Đăng xuất</a>
+      </div>
+    </header>
+
+    <main class="document-content">
+      <section class="content-heading">
+        <div>
+          <p class="eyebrow-dark">KHÔNG GIAN CỦA BẠN</p>
+          <h1 id="view-title">Tài liệu của tôi</h1>
+          <p id="view-description">Quản lý, tải xuống và chia sẻ tài liệu của bạn.</p>
+        </div>
+        <form
+          class="compact-upload"
+          action="{{ url_for('documents.upload') }}"
+          method="POST"
+          enctype="multipart/form-data"
+        >
+          <label>
+            ↑ Tải tài liệu
+            <input type="file" name="file" required onchange="this.form.submit()">
+          </label>
+        </form>
+      </section>
+
+      <section class="people-search">
+        <div class="people-search-title">
+          <span>⌕</span>
+          <div>
+            <strong>Tìm người để chia sẻ</strong>
+            <small>Tìm theo tên đăng nhập hoặc email</small>
+          </div>
+        </div>
+        <div class="people-search-box">
+          <input
+            id="people-search-input"
+            type="search"
+            placeholder="Nhập ít nhất 2 ký tự..."
+            autocomplete="off"
+          >
+          <div id="people-results" class="people-results" hidden></div>
+        </div>
+        <div id="selected-person" class="selected-person" hidden></div>
+      </section>
+
+      {% macro owner_cards(items, view_name, deleted=false) %}
+        {% if items %}
+          <div class="document-grid">
+            {% for document in items %}
+              <article class="document-card">
+                <div class="file-symbol">◼</div>
+                <div class="card-copy">
+                  <strong title="{{ document['filename'] }}">{{ document['filename'] }}</strong>
+                  <small>Tài liệu #{{ document['id'] }}</small>
+                </div>
+                <div class="card-actions">
+                  {% if deleted %}
+                    <form
+                      action="{{ url_for('documents.restore_document', document_id=document['id']) }}"
+                      method="POST"
+                    >
+                      <button class="action-button">Khôi phục</button>
+                    </form>
+                  {% else %}
+                    <form
+                      action="{{ url_for('documents.favorite_document', document_id=document['id']) }}"
+                      method="POST"
+                    >
+                      <input type="hidden" name="view" value="{{ view_name }}">
+                      <button class="icon-button favorite-button" title="Yêu thích">
+                        {% if document['is_favorite'] %}★{% else %}☆{% endif %}
+                      </button>
+                    </form>
+                    <a
+                      class="action-button"
+                      href="{{ url_for('documents.download', document_id=document['id']) }}"
+                    >Tải xuống</a>
+                    <form
+                      action="{{ url_for('documents.delete', document_id=document['id']) }}"
+                      method="POST"
+                    >
+                      <button class="icon-button delete-button" title="Xóa">♲</button>
+                    </form>
+                  {% endif %}
+                </div>
+                {% if not deleted %}
+                  <form
+                    class="card-share share-to-selected"
+                    action="{{ url_for('share.share_document', document_id=document['id']) }}"
+                    method="POST"
+                  >
+                    <input class="selected-recipient" type="hidden" name="recipient" required>
+                    <button disabled>Chọn người để chia sẻ</button>
+                  </form>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <span class="empty-icon">◇</span>
+            <strong>Chưa có tài liệu</strong>
+            <div>Danh sách này hiện đang trống.</div>
+          </div>
+        {% endif %}
+      {% endmacro %}
+
+      <section class="view-panel" data-panel="mine">
+        {{ owner_cards(documents, 'mine') }}
+      </section>
+      <section class="view-panel" data-panel="favorite">
+        {{ owner_cards(documents|selectattr('is_favorite', 'equalto', 1)|list, 'favorite') }}
+      </section>
+      <section class="view-panel" data-panel="shared">
+        {% if shared_documents %}
+          <div class="document-grid">
+            {% for document in shared_documents %}
+              <article class="document-card">
+                <div class="file-symbol">♧</div>
+                <div class="card-copy">
+                  <strong>{{ document['filename'] }}</strong>
+                  <small>Chia sẻ bởi {{ document['owner'] }}</small>
+                </div>
+                <div class="card-actions">
+                  <a
+                    class="action-button"
+                    href="{{ url_for('documents.download', document_id=document['id']) }}"
+                  >Tải xuống</a>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <strong>Chưa có tài liệu được chia sẻ</strong>
+          </div>
+        {% endif %}
+      </section>
+      <section class="view-panel" data-panel="deleted">
+        {{ owner_cards(deleted_documents, 'deleted', true) }}
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+  const viewInfo = {
+    mine: ["Tài liệu của tôi", "Quản lý, tải xuống và chia sẻ tài liệu của bạn."],
+    favorite: ["Tài liệu yêu thích", "Những tài liệu quan trọng bạn đã đánh dấu."],
+    shared: ["Tài liệu chia sẻ", "Tài liệu người khác đã chia sẻ với bạn."],
+    deleted: ["Tài liệu đã xóa", "Khôi phục những tài liệu bạn còn cần."],
+  };
+
+  const searchInput = document.getElementById("people-search-input");
+  const results = document.getElementById("people-results");
+  const selected = document.getElementById("selected-person");
+  let searchTimer;
+
+  function showView(view) {
+    const selectedView = viewInfo[view] ? view : "mine";
+
+    document.querySelectorAll(".nav-item").forEach((element) => {
+      element.classList.toggle("active", element.dataset.view === selectedView);
+    });
+    document.querySelectorAll(".view-panel").forEach((element) => {
+      element.classList.toggle("active", element.dataset.panel === selectedView);
+    });
+
+    document.getElementById("view-title").textContent = viewInfo[selectedView][0];
+    document.getElementById("view-description").textContent = viewInfo[selectedView][1];
+    history.replaceState(null, "", `?view=${selectedView}`);
+  }
+
+  function escapeHtml(value) {
+    const element = document.createElement("span");
+    element.textContent = value;
+    return element.innerHTML;
+  }
+
+  function clearPerson() {
+    document.querySelectorAll(".selected-recipient").forEach((input) => {
+      input.value = "";
+    });
+    document.querySelectorAll(".share-to-selected button").forEach((button) => {
+      button.disabled = true;
+      button.textContent = "Chọn người để chia sẻ";
+    });
+    selected.hidden = true;
+  }
+
+  function selectPerson(user) {
+    document.querySelectorAll(".selected-recipient").forEach((input) => {
+      input.value = user.username;
+    });
+    document.querySelectorAll(".share-to-selected button").forEach((button) => {
+      button.disabled = false;
+      button.textContent = `Chia sẻ với ${user.username}`;
+    });
+
+    selected.innerHTML = `
+      <span class="selected-avatar">${escapeHtml(user.username[0].toUpperCase())}</span>
+      <span>
+        <strong>${escapeHtml(user.username)}</strong>
+        <small>${escapeHtml(user.email || "Không có email")}</small>
+      </span>
+      <button type="button" aria-label="Bỏ chọn">×</button>
+    `;
+    selected.hidden = false;
+    results.hidden = true;
+    selected.querySelector("button").onclick = clearPerson;
+  }
+
+  async function searchUsers(query) {
+    try {
+      const url = `{{ url_for("share.search_users") }}?q=${encodeURIComponent(query)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      results.innerHTML = "";
+      if (!data.users.length) {
+        results.innerHTML = '<div class="search-status">Không tìm thấy người dùng</div>';
+        return;
+      }
+
+      data.users.forEach((user) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "person-result";
+        button.innerHTML = `
+          <span class="selected-avatar">${escapeHtml(user.username[0].toUpperCase())}</span>
+          <span>
+            <strong>${escapeHtml(user.username)}</strong>
+            <small>${escapeHtml(user.email || "Không có email")}</small>
+          </span>
+        `;
+        button.onclick = () => selectPerson(user);
+        results.appendChild(button);
+      });
+    } catch (error) {
+      results.innerHTML = '<div class="search-status">Không thể tìm kiếm lúc này</div>';
+    }
+  }
+
+  document.querySelectorAll(".nav-item").forEach((element) => {
+    element.onclick = () => showView(element.dataset.view);
+  });
+
+  searchInput.oninput = () => {
+    clearTimeout(searchTimer);
+    const query = searchInput.value.trim();
+
+    if (query.length < 2) {
+      results.hidden = true;
+      return;
+    }
+
+    results.innerHTML = '<div class="search-status">Đang tìm...</div>';
+    results.hidden = false;
+    searchTimer = setTimeout(() => searchUsers(query), 250);
+  };
+
+  showView({{ active_view|tojson }});
+</script>
+{% endblock %}

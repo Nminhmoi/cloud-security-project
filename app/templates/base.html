@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5b21b6">
+  <title>{% block title %}CloudBox{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  >
+  <link rel="stylesheet" href="{{ url_for('static', filename='people-search.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='blue-theme.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="aurora aurora-one"></div>
+  <div class="aurora aurora-two"></div>
+  {% block content %}{% endblock %}
+</body>
+</html>
+

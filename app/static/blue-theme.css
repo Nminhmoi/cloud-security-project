@@ -1,0 +1,118 @@
+:root{
+  --primary: #0284c7;
+  --primary-dark: #075985;
+  --cyan: #38bdf8;
+  --pink: #0ea5e9;
+  --shadow: 0 24px 70px rgba(2,132,199,.14)
+}
+
+body{
+  background: linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 48%,#f8fcff 100%)
+}
+
+.aurora-one{
+  background: linear-gradient(135deg,#0284c7,#67e8f9)
+}
+
+.aurora-two{
+  background: linear-gradient(135deg,#38bdf8,#0ea5e9)
+}
+
+.brand-mark, .mini-mark{
+  background: linear-gradient(135deg,#0284c7,#38bdf8);
+  box-shadow: 0 14px 30px rgba(2,132,199,.24)
+}
+
+.primary-btn{
+  background: linear-gradient(110deg,#0369a1,#0284c7,#38bdf8);
+  box-shadow: 0 12px 24px rgba(2,132,199,.22)
+}
+
+.primary-btn:hover{
+  box-shadow: 0 16px 30px rgba(2,132,199,.3)
+}
+
+.field input:focus, .people-search-box > input:focus{
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(14,165,233,.12)
+}
+
+.step.active, .step.done{
+  background: linear-gradient(135deg,#0284c7,#38bdf8)
+}
+
+.step-line.done{
+  background: linear-gradient(90deg,#0284c7,#38bdf8)
+}
+
+.hero-copy{
+  background: linear-gradient(125deg,rgba(3,105,161,.97),rgba(2,132,199,.93),rgba(56,189,248,.88))
+}
+
+.upload-zone{
+  border-color: #7dd3fc;
+  background: #f0f9ff
+}
+
+.upload-zone:hover{
+  border-color: #0ea5e9;
+  background: #e0f2fe
+}
+
+.upload-zone input::file-selector-button, .badge, .share-btn, .action-button, .share-to-selected button{
+  background: #e0f2fe;
+  color: #0369a1
+}
+
+.nav-item:hover, .nav-item.active{
+  background: #e0f2fe;
+  color: #075985
+}
+
+.nav-item.active{
+  box-shadow: inset 3px 0 #0284c7
+}
+
+.nav-item.active b{
+  color: #0284c7
+}
+
+.compact-upload label{
+  background: linear-gradient(110deg,#0369a1,#0ea5e9)
+}
+
+.document-card:hover{
+  border-color: #7dd3fc;
+  box-shadow: 0 13px 32px rgba(2,132,199,.1)
+}
+
+.file-symbol{
+  background: #e0f2fe;
+  color: #0284c7
+}
+
+.people-search-title > span{
+  color: #0284c7
+}
+
+.person-result:hover{
+  background: #f0f9ff
+}
+
+.selected-avatar{
+  background: linear-gradient(135deg,#0284c7,#38bdf8)
+}
+
+.eyebrow-dark{
+  color: #0284c7!important
+}
+
+.document-content .empty-icon{
+  color: #38bdf8
+}
+
+.home-link:hover{
+  border-color: #7dd3fc;
+  background: #f0f9ff;
+  color: #0284c7
+}
