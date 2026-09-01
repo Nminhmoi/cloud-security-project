@@ -1,0 +1,58 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Vai trò{% endblock %}{% block breadcrumb %}Vai trò & phân quyền{% endblock %}
+{% block admin_content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">KIỂM SOÁT TRUY CẬP</p>
+      <h1>Vai trò & phân quyền</h1>
+      <p>Gán hoặc thu hồi quyền cho từng nhóm người dùng trong hệ thống.</p>
+    </div>
+    <span class="counter-chip">{{ roles|length }} vai trò · {{ permissions|length }} quyền</span>
+  </section>
+  <section class="roles-grid">
+    {% for role in roles %}<article class="paper-card role-card"><div class="role-card-head"><span class="role-symbol color-{{ loop.index0 % 4 }}"><svg><use href="#i-shield" /></svg></span><div><span>VAI TRÒ #{{ role.id }}</span><h2>{{ role.name|title }}</h2></div><span class="permission-count">{{ role.permissions|length }} quyền</span></div><p class="role-description">{{ role.description or 'Chưa có mô tả cho vai trò này.' }}</p><div class="permission-list">{% for perm in role.permissions %}<div class="permission-row"><span><strong>{{ perm.name }}</strong><small>{{ perm.description or 'Quyền hệ thống' }}</small></span><button onclick="revokePermission({{ role.id }},{{ perm.id }})"
+        title="Thu hồi quyền">×</button></div>{% else %}<div class="empty-mini">Vai trò này chưa được gán quyền.</div>{% endfor %}</div><div class="add-permission"><select id="perm-select-{{ role.id }}"><option value="">Chọn quyền để thêm...</option>{% for perm in permissions %}{% if perm not in role.permissions %}<option value="{{ perm.id }}">{{ perm.name }}</option>{% endif %}{% endfor %}</select><button class="primary-button" onclick="addPermission({{ role.id }})"><svg><use href="#i-plus" /></svg> Thêm</button></div></article>{% endfor %}
+  </section>
+{% endblock %}
+{% block admin_scripts %}
+  <script>
+      async function roleApi(url, permissionId) {
+          const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      permission_id: Number(permissionId)
+                  })
+              }),
+              data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Không thể cập nhật quyền');
+          return data
+      }
+      async function addPermission(roleId) {
+          const select = document.getElementById(`perm-select-${roleId}`);
+          if (!select.value) {
+              showToast('Vui lòng chọn một quyền', 'error');
+              return
+          }
+          try {
+              const data = await roleApi(`/admin/roles/${roleId}/assign-permission`, select.value);
+              showToast(data.success);
+              setTimeout(() => location.reload(), 600)
+          } catch (error) {
+              showToast(error.message, 'error')
+          }
+      }
+      async function revokePermission(roleId, permissionId) {
+          if (!confirm('Thu hồi quyền này khỏi vai trò?')) return;
+          try {
+              const data = await roleApi(`/admin/roles/${roleId}/revoke-permission`, permissionId);
+              showToast(data.success);
+              setTimeout(() => location.reload(), 600)
+          } catch (error) {
+              showToast(error.message, 'error')
+          }
+      }
+  </script>
+{% endblock %}

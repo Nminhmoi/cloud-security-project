@@ -58,10 +58,14 @@ def upload():
         return "Chưa chọn file!", 400
 
     filename = save_upload(file, session["user_id"])
+    file_size = file.content_length
+    if not file_size:
+        file.stream.seek(0, 2)
+        file_size = file.stream.tell()
     connection = get_db_connection()
     connection.execute(
-        "INSERT INTO documents (filename, user_id) VALUES (?, ?)",
-        (filename, session["user_id"]),
+        "INSERT INTO documents (filename, user_id, file_size, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+        (filename, session["user_id"], file_size or 0),
     )
     connection.commit()
     connection.close()
@@ -146,4 +150,3 @@ def restore_document(document_id):
     connection.commit()
     connection.close()
     return redirect(url_for("documents.index", view="deleted"))
-

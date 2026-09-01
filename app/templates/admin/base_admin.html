@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{% block admin_title %}Quản trị{% endblock %} · CloudBox{% endblock %}
+{% block body_class %}admin-body{% endblock %}
+{% block content %}
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4" />
+    <path d="m10.85 12.15 8.3-8.3M18 5l2 2M15 8l2 2" />
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6M8 13h8M8 17h6" />
+    </symbol>
+    <symbol id="i-home" viewBox="0 0 24 24">
+    <path d="m3 11 9-8 9 8v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <path d="M9 22V12h6v10" />
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24">
+    <path d="M4 6h16M4 12h16M4 18h16" />
+    </symbol>
+    <symbol id="i-power" viewBox="0 0 24 24">
+    <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" />
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+    <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6" />
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+    <path d="M12 5v14M5 12h14" />
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+    </symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24">
+    <path d="M10 17l5-5-5-5M15 12H3M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
+    </symbol>
+  </svg>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-brand"><span class="brand-mark">C</span><span><strong>CloudBox</strong><small>Admin portal</small></span></div>
+      <nav class="admin-nav" aria-label="Điều hướng quản trị">
+        <p class="nav-label">Không gian làm việc</p>
+        <a class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+           href="{{ url_for('admin.dashboard') }}"><svg><use href="#i-grid" /></svg><span>Tổng quan</span></a>
+        <a class="{% if request.endpoint == 'admin.users_list' %}active{% endif %}"
+           href="{{ url_for('admin.users_list') }}"><svg><use href="#i-users" /></svg><span>Người dùng</span></a>
+        <a class="{% if request.endpoint == 'admin.documents_list' %}active{% endif %}"
+           href="{{ url_for('admin.documents_list') }}"><svg><use href="#i-file" /></svg><span>Quản lý tài liệu</span></a>
+        <a class="{% if request.endpoint == 'admin.activity_logs' %}active{% endif %}"
+           href="{{ url_for('admin.activity_logs') }}"><svg><use href="#i-clock" /></svg><span>Nhật ký hoạt động</span></a>
+        <a href="{{ url_for('auth.logout') }}">
+          <svg>
+            <use href="#i-logout" />
+          </svg><span>Đăng xuất</span></a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="admin-avatar">{{ session.get('username', 'A')[:1] |upper }}</div>
+          <div><strong>{{ session.get('username', 'Admin') }}</strong><small>Quản trị viên</small></div>
+          <a href="{{ url_for('auth.logout') }}" title="Đăng xuất">
+            <svg>
+              <use href="#i-logout" />
+            </svg>
+          </a>
+        </div>
+      </aside>
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+      <main class="admin-main">
+        <header class="admin-topbar"><button class="menu-toggle" id="menuToggle" aria-label="Mở menu"><svg><use href="#i-menu" /></svg></button><div class="topbar-path">Quản trị <span>/</span> {% block breadcrumb %}Tổng quan{% endblock %}</div><div class="topbar-status"><span></span> Hệ thống an toàn</div></header>
+        <div class="admin-content">
+          {% block admin_content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+    <div id="adminToast" class="admin-toast" role="status"></div>
+    <script>
+        const sidebar = document.getElementById('adminSidebar'),
+            overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show')
+        }
+        document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('adminToast');
+            toast.textContent = message;
+            toast.className = `admin-toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 2800)
+        }
+    </script>
+    {% block admin_scripts %}{% endblock %}
+{% endblock %}

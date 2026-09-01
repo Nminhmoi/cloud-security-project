@@ -1,0 +1,63 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Nhật ký hoạt động{% endblock %}
+{% block breadcrumb %}Nhật ký hoạt động{% endblock %}
+{% block admin_content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">AUDIT TRAIL</p>
+      <h1>Nhật ký hoạt động</h1>
+      <p>Theo dõi các thao tác quản trị quan trọng đã diễn ra trong hệ thống.</p>
+    </div>
+    <span class="counter-chip">{{ logs|length }} sự kiện gần nhất</span>
+  </section>
+  <section class="paper-card table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <svg>
+          <use href="#i-search" />
+        </svg>
+        <input id="logSearch"
+               type="search"
+               placeholder="Tìm người thực hiện hoặc thao tác...">
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Thời gian</th>
+            <th>Người thực hiện</th>
+            <th>Thao tác</th>
+            <th>Đối tượng</th>
+            <th>Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+            <tr class="log-row">
+              <td class="muted-cell">{{ log.created_at }}</td>
+              <td><strong>{{ log.actor_name }}</strong></td>
+              <td><span class="category-badge">{{ log.action }}</span></td>
+              <td>{{ log.target_type }}{% if log.target_id %} #{{ log.target_id }}{% endif %}</td>
+              <td class="muted-cell">{{ log.details or 'Không có chi tiết' }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="empty-state">Chưa có hoạt động quản trị nào được ghi nhận.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+{% block admin_scripts %}
+  <script>
+      document.getElementById('logSearch').addEventListener('input', function() {
+          const query = this.value.toLowerCase().trim();
+          document.querySelectorAll('.log-row').forEach(row => {
+              row.hidden = !row.textContent.toLowerCase().includes(query);
+          });
+      });
+  </script>
+{% endblock %}

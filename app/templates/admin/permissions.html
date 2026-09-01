@@ -1,0 +1,35 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Quyền hạn{% endblock %}{% block breadcrumb %}Danh mục quyền{% endblock %}
+{% block admin_content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">DANH MỤC HỆ THỐNG</p>
+      <h1>Quyền hạn</h1>
+      <p>Tra cứu các quyền được dùng để xây dựng chính sách truy cập.</p>
+    </div>
+    <span class="counter-chip">{{ permissions|length }} quyền</span>
+  </section>
+  <section class="paper-card table-card"><div class="table-toolbar"><div class="search-box"><svg><use href="#i-search" /></svg><input id="searchInput"
+       type="search"
+       placeholder="Tìm tên hoặc mô tả quyền..."></div><a class="primary-button" href="{{ url_for('admin.roles_list') }}"><svg><use href="#i-shield" /></svg> Phân quyền</a></div><div class="table-scroll"><table class="admin-table"><thead><tr><th>Mã</th><th>Tên quyền</th><th>Mô tả</th><th>Nhóm</th></tr></thead><tbody>{% for perm in permissions %}<tr class="permission-table-row"><td><span class="id-chip">#{{ perm.id }}</span></td><td><code>{{ perm.name }}</code></td><td class="muted-cell">{{ perm.description or 'Chưa có mô tả' }}</td><td><span class="category-badge">{% if 'document' in perm.name %}Tài liệu{% elif 'user' in perm.name or 'role' in perm.name or 'system' in perm.name or 'report' in perm.name %}Hệ thống{% else %}Khác{% endif %}</span></td></tr>{% else %}<tr><td colspan="4" class="empty-state">Chưa có quyền nào.</td></tr>{% endfor %}</tbody></table></div></section>
+  <section class="info-banner">
+    <span class="role-symbol color-1">
+      <svg>
+        <use href="#i-key" />
+      </svg>
+    </span>
+    <div>
+      <strong>Quyền được áp dụng như thế nào?</strong>
+      <p>Mỗi vai trò chứa một tập quyền. Người dùng tự động nhận toàn bộ quyền của vai trò đang được gán.</p>
+    </div>
+    <a href="{{ url_for('admin.roles_list') }}">Đi tới vai trò →</a>
+  </section>
+{% endblock %}
+{% block admin_scripts %}
+  <script>
+      document.getElementById('searchInput').addEventListener('input', function() {
+          const q = this.value.toLowerCase().trim();
+          document.querySelectorAll('.permission-table-row').forEach(row => row.hidden = !row.textContent.toLowerCase().includes(q))
+      });
+  </script>
+{% endblock %}

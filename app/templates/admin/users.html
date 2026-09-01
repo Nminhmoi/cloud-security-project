@@ -1,0 +1,122 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_title %}Người dùng{% endblock %}{% block breadcrumb %}Người dùng{% endblock %}
+{% block admin_content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">QUẢN LÝ TÀI KHOẢN</p>
+      <h1>Người dùng</h1>
+      <p>Kiểm soát vai trò, trạng thái và quyền truy cập của từng tài khoản.</p>
+    </div>
+    <span class="counter-chip">{{ users|length }} tài khoản</span>
+  </section>
+  <section class="paper-card table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <svg>
+          <use href="#i-search" />
+        </svg><input id="searchInput"
+       type="search"
+       placeholder="Tìm theo tên hoặc email..."
+       autocomplete="off">
+      </div>
+      <div class="table-summary"><span><i class="dot green-dot"></i> Đang hoạt động</span><strong id="visibleCount">{{ users|length }}</strong></div>
+    </div>
+    <div class="table-scroll">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Người dùng</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable">
+          {% for user in users %}<tr class="user-row" data-user-id="{{ user.id }}"><td><div class="user-cell"><span class="table-avatar color-{{ loop.index0 % 4 }}">{{ user.username[:1]|upper }}</span><span><strong class="cell-username">{{ user.username }}</strong><small class="cell-email">{{ user.email or 'Chưa cập nhật email' }}</small></span></div></td><td><select class="role-select"
+        aria-label="Vai trò của {{ user.username }}"
+        onchange="changeRole({{ user.id }},this.value)">{% for role in roles %}<option value="{{ role.id }}"
+        {% if user.role_id == role.id %}selected{% endif %}>{{ role.name|title }}</option>{% endfor %}</select></td><td><span class="status-badge {% if user.is_active %}active{% else %}inactive{% endif %}"><i></i>{{ 'Hoạt động' if user.is_active else 'Đã khóa' }}</span></td><td><div class="row-actions"><button class="icon-button toggle"
+        onclick="toggleActive({{ user.id }})"
+        title="Đổi trạng thái"><svg><use href="#i-power" /></svg></button><button class="icon-button danger"
+        onclick="deleteUser({{ user.id }})"
+        title="Xóa người dùng"><svg><use href="#i-trash" /></svg></button></div></td></tr>{% else %}<tr><td colspan="4" class="empty-state">Chưa có người dùng nào.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+{% block admin_scripts %}
+  <script>
+      const currentUserId = {{ session.get('user_id',0) }},
+          rows = [...document.querySelectorAll('.user-row')];
+      document.getElementById('searchInput').addEventListener('input', function() {
+          const q = this.value.toLowerCase().trim();
+          let count = 0;
+          rows.forEach(row => {
+              const show = row.textContent.toLowerCase().includes(q);
+              row.hidden = !show;
+              if (show) count++
+          });
+          document.getElementById('visibleCount').textContent = count
+      });
+      async function api(url, options = {}) {
+          const response = await fetch(url, options),
+              data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Không thể thực hiện thao tác');
+          return data
+      }
+      async function changeRole(userId, roleId) {
+          if (userId === currentUserId) {
+              showToast('Bạn không thể đổi vai trò của chính mình', 'error');
+              location.reload();
+              return
+          }
+          try {
+              const data = await api(`/admin/users/${userId}/role`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      role_id: Number(roleId)
+                  })
+              });
+              showToast(data.success)
+          } catch (error) {
+              showToast(error.message, 'error');
+              setTimeout(() => location.reload(), 900)
+          }
+      }
+      async function toggleActive(userId) {
+          if (userId === currentUserId) {
+              showToast('Bạn không thể khóa tài khoản của chính mình', 'error');
+              return
+          }
+          try {
+              const data = await api(`/admin/users/${userId}/toggle-active`, {
+                  method: 'POST'
+              });
+              showToast(data.success);
+              setTimeout(() => location.reload(), 600)
+          } catch (error) {
+              showToast(error.message, 'error')
+          }
+      }
+      async function deleteUser(userId) {
+          if (userId === currentUserId) {
+              showToast('Bạn không thể xóa tài khoản của chính mình', 'error');
+              return
+          }
+          if (!confirm('Xóa người dùng này? Tài liệu liên quan cũng sẽ bị xóa và không thể hoàn tác.')) return;
+          try {
+              const data = await api(`/admin/users/${userId}/delete`, {
+                  method: 'POST'
+              });
+              showToast(data.success);
+              setTimeout(() => location.reload(), 600)
+          } catch (error) {
+              showToast(error.message, 'error')
+          }
+      }
+  </script>
+{% endblock %}

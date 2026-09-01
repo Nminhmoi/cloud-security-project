@@ -100,7 +100,12 @@ def login():
 
     connection = get_db_connection()
     user = connection.execute(
-        "SELECT * FROM users WHERE username = ?",
+        """
+        SELECT u.*, r.name AS role_name
+        FROM users u
+        LEFT JOIN roles r ON r.id = u.role_id
+        WHERE u.username = ?
+        """,
         (request.form["username"],),
     ).fetchone()
     connection.close()
@@ -112,9 +117,14 @@ def login():
     if not password_is_valid:
         return "Sai tài khoản hoặc mật khẩu!", 401
 
+    if not user["is_active"]:
+        return "Tài khoản đã bị vô hiệu hóa!", 403
+
     session.clear()
     session["user_id"] = user["id"]
     session["username"] = user["username"]
+    if user["role_name"] == "admin":
+        return redirect(url_for("admin.dashboard"))
     return redirect(url_for("documents.index"))
 
 
