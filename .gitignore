@@ -1,0 +1,21 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Local Python environments
+.venv/
+venv/
+
+# Runtime databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# User-uploaded runtime data
+app/uploads/
+
+# Local secrets and configuration
+.env
+.env.*
+!.env.example
