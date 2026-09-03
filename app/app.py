@@ -6,6 +6,7 @@ from routes.auth import auth_bp
 from routes.documents import documents_bp
 from routes.share import share_bp
 from routes.admin import admin_bp
+from routes.api import api_bp
 
 
 def create_app(config_class=Config):
@@ -16,6 +17,7 @@ def create_app(config_class=Config):
     app.register_blueprint(documents_bp)
     app.register_blueprint(share_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(api_bp)
     init_db(app)
 
     @app.before_request
