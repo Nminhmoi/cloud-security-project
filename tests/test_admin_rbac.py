@@ -29,6 +29,7 @@ class AdminRbacTests(unittest.TestCase):
             connection = get_db_connection()
             connection.execute("DELETE FROM document_shares")
             connection.execute("DELETE FROM documents")
+            connection.execute("DELETE FROM activity_logs")
             connection.execute("DELETE FROM users")
             password = generate_password_hash("secret123")
             connection.executemany(
@@ -81,6 +82,34 @@ class AdminRbacTests(unittest.TestCase):
             404,
         )
 
+    def test_admin_can_change_user_role(self):
+        self.login_session(1, "admin-one")
+
+        response = self.client.post("/admin/users/3/role", json={"role_id": 1})
+        user_response = self.client.get("/admin/users/3")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(user_response.status_code, 200)
+        self.assertEqual(user_response.get_json()["role_id"], 1)
+        self.assertEqual(user_response.get_json()["role_name"], "admin")
+
+    def test_admin_can_revoke_and_assign_role_permission(self):
+        self.login_session(1, "admin-one")
+
+        revoked = self.client.post(
+            "/admin/roles/2/revoke-permission", json={"permission_id": 5}
+        )
+        self.assertEqual(revoked.status_code, 200)
+        permissions = self.client.get("/admin/roles/2/permissions").get_json()
+        self.assertNotIn(5, [permission["id"] for permission in permissions])
+
+        assigned = self.client.post(
+            "/admin/roles/2/assign-permission", json={"permission_id": 5}
+        )
+        self.assertEqual(assigned.status_code, 200)
+        permissions = self.client.get("/admin/roles/2/permissions").get_json()
+        self.assertIn(5, [permission["id"] for permission in permissions])
+
     def test_delete_user_removes_incoming_and_outgoing_shares(self):
         with app.app_context():
             connection = get_db_connection()
@@ -92,6 +121,95 @@ class AdminRbacTests(unittest.TestCase):
             connection.close()
         self.login_session(1, "admin-one")
         self.assertEqual(self.client.post("/admin/users/3/delete").status_code, 200)
+
+    def test_toggle_user_active_is_audited(self):
+        self.login_session(1, "admin-one")
+
+        disable_response = self.client.post("/admin/users/3/toggle-active")
+        enable_response = self.client.post("/admin/users/3/toggle-active")
+
+        self.assertEqual(disable_response.status_code, 200)
+        self.assertEqual(disable_response.get_json()["is_active"], 0)
+        self.assertEqual(enable_response.status_code, 200)
+        self.assertEqual(enable_response.get_json()["is_active"], 1)
+        with app.app_context():
+            connection = get_db_connection()
+            user = connection.execute(
+                "SELECT is_active FROM users WHERE id = 3"
+            ).fetchone()
+            logs = connection.execute(
+                """SELECT actor_user_id, action, target_type, target_id, details
+                   FROM activity_logs ORDER BY id"""
+            ).fetchall()
+            connection.close()
+        self.assertEqual(user["is_active"], 1)
+        self.assertEqual([log["action"] for log in logs], ["disable_user", "enable_user"])
+        for log in logs:
+            self.assertEqual(log["actor_user_id"], 1)
+            self.assertEqual(log["target_type"], "user")
+            self.assertEqual(log["target_id"], 3)
+            self.assertIn("normal-user", log["details"])
+
+    def test_delete_user_is_audited_and_keeps_target_identity(self):
+        self.login_session(1, "admin-one")
+
+        response = self.client.post("/admin/users/3/delete")
+
+        self.assertEqual(response.status_code, 200)
+        with app.app_context():
+            connection = get_db_connection()
+            user = connection.execute("SELECT 1 FROM users WHERE id = 3").fetchone()
+            log = connection.execute(
+                """SELECT actor_user_id, action, target_type, target_id, details
+                   FROM activity_logs"""
+            ).fetchone()
+            connection.close()
+        self.assertIsNone(user)
+        self.assertEqual(log["actor_user_id"], 1)
+        self.assertEqual(log["action"], "delete_user")
+        self.assertEqual(log["target_type"], "user")
+        self.assertEqual(log["target_id"], 3)
+        self.assertIn("normal-user", log["details"])
+
+    def test_user_management_api_requires_admin(self):
+        self.login_session(3, "normal-user")
+
+        toggle_response = self.client.post("/admin/users/2/toggle-active")
+        delete_response = self.client.post("/admin/users/2/delete")
+
+        self.assertEqual(toggle_response.status_code, 403)
+        self.assertEqual(delete_response.status_code, 403)
+        with app.app_context():
+            connection = get_db_connection()
+            target = connection.execute(
+                "SELECT is_active FROM users WHERE id = 2"
+            ).fetchone()
+            log_count = connection.execute(
+                "SELECT COUNT(*) AS count FROM activity_logs"
+            ).fetchone()["count"]
+            connection.close()
+        self.assertEqual(target["is_active"], 1)
+        self.assertEqual(log_count, 0)
+
+    def test_rejected_self_management_does_not_create_audit_log(self):
+        self.login_session(1, "admin-one")
+
+        toggle_response = self.client.post("/admin/users/1/toggle-active")
+        delete_response = self.client.post("/admin/users/1/delete")
+
+        self.assertEqual(toggle_response.status_code, 400)
+        self.assertEqual(delete_response.status_code, 400)
+        with app.app_context():
+            connection = get_db_connection()
+            admin = connection.execute(
+                "SELECT is_active FROM users WHERE id = 1"
+            ).fetchone()
+            log_count = connection.execute(
+                "SELECT COUNT(*) AS count FROM activity_logs"
+            ).fetchone()["count"]
+            connection.close()
+        self.assertEqual(admin["is_active"], 1)
+        self.assertEqual(log_count, 0)
 
     def test_disabled_user_cannot_login_or_keep_a_session(self):
         with app.app_context():

@@ -192,13 +192,28 @@ def toggle_user_active(user_id):
         return jsonify({"error": "Không thể vô hiệu hóa tài khoản của chính mình"}), 400
     connection = get_db_connection()
     try:
-        user = connection.execute("SELECT is_active FROM users WHERE id = ?", (user_id,)).fetchone()
+        user = connection.execute(
+            "SELECT username, email, is_active FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
         if not user:
             return jsonify({"error": "Người dùng không tồn tại"}), 404
         if user["is_active"] and _is_last_active_admin(connection, user_id):
             return jsonify({"error": "Không thể vô hiệu hóa admin đang hoạt động cuối cùng"}), 400
         new_status = 0 if user["is_active"] else 1
         connection.execute("UPDATE users SET is_active = ? WHERE id = ?", (new_status, user_id))
+        action = "enable_user" if new_status else "disable_user"
+        status_label = "kích hoạt" if new_status else "vô hiệu hóa"
+        connection.execute(
+            """INSERT INTO activity_logs
+               (actor_user_id, action, target_type, target_id, details)
+               VALUES (?, ?, 'user', ?, ?)""",
+            (
+                session.get("user_id"),
+                action,
+                user_id,
+                f"Đã {status_label} tài khoản {user['username']} ({user['email'] or 'không có email'})",
+            ),
+        )
         connection.commit()
         return jsonify({"success": "Cập nhật trạng thái thành công", "is_active": new_status})
     finally:
@@ -212,7 +227,13 @@ def delete_user(user_id):
         return jsonify({"error": "Không thể xóa tài khoản của chính mình"}), 400
     connection = get_db_connection()
     try:
-        if not connection.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+        user = connection.execute(
+            """SELECT u.username, u.email, r.name AS role_name
+               FROM users u LEFT JOIN roles r ON r.id = u.role_id
+               WHERE u.id = ?""",
+            (user_id,),
+        ).fetchone()
+        if not user:
             return jsonify({"error": "Người dùng không tồn tại"}), 404
         if _is_last_active_admin(connection, user_id):
             return jsonify({"error": "Không thể xóa admin đang hoạt động cuối cùng"}), 400
@@ -222,6 +243,16 @@ def delete_user(user_id):
             (user_id,),
         )
         connection.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
+        connection.execute(
+            """INSERT INTO activity_logs
+               (actor_user_id, action, target_type, target_id, details)
+               VALUES (?, 'delete_user', 'user', ?, ?)""",
+            (
+                session.get("user_id"),
+                user_id,
+                f"Đã xóa tài khoản {user['username']} ({user['email'] or 'không có email'}), vai trò {user['role_name'] or 'chưa gán'}",
+            ),
+        )
         connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
         connection.commit()
         return jsonify({"success": "Xóa người dùng thành công"})
