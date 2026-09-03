@@ -19,3 +19,9 @@ app/uploads/
 .env
 .env.*
 !.env.example
+
+# Local Terraform demo files
+terraform/main.tf
+terraform/provider.tf
+terraform/variables.tf
+terraform/outputs.tf
