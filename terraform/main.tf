@@ -124,6 +124,9 @@ resource "aws_instance" "web_server" {
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.id
 
+  user_data_replace_on_change = true
+  depends_on                  = [aws_iam_role_policy_attachment.ssm_policy_attach]
+
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
@@ -136,9 +139,10 @@ resource "aws_instance" "web_server" {
     volume_size = 20
   }
 
-# User Data: Cài Docker, clone repo, build & chạy App Flask
+  # User Data: Cài Docker, clone repo, build & chạy App Flask
   user_data = <<-EOF
               #!/bin/bash
+              set -euxo pipefail
               apt-get update -y
               apt-get install -y docker.io git
               systemctl start docker
@@ -148,8 +152,8 @@ resource "aws_instance" "web_server" {
               git clone https://github.com/Nminhmoi/cloud-security-project.git /app
               cd /app
 
-              # Build Docker Image
-              docker build -t cloud-security-app .
+              # Build Docker Image từ thư mục docker/
+              docker build -t cloud-security-app -f docker/Dockerfile .
 
               # Khởi chạy Container, map Port 80 của EC2 vào Port 5000 của Flask App
               docker run -d -p 80:5000 --name web-app cloud-security-app
