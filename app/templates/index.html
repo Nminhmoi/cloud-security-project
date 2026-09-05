@@ -7,23 +7,23 @@
 <div class="document-app">
   <aside class="document-sidebar">
     <a class="sidebar-brand" href="{{ url_for('documents.index') }}">
-      <span class="mini-mark">★</span>
+      <span class="mini-mark" aria-hidden="true">CB</span>
       <span>CloudBox</span>
     </a>
     <p class="sidebar-label">QUẢN LÝ TÀI LIỆU</p>
     <nav class="document-nav">
       <button class="nav-item" data-view="mine">
-        <span>◼</span> Tài liệu của tôi <b>{{ documents|length }}</b>
+        Tài liệu của tôi <b>{{ documents|length }}</b>
       </button>
       <button class="nav-item" data-view="favorite">
-        <span>★</span> Tài liệu yêu thích
+        Tài liệu yêu thích
         <b>{{ documents|selectattr('is_favorite', 'equalto', 1)|list|length }}</b>
       </button>
       <button class="nav-item" data-view="shared">
-        <span>♧</span> Tài liệu chia sẻ <b>{{ shared_documents|length }}</b>
+        Tài liệu chia sẻ <b>{{ shared_documents|length }}</b>
       </button>
       <button class="nav-item" data-view="deleted">
-        <span>♲</span> Tài liệu đã xóa <b>{{ deleted_documents|length }}</b>
+        Tài liệu đã xóa <b>{{ deleted_documents|length }}</b>
       </button>
     </nav>
   </aside>
@@ -32,59 +32,60 @@
     <header class="document-header">
       <div></div>
       <div class="account-menu">
-        <a class="home-link" href="{{ url_for('documents.index') }}" title="Trang chủ">⌂</a>
         <span class="avatar">{{ session['username'][0]|upper }}</span>
         <strong>{{ session['username'] }}</strong>
         <a class="logout" href="{{ url_for('auth.logout') }}">Đăng xuất</a>
       </div>
     </header>
 
-    <main class="document-content">
+    <main class="document-content" id="main-content">
       <section class="content-heading">
         <div>
-          <p class="eyebrow-dark">KHÔNG GIAN CỦA BẠN</p>
           <h1 id="view-title">Tài liệu của tôi</h1>
           <p id="view-description">Quản lý, tải xuống và chia sẻ tài liệu của bạn.</p>
         </div>
         <form
           class="compact-upload"
+          data-upload-zone
           action="{{ url_for('documents.upload') }}"
           method="POST"
           enctype="multipart/form-data"
         >
-          <label>
-            ↑ Tải tài liệu
-            <input type="file" name="file" required onchange="this.form.submit()">
-          </label>
+          <label for="document-upload">Chọn tài liệu</label>
+          <input id="document-upload" type="file" name="file" required aria-describedby="upload-hint">
+          <small id="upload-hint">Kiểm tra đúng file trước khi tải lên.</small>
+          <div class="upload-drop-message" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v4h14v-4"/></svg>
+            <strong>Thả tài liệu vào đây</strong>
+          </div>
+          <div id="upload-preview" class="upload-preview" aria-live="polite" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l4 4v16H6V2Z"/><path d="M14 2v5h5M9 13h6M9 17h4"/></svg>
+            <span><strong id="upload-filename"></strong><small id="upload-metadata"></small></span>
+            <button id="clear-upload" type="button" aria-label="Bỏ tài liệu đã chọn">Chọn lại</button>
+          </div>
+          <button id="upload-submit" type="submit" disabled>Tải lên</button>
         </form>
       </section>
 
-      <section class="people-search">
-        <div class="people-search-title">
-          <span>⌕</span>
+      {% if request.args.get('uploaded') %}
+        <div class="workspace-success" role="status" aria-live="polite" data-upload-success>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
           <div>
-            <strong>Tìm người để chia sẻ</strong>
-            <small>Tìm theo tên đăng nhập hoặc email</small>
+            <strong>Tài liệu đã vào đúng không gian của bạn</strong>
+            <span>“{{ request.args.get('uploaded') }}” đã sẵn sàng để tải xuống hoặc chia sẻ.</span>
           </div>
+          <button type="button" data-dismiss-success aria-label="Ẩn thông báo tải lên thành công">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
         </div>
-        <div class="people-search-box">
-          <input
-            id="people-search-input"
-            type="search"
-            placeholder="Nhập ít nhất 2 ký tự..."
-            autocomplete="off"
-          >
-          <div id="people-results" class="people-results" hidden></div>
-        </div>
-        <div id="selected-person" class="selected-person" hidden></div>
-      </section>
+      {% endif %}
 
       {% macro owner_cards(items, view_name, deleted=false) %}
         {% if items %}
           <div class="document-grid">
             {% for document in items %}
               <article class="document-card">
-                <div class="file-symbol">◼</div>
+                <span class="document-context">{% if deleted %}Đã xóa{% elif view_name == 'favorite' %}Yêu thích{% else %}Bạn sở hữu{% endif %}</span>
                 <div class="card-copy">
                   <strong title="{{ document['filename'] }}">{{ document['filename'] }}</strong>
                   <small>Tài liệu #{{ document['id'] }}</small>
@@ -103,8 +104,8 @@
                       method="POST"
                     >
                       <input type="hidden" name="view" value="{{ view_name }}">
-                      <button class="icon-button favorite-button" title="Yêu thích">
-                        {% if document['is_favorite'] %}★{% else %}☆{% endif %}
+                      <button class="action-button favorite-button" title="Yêu thích" aria-pressed="{{ 'true' if document['is_favorite'] else 'false' }}">
+                        {{ 'Bỏ yêu thích' if document['is_favorite'] else 'Yêu thích' }}
                       </button>
                     </form>
                     <a
@@ -115,28 +116,32 @@
                       action="{{ url_for('documents.delete', document_id=document['id']) }}"
                       method="POST"
                     >
-                      <button class="icon-button delete-button" title="Xóa">♲</button>
+                      <button class="action-button delete-button" title="Xóa tài liệu {{ document['filename'] }}">Xóa</button>
                     </form>
                   {% endif %}
                 </div>
                 {% if not deleted %}
-                  <form
-                    class="card-share share-to-selected"
-                    action="{{ url_for('share.share_document', document_id=document['id']) }}"
-                    method="POST"
-                  >
-                    <input class="selected-recipient" type="hidden" name="recipient" required>
-                    <button disabled>Chọn người để chia sẻ</button>
-                  </form>
+                  <button class="card-share-button" type="button"
+                          data-share-document="{{ document['id'] }}"
+                          data-share-filename="{{ document['filename'] }}">Quản lý chia sẻ</button>
                 {% endif %}
               </article>
             {% endfor %}
           </div>
         {% else %}
           <div class="empty-state">
-            <span class="empty-icon">◇</span>
-            <strong>Chưa có tài liệu</strong>
-            <div>Danh sách này hiện đang trống.</div>
+            {% if view_name == 'mine' %}
+              <strong>Không gian này đang chờ tài liệu đầu tiên</strong>
+              <div>Chọn một file để kiểm tra trước khi tải lên.</div>
+              <button class="empty-action" type="button" data-trigger-upload>Chọn tài liệu</button>
+            {% elif view_name == 'favorite' %}
+              <strong>Chưa có tài liệu yêu thích</strong>
+              <div>Đánh dấu tài liệu quan trọng để tìm lại nhanh hơn.</div>
+              <button class="empty-action" type="button" data-go-view="mine">Xem tài liệu của tôi</button>
+            {% else %}
+              <strong>Thùng rác đang trống</strong>
+              <div>Tài liệu đã xóa sẽ xuất hiện ở đây để bạn có thể khôi phục.</div>
+            {% endif %}
           </div>
         {% endif %}
       {% endmacro %}
@@ -152,7 +157,7 @@
           <div class="document-grid">
             {% for document in shared_documents %}
               <article class="document-card">
-                <div class="file-symbol">♧</div>
+                <span class="document-context">Được chia sẻ với bạn</span>
                 <div class="card-copy">
                   <strong>{{ document['filename'] }}</strong>
                   <small>Chia sẻ bởi {{ document['owner'] }}</small>
@@ -169,132 +174,47 @@
         {% else %}
           <div class="empty-state">
             <strong>Chưa có tài liệu được chia sẻ</strong>
+            <div>Khi thành viên chia sẻ đúng tài khoản, tài liệu sẽ xuất hiện tại đây.</div>
           </div>
         {% endif %}
       </section>
       <section class="view-panel" data-panel="deleted">
         {{ owner_cards(deleted_documents, 'deleted', true) }}
       </section>
+
+      <dialog id="share-dialog" class="share-dialog" aria-labelledby="share-dialog-title">
+        <form id="share-form" method="POST">
+          <div class="share-dialog-head">
+            <div><p>QUYỀN TRUY CẬP TÀI LIỆU</p><h2 id="share-dialog-title">Chia sẻ tài liệu</h2></div>
+            <button class="dialog-close" type="button" data-close-share aria-label="Đóng hộp thoại">×</button>
+          </div>
+          <div class="share-file-context"><span>Tài liệu đang chọn</span><strong id="share-filename"></strong><small>Người nhận có thể tải xuống tài liệu này. Bạn có thể thu hồi quyền bên dưới.</small></div>
+          <label class="share-search-label" for="people-search-input">Người nhận</label>
+          <div class="people-search-box">
+            <input id="people-search-input" type="search" placeholder="Tên đăng nhập hoặc email" autocomplete="off"
+                   role="combobox" aria-autocomplete="list" aria-controls="people-results" aria-expanded="false">
+            <div id="people-results" class="people-results" role="listbox" aria-label="Kết quả tìm người dùng" aria-live="polite" hidden></div>
+          </div>
+          <div id="selected-person" class="selected-person" hidden></div>
+          <input id="selected-recipient" type="hidden" name="recipient" required>
+          <div class="share-review" id="share-review" hidden><span>Xác nhận</span><strong id="share-review-copy"></strong></div>
+          <p id="share-error" class="share-error" role="alert" hidden></p>
+          <div class="share-dialog-actions"><button class="secondary-button" type="button" data-close-share>Hủy</button><button id="share-submit" type="submit" disabled>Chia sẻ tài liệu</button></div>
+        </form>
+        <section class="current-access" aria-labelledby="current-access-title">
+          <div><h3 id="current-access-title">Người đang có quyền</h3><span id="share-count"></span></div>
+          <div id="current-access-list" aria-live="polite"></div>
+        </section>
+      </dialog>
     </main>
   </div>
 </div>
 
 <script>
-  const viewInfo = {
-    mine: ["Tài liệu của tôi", "Quản lý, tải xuống và chia sẻ tài liệu của bạn."],
-    favorite: ["Tài liệu yêu thích", "Những tài liệu quan trọng bạn đã đánh dấu."],
-    shared: ["Tài liệu chia sẻ", "Tài liệu người khác đã chia sẻ với bạn."],
-    deleted: ["Tài liệu đã xóa", "Khôi phục những tài liệu bạn còn cần."],
+  window.cloudBoxWorkspace = {
+    activeView: {{ active_view|tojson }},
+    searchUrl: {{ url_for('share.search_users')|tojson }}
   };
-
-  const searchInput = document.getElementById("people-search-input");
-  const results = document.getElementById("people-results");
-  const selected = document.getElementById("selected-person");
-  let searchTimer;
-
-  function showView(view) {
-    const selectedView = viewInfo[view] ? view : "mine";
-
-    document.querySelectorAll(".nav-item").forEach((element) => {
-      element.classList.toggle("active", element.dataset.view === selectedView);
-    });
-    document.querySelectorAll(".view-panel").forEach((element) => {
-      element.classList.toggle("active", element.dataset.panel === selectedView);
-    });
-
-    document.getElementById("view-title").textContent = viewInfo[selectedView][0];
-    document.getElementById("view-description").textContent = viewInfo[selectedView][1];
-    history.replaceState(null, "", `?view=${selectedView}`);
-  }
-
-  function escapeHtml(value) {
-    const element = document.createElement("span");
-    element.textContent = value;
-    return element.innerHTML;
-  }
-
-  function clearPerson() {
-    document.querySelectorAll(".selected-recipient").forEach((input) => {
-      input.value = "";
-    });
-    document.querySelectorAll(".share-to-selected button").forEach((button) => {
-      button.disabled = true;
-      button.textContent = "Chọn người để chia sẻ";
-    });
-    selected.hidden = true;
-  }
-
-  function selectPerson(user) {
-    document.querySelectorAll(".selected-recipient").forEach((input) => {
-      input.value = user.username;
-    });
-    document.querySelectorAll(".share-to-selected button").forEach((button) => {
-      button.disabled = false;
-      button.textContent = `Chia sẻ với ${user.username}`;
-    });
-
-    selected.innerHTML = `
-      <span class="selected-avatar">${escapeHtml(user.username[0].toUpperCase())}</span>
-      <span>
-        <strong>${escapeHtml(user.username)}</strong>
-        <small>${escapeHtml(user.email || "Không có email")}</small>
-      </span>
-      <button type="button" aria-label="Bỏ chọn">×</button>
-    `;
-    selected.hidden = false;
-    results.hidden = true;
-    selected.querySelector("button").onclick = clearPerson;
-  }
-
-  async function searchUsers(query) {
-    try {
-      const url = `{{ url_for("share.search_users") }}?q=${encodeURIComponent(query)}`;
-      const response = await fetch(url);
-      const data = await response.json();
-
-      results.innerHTML = "";
-      if (!data.users.length) {
-        results.innerHTML = '<div class="search-status">Không tìm thấy người dùng</div>';
-        return;
-      }
-
-      data.users.forEach((user) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "person-result";
-        button.innerHTML = `
-          <span class="selected-avatar">${escapeHtml(user.username[0].toUpperCase())}</span>
-          <span>
-            <strong>${escapeHtml(user.username)}</strong>
-            <small>${escapeHtml(user.email || "Không có email")}</small>
-          </span>
-        `;
-        button.onclick = () => selectPerson(user);
-        results.appendChild(button);
-      });
-    } catch (error) {
-      results.innerHTML = '<div class="search-status">Không thể tìm kiếm lúc này</div>';
-    }
-  }
-
-  document.querySelectorAll(".nav-item").forEach((element) => {
-    element.onclick = () => showView(element.dataset.view);
-  });
-
-  searchInput.oninput = () => {
-    clearTimeout(searchTimer);
-    const query = searchInput.value.trim();
-
-    if (query.length < 2) {
-      results.hidden = true;
-      return;
-    }
-
-    results.innerHTML = '<div class="search-status">Đang tìm...</div>';
-    results.hidden = false;
-    searchTimer = setTimeout(() => searchUsers(query), 250);
-  };
-
-  showView({{ active_view|tojson }});
 </script>
+<script src="{{ url_for('static', filename='document-workspace.js') }}" defer></script>
 {% endblock %}

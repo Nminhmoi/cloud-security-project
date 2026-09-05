@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}CloudBox · Lưu trữ và chia sẻ tài liệu có kiểm soát{% endblock %}
+{% block body_class %}home-page{% endblock %}
+{% block extra_head %}
+<meta name="description" content="CloudBox giúp bạn lưu trữ, quản lý và chia sẻ tài liệu trong một không gian tập trung, với quyền truy cập rõ ràng.">
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+{% endblock %}
+{% block content %}
+<svg class="home-symbols" aria-hidden="true">
+  <symbol id="home-cloudbox" viewBox="0 0 48 48"><path d="M15.5 35.5H12a8 8 0 0 1-1-15.9A13 13 0 0 1 35.6 17a9.5 9.5 0 0 1 .9 18.5H33"/><path d="m17 27 7-4 7 4-7 4-7-4Z"/><path d="m17 27 7 4v8l-7-4v-8Zm14 0-7 4v8l7-4v-8Z"/></symbol>
+  <symbol id="home-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.6-4 2.8-6 6.5-6s5.9 2 6.5 6"/></symbol>
+  <symbol id="home-shield" viewBox="0 0 24 24"><path d="M12 3 5.5 5.7v5.1c0 4.4 2.6 8 6.5 10.2 3.9-2.2 6.5-5.8 6.5-10.2V5.7L12 3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="home-key" viewBox="0 0 24 24"><circle cx="8.5" cy="12" r="4"/><path d="M12.5 12H21m-3 0v3m-3-3v2"/></symbol>
+  <symbol id="home-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="home-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+</svg>
+
+<header class="home-nav">
+  <a class="home-brand" href="{{ url_for('documents.home') }}" aria-label="CloudBox, trang chủ">
+    <svg aria-hidden="true"><use href="#home-cloudbox"/></svg><span>CloudBox</span>
+  </a>
+  <nav aria-label="Điều hướng chính">
+    <div class="home-nav-sections"><a href="#gioi-thieu">Giới thiệu</a><a href="#tinh-nang">Tính năng</a><a href="#bao-mat">An toàn dữ liệu</a></div>
+    <a class="home-nav-secondary" href="{{ url_for('auth.register') }}">Đăng ký</a>
+    <a class="home-nav-primary" href="{{ url_for('auth.login') }}">Đăng nhập</a>
+  </nav>
+</header>
+
+<main id="main-content" class="home-main">
+  <section id="gioi-thieu" class="home-hero" aria-labelledby="home-title">
+    <p class="hero-edge-note hero-edge-note-left" aria-hidden="true">Danh tính được xác thực</p>
+    <p class="hero-edge-note hero-edge-note-right" aria-hidden="true">Truy cập có kiểm soát</p>
+    <div class="home-hero-copy">
+      <h1 id="home-title">Lưu trữ tài liệu gọn gàng. <span>Chia sẻ đúng người.</span></h1>
+      <p>CloudBox giúp bạn lưu trữ, quản lý và chia sẻ tài liệu trong một không gian tập trung. Mỗi tài liệu đều có người sở hữu và quyền truy cập rõ ràng, giúp việc làm việc nhóm đơn giản và dễ kiểm soát hơn.</p>
+      <div class="home-actions">
+        <a class="home-button home-button-primary" href="{{ url_for('auth.login') }}">Đăng nhập<svg aria-hidden="true"><use href="#home-arrow"/></svg></a>
+        <a class="home-button home-button-secondary" href="{{ url_for('auth.register') }}">Tạo tài khoản</a>
+      </div>
+      <ul class="hero-assurances" aria-label="Cơ chế bảo vệ tài liệu"><li>Xác thực tài khoản</li><li>Chia sẻ có kiểm soát</li><li>Quyền truy cập rõ ràng</li></ul>
+    </div>
+    <figure class="hero-visual" aria-labelledby="trust-path-caption">
+      <div class="hero-visual-heading"><span>Đường dẫn tin cậy</span><strong>Mỗi thao tác đi qua một lớp kiểm soát</strong></div>
+      <div class="trust-path-wrap">
+        <svg class="trust-path-lines" viewBox="0 0 620 380" preserveAspectRatio="none" aria-hidden="true"><path d="M155 95H465"/><path d="M465 95V285"/><path d="M465 285H155"/></svg>
+        <ol class="trust-path">
+          <li><span class="trust-path-icon"><svg aria-hidden="true"><use href="#home-user"/></svg></span><div><small>Bước 1</small><strong>Xác thực</strong><p>Xác nhận tài khoản đang yêu cầu truy cập.</p></div></li>
+          <li><span class="trust-path-icon"><svg aria-hidden="true"><use href="#home-shield"/></svg></span><div><small>Bước 2</small><strong>Vai trò</strong><p>Xác định phạm vi phù hợp với tài khoản.</p></div></li>
+          <li><span class="trust-path-icon"><svg aria-hidden="true"><use href="#home-key"/></svg></span><div><small>Bước 3</small><strong>Quyền truy cập</strong><p>Kiểm tra quyền với thao tác được yêu cầu.</p></div></li>
+          <li class="trust-path-result"><span class="trust-path-icon"><svg aria-hidden="true"><use href="#home-file"/></svg></span><div><small>Kết quả</small><strong>Tài liệu</strong><p>Chỉ mở khi điều kiện truy cập hợp lệ.</p></div></li>
+        </ol>
+      </div>
+      <figcaption id="trust-path-caption">Luồng kiểm tra trước khi cho phép truy cập tài liệu</figcaption>
+    </figure>
+  </section>
+
+  <section class="problem-section home-section" aria-labelledby="problem-title">
+    <div class="section-heading"><h2 id="problem-title">Tài liệu của nhóm không nên nằm rải rác khắp nơi</h2><p>Một file trong tin nhắn, một bản khác trong email, bản mới nhất lại nằm trên máy của một thành viên. Khi tài liệu ngày càng nhiều, việc tìm đúng phiên bản và kiểm soát ai đang được truy cập trở nên khó khăn.</p></div>
+    <p class="problem-answer">CloudBox đưa tài liệu về một nơi, để bạn dễ quản lý mà vẫn giữ quyền kiểm soát.</p>
+  </section>
+
+  <section id="tinh-nang" class="features-section home-section" aria-labelledby="features-title">
+    <div class="section-heading"><h2 id="features-title">Mọi thứ cần thiết để quản lý tài liệu của nhóm</h2></div>
+    <div class="benefit-rail feature-rail">
+      <article><svg aria-hidden="true"><use href="#home-file"/></svg><h3>Lưu trữ tập trung</h3><p>Tải tài liệu lên và quản lý chúng trong không gian riêng của bạn.</p></article>
+      <article><svg aria-hidden="true"><use href="#home-user"/></svg><h3>Chia sẻ đúng người</h3><p>Chọn người được phép truy cập thay vì gửi file công khai qua nhiều kênh.</p></article>
+      <article><svg aria-hidden="true"><use href="#home-key"/></svg><h3>Kiểm soát quyền truy cập</h3><p>Người sở hữu quyết định ai có thể truy cập và có thể thu hồi quyền khi cần.</p></article>
+      <article><svg aria-hidden="true"><use href="#home-arrow"/></svg><h3>Truy cập thuận tiện</h3><p>Tải xuống tài liệu của bạn hoặc những tài liệu đã được chia sẻ với bạn.</p></article>
+      <article><svg aria-hidden="true"><use href="#home-shield"/></svg><h3>Khôi phục tài khoản</h3><p>Xác minh danh tính bằng OTP trước khi đặt lại mật khẩu.</p></article>
+      <article><svg aria-hidden="true"><use href="#home-cloudbox"/></svg><h3>Quản lý rõ ràng</h3><p>Người dùng và quản trị viên có phạm vi chức năng phù hợp với từng vai trò.</p></article>
+    </div>
+  </section>
+
+  <section id="bao-mat" class="access-section home-section" aria-labelledby="access-title">
+    <div class="section-heading"><h2 id="access-title">Quyền truy cập được kiểm tra trước khi tài liệu được mở</h2><p>Khi một tài khoản tải xuống, chia sẻ hoặc xóa tài liệu, CloudBox kiểm tra quyền truy cập ở phía hệ thống trước khi thực hiện thao tác.</p></div>
+    <ol class="access-flow">
+      <li><span>01</span><div><strong>Xác thực tài khoản</strong><p>Bạn đăng nhập để hệ thống xác nhận tài khoản của bạn.</p></div></li>
+      <li><span>02</span><div><strong>Kiểm tra quyền truy cập</strong><p>Hệ thống kiểm tra tài khoản có được phép thực hiện thao tác với tài liệu hay không.</p></div></li>
+      <li><span>03</span><div><strong>Cho phép hoặc từ chối</strong><p>Thao tác chỉ được thực hiện khi tài khoản có quyền phù hợp.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="trust-section home-section" aria-labelledby="trust-title">
+    <div class="section-heading"><h2 id="trust-title">Bảo vệ tài liệu bắt đầu từ quyền kiểm soát</h2><p>Mỗi tài liệu luôn gắn với người sở hữu và những người được phép truy cập. Các thao tác quan trọng được kiểm tra ở phía hệ thống trước khi thực hiện.</p></div>
+    <div class="trust-ledger">
+      <div class="trust-column">
+        <h3><svg aria-hidden="true"><use href="#home-shield"/></svg>Năng lực bảo vệ CloudBox</h3>
+        <ul>
+          <li><span>Xác thực tài khoản</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Chỉ người được phép mới có thể truy cập tài liệu</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Khôi phục bằng OTP</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Kiểm soát tải xuống và chia sẻ</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Lưu trữ cloud</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Mã hóa dữ liệu hoàn chỉnh</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Giám sát tập trung</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+          <li><span>Triển khai trên AWS</span><small class="status-live">Đã triển khai và kiểm thử</small></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-close" aria-labelledby="home-close-title">
+    <div><h2 id="home-close-title">Đưa tài liệu về đúng nơi. Giữ quyền truy cập trong tầm kiểm soát.</h2><p>Đăng nhập để tiếp tục quản lý tài liệu, hoặc tạo tài khoản để bắt đầu không gian lưu trữ của bạn.</p></div>
+    <div class="home-actions"><a class="home-button home-button-primary" href="{{ url_for('auth.login') }}">Đăng nhập<svg aria-hidden="true"><use href="#home-arrow"/></svg></a><a class="home-button home-button-secondary" href="{{ url_for('auth.register') }}">Đăng ký</a></div>
+    <small>CloudBox · Lưu trữ và chia sẻ tài liệu có kiểm soát</small>
+  </section>
+</main>
+{% endblock %}

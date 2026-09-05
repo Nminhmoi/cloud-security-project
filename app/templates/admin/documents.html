@@ -4,7 +4,6 @@
 {% block admin_content %}
   <section class="page-heading">
     <div>
-      <p class="eyebrow">GIÁM SÁT TÀI NGUYÊN</p>
       <h1>Quản lý tài liệu</h1>
       <p>Chỉ hiển thị metadata. Quản trị viên không được mặc định tải xuống hoặc đọc nội dung tài liệu.</p>
     </div>
@@ -82,7 +81,7 @@
                   {% if not document.is_deleted %}
                     <button class="icon-button danger"
                             onclick="deleteAdminDocument({{ document.id }})"
-                            title="Xóa tài liệu vi phạm">
+                            title="Xóa tài liệu vi phạm" aria-label="Xóa tài liệu {{ document.filename }}">
                       <svg>
                         <use href="#i-trash" />
                       </svg>
@@ -133,7 +132,10 @@
       statusFilter.addEventListener('change', filterDocuments);
 
       async function deleteAdminDocument(documentId) {
-          if (!confirm('Xóa tài liệu này vì vi phạm hoặc có nguy cơ mất an toàn? Thao tác sẽ được ghi nhật ký.')) return;
+          const row = document.querySelector(`[data-document-id="${documentId}"]`);
+          const name = row?.querySelector('.document-name strong')?.textContent || `#${documentId}`;
+          const approved = await confirmAdminAction({ title: 'Xóa tài liệu khỏi hệ thống?', message: `Tài liệu “${name}” sẽ không còn khả dụng với chủ sở hữu hoặc người được chia sẻ.`, impact: 'Chỉ dùng khi tài liệu vi phạm hoặc có nguy cơ mất an toàn. Thao tác được ghi nhật ký.', confirmLabel: 'Xóa tài liệu', danger: true });
+          if (!approved) return;
           const response = await fetch(`/admin/documents/${documentId}/delete`, {
               method: 'POST'
           });

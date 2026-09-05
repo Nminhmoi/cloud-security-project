@@ -12,6 +12,7 @@ from routes.api import api_bp
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.logger.warning("Using database: %s", os.path.abspath(app.config["DATABASE"]))
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.register_blueprint(auth_bp)
     app.register_blueprint(documents_bp)

@@ -3,7 +3,6 @@
 {% block admin_content %}
   <section class="page-heading">
     <div>
-      <p class="eyebrow">QUẢN LÝ TÀI KHOẢN</p>
       <h1>Người dùng</h1>
       <p>Kiểm soát vai trò, trạng thái và quyền truy cập của từng tài khoản.</p>
     </div>
@@ -34,12 +33,13 @@
         <tbody id="usersTable">
           {% for user in users %}<tr class="user-row" data-user-id="{{ user.id }}"><td><div class="user-cell"><span class="table-avatar color-{{ loop.index0 % 4 }}">{{ user.username[:1]|upper }}</span><span><strong class="cell-username">{{ user.username }}</strong><small class="cell-email">{{ user.email or 'Chưa cập nhật email' }}</small></span></div></td><td><select class="role-select"
         aria-label="Vai trò của {{ user.username }}"
-        onchange="changeRole({{ user.id }},this.value)">{% for role in roles %}<option value="{{ role.id }}"
+        data-original-role="{{ user.role_id }}" data-username="{{ user.username }}"
+        onchange="changeRole({{ user.id }},this)">{% for role in roles %}<option value="{{ role.id }}"
         {% if user.role_id == role.id %}selected{% endif %}>{{ role.name|title }}</option>{% endfor %}</select></td><td><span class="status-badge {% if user.is_active %}active{% else %}inactive{% endif %}"><i></i>{{ 'Hoạt động' if user.is_active else 'Đã khóa' }}</span></td><td><div class="row-actions"><button class="icon-button toggle"
         onclick="toggleActive({{ user.id }})"
-        title="Đổi trạng thái"><svg><use href="#i-power" /></svg></button><button class="icon-button danger"
-        onclick="deleteUser({{ user.id }})"
-        title="Xóa người dùng"><svg><use href="#i-trash" /></svg></button></div></td></tr>{% else %}<tr><td colspan="4" class="empty-state">Chưa có người dùng nào.</td></tr>{% endfor %}
+        title="Đổi trạng thái" aria-label="Đổi trạng thái tài khoản {{ user.username }}"><svg><use href="#i-power" /></svg></button><button class="icon-button danger"
+        onclick="deleteUser({{ user.id }}, {{ user.username|tojson }})"
+        title="Xóa người dùng" aria-label="Xóa tài khoản {{ user.username }}"><svg><use href="#i-trash" /></svg></button></div></td></tr>{% else %}<tr><td colspan="4" class="empty-state">Chưa có người dùng nào.</td></tr>{% endfor %}
         </tbody>
       </table>
     </div>
@@ -65,12 +65,21 @@
           if (!response.ok) throw new Error(data.error || 'Không thể thực hiện thao tác');
           return data
       }
-      async function changeRole(userId, roleId) {
+      async function changeRole(userId, select) {
+          const roleId = select.value;
+          const oldRole = select.dataset.originalRole;
           if (userId === currentUserId) {
               showToast('Bạn không thể đổi vai trò của chính mình', 'error');
-              location.reload();
+              select.value = oldRole;
               return
           }
+          const approved = await confirmAdminAction({
+              title: 'Thay đổi vai trò người dùng?',
+              message: `${select.dataset.username} sẽ chuyển sang vai trò ${select.options[select.selectedIndex].text}.`,
+              impact: 'Quyền truy cập của tài khoản sẽ thay đổi ngay và thao tác được ghi vào nhật ký.',
+              confirmLabel: 'Áp dụng vai trò'
+          });
+          if (!approved) { select.value = oldRole; return }
           try {
               const data = await api(`/admin/users/${userId}/role`, {
                   method: 'POST',
@@ -81,10 +90,11 @@
                       role_id: Number(roleId)
                   })
               });
+              select.dataset.originalRole = roleId;
               showToast(data.success)
           } catch (error) {
               showToast(error.message, 'error');
-              setTimeout(() => location.reload(), 900)
+              select.value = oldRole
           }
       }
       async function toggleActive(userId) {
@@ -92,6 +102,10 @@
               showToast('Bạn không thể khóa tài khoản của chính mình', 'error');
               return
           }
+          const row = document.querySelector(`[data-user-id="${userId}"]`);
+          const username = row?.querySelector('.cell-username')?.textContent || `#${userId}`;
+          const approved = await confirmAdminAction({ title: 'Đổi trạng thái tài khoản?', message: `Bạn sắp thay đổi khả năng đăng nhập của ${username}.`, impact: 'Phiên hiện tại của tài khoản có thể bị chấm dứt.', confirmLabel: 'Đổi trạng thái' });
+          if (!approved) return;
           try {
               const data = await api(`/admin/users/${userId}/toggle-active`, {
                   method: 'POST'
@@ -102,12 +116,13 @@
               showToast(error.message, 'error')
           }
       }
-      async function deleteUser(userId) {
+      async function deleteUser(userId, username) {
           if (userId === currentUserId) {
               showToast('Bạn không thể xóa tài khoản của chính mình', 'error');
               return
           }
-          if (!confirm('Xóa người dùng này? Tài liệu liên quan cũng sẽ bị xóa và không thể hoàn tác.')) return;
+          const approved = await confirmAdminAction({ title: 'Xóa vĩnh viễn tài khoản?', message: `Tài khoản ${username} sẽ bị xóa khỏi hệ thống.`, impact: 'Tài liệu và liên kết chia sẻ liên quan cũng sẽ bị xóa. Thao tác này không thể hoàn tác và sẽ được ghi nhật ký.', confirmLabel: 'Xóa tài khoản', danger: true });
+          if (!approved) return;
           try {
               const data = await api(`/admin/users/${userId}/delete`, {
                   method: 'POST'

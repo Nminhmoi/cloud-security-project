@@ -3,7 +3,6 @@
 {% block admin_content %}
   <section class="page-heading">
     <div>
-      <p class="eyebrow">KIỂM SOÁT TRUY CẬP</p>
       <h1>Vai trò & phân quyền</h1>
       <p>Gán hoặc thu hồi quyền cho từng nhóm người dùng trong hệ thống.</p>
     </div>
@@ -11,7 +10,7 @@
   </section>
   <section class="roles-grid">
     {% for role in roles %}<article class="paper-card role-card"><div class="role-card-head"><span class="role-symbol color-{{ loop.index0 % 4 }}"><svg><use href="#i-shield" /></svg></span><div><span>VAI TRÒ #{{ role.id }}</span><h2>{{ role.name|title }}</h2></div><span class="permission-count">{{ role.permissions|length }} quyền</span></div><p class="role-description">{{ role.description or 'Chưa có mô tả cho vai trò này.' }}</p><div class="permission-list">{% for perm in role.permissions %}<div class="permission-row"><span><strong>{{ perm.name }}</strong><small>{{ perm.description or 'Quyền hệ thống' }}</small></span><button onclick="revokePermission({{ role.id }},{{ perm.id }})"
-        title="Thu hồi quyền">×</button></div>{% else %}<div class="empty-mini">Vai trò này chưa được gán quyền.</div>{% endfor %}</div><div class="add-permission"><select id="perm-select-{{ role.id }}"><option value="">Chọn quyền để thêm...</option>{% for perm in permissions %}{% if perm not in role.permissions %}<option value="{{ perm.id }}">{{ perm.name }}</option>{% endif %}{% endfor %}</select><button class="primary-button" onclick="addPermission({{ role.id }})"><svg><use href="#i-plus" /></svg> Thêm</button></div></article>{% endfor %}
+        title="Thu hồi quyền" aria-label="Thu hồi quyền {{ perm.name }} khỏi vai trò {{ role.name }}">×</button></div>{% else %}<div class="empty-mini">Vai trò này chưa được gán quyền.</div>{% endfor %}</div><div class="add-permission"><select id="perm-select-{{ role.id }}" aria-label="Quyền thêm vào vai trò {{ role.name }}"><option value="">Chọn quyền để thêm...</option>{% for perm in permissions %}{% if perm not in role.permissions %}<option value="{{ perm.id }}">{{ perm.name }}</option>{% endif %}{% endfor %}</select><button class="primary-button" onclick="addPermission({{ role.id }})"><svg><use href="#i-plus" /></svg> Thêm</button></div></article>{% endfor %}
   </section>
 {% endblock %}
 {% block admin_scripts %}
@@ -45,7 +44,8 @@
           }
       }
       async function revokePermission(roleId, permissionId) {
-          if (!confirm('Thu hồi quyền này khỏi vai trò?')) return;
+          const approved = await confirmAdminAction({ title: 'Thu hồi quyền khỏi vai trò?', message: 'Các tài khoản thuộc vai trò này sẽ mất khả năng tương ứng.', impact: 'Thay đổi có hiệu lực ngay và được ghi vào nhật ký quản trị.', confirmLabel: 'Thu hồi quyền', danger: true });
+          if (!approved) return;
           try {
               const data = await roleApi(`/admin/roles/${roleId}/revoke-permission`, permissionId);
               showToast(data.success);

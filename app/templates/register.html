@@ -6,9 +6,8 @@
 {% block content %}
 <main class="auth-shell">
   <div class="brand">
-    <div class="brand-mark">✦</div>
+    <div class="brand-mark" aria-hidden="true">CB</div>
     <h1>Tạo tài khoản</h1>
-    <p>Bắt đầu không gian lưu trữ của riêng bạn</p>
   </div>
 
   <section class="glass-card">
@@ -16,7 +15,6 @@
       <div class="field">
         <label for="username">Tên đăng nhập</label>
         <div class="input-wrap">
-          <span class="input-icon">👤</span>
           <input
             id="username"
             name="username"
@@ -43,7 +41,6 @@
       <div class="field">
         <label for="email">Email</label>
         <div class="input-wrap">
-          <span class="input-icon">✉</span>
           <input
             id="email"
             name="email"
@@ -58,7 +55,6 @@
       <div class="field">
         <label for="password">Mật khẩu</label>
         <div class="input-wrap">
-          <span class="input-icon">🔒</span>
           <input
             id="password"
             name="password"
@@ -72,7 +68,7 @@
       </div>
 
       <button id="register-button" class="primary-btn" type="submit">
-        Tạo tài khoản <span>➜</span>
+        Tạo tài khoản
       </button>
     </form>
 
@@ -88,19 +84,30 @@
   const usernameStatus = document.getElementById("username-status");
   const registerButton = document.getElementById("register-button");
   let checkTimer;
+  let checkController;
 
   usernameInput.addEventListener("input", () => {
     clearTimeout(checkTimer);
+    checkController?.abort();
+    if (!usernameInput.validity.valid) {
+      usernameStatus.className = "validation-message unavailable";
+      usernameStatus.textContent = usernameInput.validationMessage;
+      registerButton.disabled = true;
+      return;
+    }
     usernameStatus.className = "validation-message checking";
     usernameStatus.textContent = "Đang kiểm tra tên đăng nhập...";
     registerButton.disabled = true;
 
     checkTimer = setTimeout(async () => {
+      checkController = new AbortController();
       try {
         const params = new URLSearchParams({ username: usernameInput.value });
         const response = await fetch(
           `{{ url_for('auth.check_username') }}?${params}`,
+          { signal: checkController.signal },
         );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
 
         usernameStatus.textContent = result.message;
@@ -109,6 +116,7 @@
           : "validation-message unavailable";
         registerButton.disabled = !result.available;
       } catch (error) {
+        if (error.name === "AbortError") return;
         usernameStatus.textContent = "Không thể kiểm tra lúc này.";
         usernameStatus.className = "validation-message unavailable";
         registerButton.disabled = false;

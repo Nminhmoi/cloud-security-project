@@ -4,7 +4,6 @@
 {% block admin_content %}
   <section class="page-heading">
     <div>
-      <p class="eyebrow">TRUNG TÂM QUẢN TRỊ</p>
       <h1>Chào mừng trở lại, {{ session.get('username', 'Admin') }}</h1>
       <p>Theo dõi người dùng, tài liệu và quyền truy cập trong một không gian duy nhất.</p>
     </div>
@@ -19,22 +18,6 @@
       </div>
       <div><span>Tổng người dùng</span><strong>{{ stats.total_users }}</strong><small>Tài khoản trong hệ thống</small></div>
     </article>
-    <article class="metric-card blue">
-      <div class="metric-icon">
-        <svg>
-          <use href="#i-shield" />
-        </svg>
-      </div>
-      <div><span>Quản trị viên</span><strong>{{ stats.admin_count }}</strong><small>{{ "%.1f"|format(stats.admin_count / stats.total_users * 100 if stats.total_users else 0) }}% tổng tài khoản</small></div>
-    </article>
-    <article class="metric-card green">
-      <div class="metric-icon">
-        <svg>
-          <use href="#i-users" />
-        </svg>
-      </div>
-      <div><span>Người dùng thường</span><strong>{{ stats.user_count }}</strong><small>Đang được quản lý</small></div>
-    </article>
     <article class="metric-card red">
       <div class="metric-icon">
         <svg>
@@ -44,9 +27,7 @@
       <div><span>Tổng tài liệu</span><strong>{{ stats.total_documents }}</strong><small>{{ "%.1f"|format(stats.total_documents / stats.total_users if stats.total_users else 0) }} tài liệu / người</small></div>
     </article>
   </section>
-  <section class="dashboard-grid">
-    <article class="paper-card overview-card"><div class="card-heading"><div><span>Phân bổ tài khoản</span><h2>Tổng quan người dùng</h2></div><span class="soft-badge">Cập nhật trực tiếp</span></div>{% set admin_percent = stats.admin_count / stats.total_users * 100 if stats.total_users else 0 %}<div class="donut-wrap"><div class="donut" style="--admin: {{ admin_percent }}"><div><strong>{{ stats.total_users }}</strong><span>Tài khoản</span></div></div><div class="legend"><p><i class="dot orange-dot"></i><span>Quản trị viên</span><strong>{{ stats.admin_count }}</strong></p><p><i class="dot blue-dot"></i><span>Người dùng thường</span><strong>{{ stats.user_count }}</strong></p></div></div></article>
-    <article class="paper-card quick-card">
+  <section class="paper-card quick-card dashboard-actions">
       <div class="card-heading">
         <div>
           <span>Truy cập nhanh</span>
@@ -63,8 +44,7 @@
             <use href="#i-clock" />
           </svg></span><span><strong>Nhật ký hoạt động</strong><small>Theo dõi thao tác quản trị</small></span><b>→</b></a>
         </div>
-      </article>
-    </section>
+  </section>
 {% endblock %}
 {% block admin_scripts %}
   <script>

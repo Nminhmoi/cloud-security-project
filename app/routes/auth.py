@@ -22,6 +22,12 @@ from services.otp_service import verify_otp as verify_otp_code
 auth_bp = Blueprint("auth", __name__)
 
 
+def _login_destination(role_name):
+    """Return the correct landing page for an authenticated role."""
+    endpoint = "admin.dashboard" if role_name == "admin" else "documents.index"
+    return redirect(url_for(endpoint))
+
+
 def _valid_username(username):
     return (
         6 <= len(username) <= 24
@@ -98,22 +104,30 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
+    identifier = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
     connection = get_db_connection()
     user = connection.execute(
         """
         SELECT u.*, r.name AS role_name
         FROM users u
         LEFT JOIN roles r ON r.id = u.role_id
-        WHERE u.username = ?
+        WHERE u.username = ? COLLATE NOCASE
+           OR u.email = ? COLLATE NOCASE
         """,
-        (request.form["username"],),
+        (identifier, identifier),
     ).fetchone()
     connection.close()
 
-    password_is_valid = user and check_password_hash(
-        user["password"],
-        request.form["password"],
-    )
+    try:
+        password_is_valid = bool(
+            user and user["password"] and check_password_hash(user["password"], password)
+        )
+    except (TypeError, ValueError):
+        current_app.logger.exception(
+            "Invalid password hash stored for user id %s", user["id"] if user else None
+        )
+        password_is_valid = False
     if not password_is_valid:
         return "Sai tài khoản hoặc mật khẩu!", 401
 
@@ -121,11 +135,10 @@ def login():
         return "Tài khoản đã bị vô hiệu hóa!", 403
 
     session.clear()
+    session.permanent = request.form.get("remember_me") == "on"
     session["user_id"] = user["id"]
     session["username"] = user["username"]
-    if user["role_name"] == "admin":
-        return redirect(url_for("admin.dashboard"))
-    return redirect(url_for("documents.index"))
+    return _login_destination(user["role_name"])
 
 
 @auth_bp.route("/logout")
@@ -208,7 +221,10 @@ def reset_password():
 
     connection = get_db_connection()
     user = connection.execute(
-        "SELECT username FROM users WHERE id = ?",
+        """SELECT u.username, r.name AS role_name
+           FROM users u
+           LEFT JOIN roles r ON r.id = u.role_id
+           WHERE u.id = ?""",
         (user_id,),
     ).fetchone()
 
@@ -228,4 +244,4 @@ def reset_password():
     session.clear()
     session["user_id"] = user_id
     session["username"] = user["username"]
-    return redirect(url_for("documents.index"))
+    return _login_destination(user["role_name"])

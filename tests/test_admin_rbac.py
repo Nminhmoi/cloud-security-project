@@ -64,7 +64,50 @@ class AdminRbacTests(unittest.TestCase):
             "/login", data={"username": "normal-user", "password": "secret123"}
         )
         self.assertEqual(user_response.status_code, 302)
-        self.assertTrue(user_response.headers["Location"].endswith("/"))
+        self.assertTrue(user_response.headers["Location"].endswith("/documents"))
+
+    def test_admin_cannot_land_in_the_user_document_workspace(self):
+        self.login_session(1, "admin-one")
+
+        response = self.client.get("/documents")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/admin/dashboard"))
+
+    def test_remember_me_controls_permanent_session(self):
+        response = self.client.post(
+            "/login",
+            data={
+                "username": "normal-user",
+                "password": "secret123",
+                "remember_me": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        with self.client.session_transaction() as login_session:
+            self.assertTrue(login_session.permanent)
+
+        self.client.get("/logout")
+        response = self.client.post(
+            "/login", data={"username": "normal-user", "password": "secret123"}
+        )
+        self.assertEqual(response.status_code, 302)
+        with self.client.session_transaction() as login_session:
+            self.assertFalse(login_session.permanent)
+
+    def test_login_accepts_trimmed_case_insensitive_username_or_email(self):
+        by_username = self.client.post(
+            "/login", data={"username": "  ADMIN-ONE  ", "password": "secret123"}
+        )
+        self.assertEqual(by_username.status_code, 302)
+        self.assertTrue(by_username.headers["Location"].endswith("/admin/dashboard"))
+
+        self.client.get("/logout")
+        by_email = self.client.post(
+            "/login", data={"username": "USER@TEST.LOCAL", "password": "secret123"}
+        )
+        self.assertEqual(by_email.status_code, 302)
+        self.assertTrue(by_email.headers["Location"].endswith("/documents"))
 
     def test_users_page_marks_the_real_role(self):
         self.login_session(1, "admin-one")
@@ -222,7 +265,29 @@ class AdminRbacTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 403)
         self.login_session(3, "normal-user")
-        self.assertEqual(self.client.get("/").status_code, 302)
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("CloudBox", response.get_data(as_text=True))
+
+    def test_public_home_and_authenticated_home_redirects(self):
+        public_response = self.client.get("/")
+        self.assertEqual(public_response.status_code, 200)
+        self.assertIn("Tài liệu của nhóm", public_response.get_data(as_text=True))
+        self.assertIn("Năng lực bảo vệ CloudBox", public_response.get_data(as_text=True))
+        self.assertIn("Đã triển khai và kiểm thử", public_response.get_data(as_text=True))
+        self.assertNotIn("Đang phát triển / dự kiến", public_response.get_data(as_text=True))
+        self.assertIn("Triển khai trên AWS", public_response.get_data(as_text=True))
+
+        self.login_session(3, "normal-user")
+        user_response = self.client.get("/")
+        self.assertEqual(user_response.status_code, 302)
+        self.assertTrue(user_response.headers["Location"].endswith("/documents"))
+
+        self.client.get("/logout")
+        self.login_session(1, "admin-one")
+        admin_response = self.client.get("/")
+        self.assertEqual(admin_response.status_code, 302)
+        self.assertTrue(admin_response.headers["Location"].endswith("/admin/dashboard"))
 
     def test_admin_manager_returns_inserted_id(self):
         success, message = AdminManager().create_admin(

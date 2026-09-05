@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#5b21b6">
+  <meta name="theme-color" content="#0f172a">
   <title>{% block title %}CloudBox{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,11 +18,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='people-search.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='blue-theme.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='refined-ui.css') }}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main-content">Chuyển đến nội dung chính</a>
+  <div id="connection-status" class="connection-status" role="status" aria-live="polite" hidden></div>
   <div class="aurora aurora-one"></div>
   <div class="aurora aurora-two"></div>
   {% block content %}{% endblock %}
+  <script src="{{ url_for('static', filename='app-ui.js') }}" defer></script>
 </body>
 </html>
 

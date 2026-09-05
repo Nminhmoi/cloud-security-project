@@ -48,7 +48,7 @@
   </svg>
   <div class="admin-shell">
     <aside class="admin-sidebar" id="adminSidebar">
-      <div class="admin-brand"><span class="brand-mark">C</span><span><strong>CloudBox</strong><small>Admin portal</small></span></div>
+      <div class="admin-brand"><span class="brand-mark">C</span><span><strong>CloudBox</strong><small>Quản trị</small></span></div>
       <nav class="admin-nav" aria-label="Điều hướng quản trị">
         <p class="nav-label">Không gian làm việc</p>
         <a class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
@@ -59,46 +59,73 @@
            href="{{ url_for('admin.documents_list') }}"><svg><use href="#i-file" /></svg><span>Quản lý tài liệu</span></a>
         <a class="{% if request.endpoint == 'admin.activity_logs' %}active{% endif %}"
            href="{{ url_for('admin.activity_logs') }}"><svg><use href="#i-clock" /></svg><span>Nhật ký hoạt động</span></a>
-        <a href="{{ url_for('auth.logout') }}">
-          <svg>
-            <use href="#i-logout" />
-          </svg><span>Đăng xuất</span></a>
         </nav>
         <div class="sidebar-footer">
           <div class="admin-avatar">{{ session.get('username', 'A')[:1] |upper }}</div>
           <div><strong>{{ session.get('username', 'Admin') }}</strong><small>Quản trị viên</small></div>
-          <a href="{{ url_for('auth.logout') }}" title="Đăng xuất">
+          <a href="{{ url_for('auth.logout') }}" title="Đăng xuất" aria-label="Đăng xuất khỏi trang quản trị">
             <svg>
               <use href="#i-logout" />
             </svg>
           </a>
         </div>
       </aside>
-      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+      <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
       <main class="admin-main">
-        <header class="admin-topbar"><button class="menu-toggle" id="menuToggle" aria-label="Mở menu"><svg><use href="#i-menu" /></svg></button><div class="topbar-path">Quản trị <span>/</span> {% block breadcrumb %}Tổng quan{% endblock %}</div><div class="topbar-status"><span></span> Hệ thống an toàn</div></header>
+        <header class="admin-topbar"><button class="menu-toggle" id="menuToggle" aria-label="Mở menu quản trị" aria-controls="adminSidebar" aria-expanded="false"><svg><use href="#i-menu" /></svg></button><div class="topbar-path">Quản trị <span>/</span> {% block breadcrumb %}Tổng quan{% endblock %}</div><div class="topbar-status"><span></span> Dịch vụ đang hoạt động</div></header>
         <div class="admin-content">
           {% block admin_content %}{% endblock %}
         </div>
       </main>
     </div>
-    <div id="adminToast" class="admin-toast" role="status"></div>
+    <div id="adminToast" class="admin-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <dialog id="adminConfirm" class="admin-confirm" aria-labelledby="adminConfirmTitle" aria-describedby="adminConfirmMessage">
+      <form method="dialog">
+        <h2 id="adminConfirmTitle">Xác nhận thay đổi</h2>
+        <p id="adminConfirmMessage"></p>
+        <p id="adminConfirmImpact" class="admin-confirm-impact"></p>
+        <div><button value="cancel" class="confirm-cancel">Hủy</button><button value="confirm" class="confirm-submit">Xác nhận</button></div>
+      </form>
+    </dialog>
     <script>
         const sidebar = document.getElementById('adminSidebar'),
-            overlay = document.getElementById('sidebarOverlay');
+            overlay = document.getElementById('sidebarOverlay'),
+            menuToggle = document.getElementById('menuToggle');
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('show')
+        function setSidebar(open) {
+            sidebar.classList.toggle('open', open);
+            overlay.classList.toggle('show', open);
+            menuToggle.setAttribute('aria-expanded', String(open));
+            menuToggle.setAttribute('aria-label', open ? 'Đóng menu quản trị' : 'Mở menu quản trị');
+            if (open) sidebar.querySelector('a')?.focus();
+            else menuToggle.focus();
         }
-        document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
+        menuToggle.addEventListener('click', () => setSidebar(!sidebar.classList.contains('open')));
+        overlay.addEventListener('click', () => setSidebar(false));
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && sidebar.classList.contains('open')) setSidebar(false)
+        });
 
+        let adminToastTimer;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('adminToast');
+            clearTimeout(adminToastTimer);
             toast.textContent = message;
+            toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
             toast.className = `admin-toast show ${type}`;
-            setTimeout(() => toast.classList.remove('show'), 2800)
+            adminToastTimer = setTimeout(() => toast.classList.remove('show'), 3600)
+        }
+
+        function confirmAdminAction({ title, message, impact, confirmLabel = 'Xác nhận', danger = false }) {
+            const dialog = document.getElementById('adminConfirm');
+            document.getElementById('adminConfirmTitle').textContent = title;
+            document.getElementById('adminConfirmMessage').textContent = message;
+            document.getElementById('adminConfirmImpact').textContent = impact;
+            const submit = dialog.querySelector('.confirm-submit');
+            submit.textContent = confirmLabel;
+            submit.classList.toggle('danger', danger);
+            dialog.showModal();
+            return new Promise(resolve => dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true }));
         }
     </script>
     {% block admin_scripts %}{% endblock %}

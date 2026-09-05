@@ -10,12 +10,41 @@ def _is_logged_in():
     return "user_id" in session
 
 
+def _current_role_name(connection):
+    user = connection.execute(
+        """SELECT r.name AS role_name
+           FROM users u
+           LEFT JOIN roles r ON r.id = u.role_id
+           WHERE u.id = ?""",
+        (session["user_id"],),
+    ).fetchone()
+    return user["role_name"] if user else None
+
+
 @documents_bp.route("/")
+def home():
+    if not _is_logged_in():
+        return render_template("home.html")
+
+    connection = get_db_connection()
+    role_name = _current_role_name(connection)
+    connection.close()
+
+    if role_name == "admin":
+        return redirect(url_for("admin.dashboard"))
+    return redirect(url_for("documents.index"))
+
+
+@documents_bp.route("/documents")
 def index():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
 
     connection = get_db_connection()
+    if _current_role_name(connection) == "admin":
+        connection.close()
+        return redirect(url_for("admin.dashboard"))
+
     documents = connection.execute(
         "SELECT * FROM documents WHERE user_id = ? AND is_deleted = 0",
         (session["user_id"],),
@@ -69,7 +98,7 @@ def upload():
     )
     connection.commit()
     connection.close()
-    return redirect(url_for("documents.index"))
+    return redirect(url_for("documents.index", uploaded=filename))
 
 
 @documents_bp.route("/download/<int:document_id>")

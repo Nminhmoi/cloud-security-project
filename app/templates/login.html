@@ -6,27 +6,25 @@
 {% block content %}
 <main class="auth-shell">
   <div class="brand">
-    <div class="brand-mark">★</div>
+    <div class="brand-mark" aria-hidden="true">CB</div>
     <h1>CloudBox</h1>
-    <p>Lưu trữ an toàn, chia sẻ dễ dàng</p>
   </div>
 
   <section class="glass-card">
-    <h2>Chào mừng trở lại! 👋</h2>
+    <h2>Chào mừng trở lại</h2>
     <div class="subtitle">
       Đăng nhập để tiếp tục quản lý tài liệu.
     </div>
 
     <form method="POST">
       <div class="field">
-        <label for="username">Tên đăng nhập</label>
+        <label for="username">Tên đăng nhập hoặc email</label>
         <div class="input-wrap">
-          <span class="input-icon">👤</span>
           <input
             id="username"
             name="username"
             type="text"
-            placeholder="Nhập tên đăng nhập"
+            placeholder="Nhập tên đăng nhập hoặc email"
             required
             autofocus
             autocomplete="username"
@@ -37,7 +35,6 @@
       <div class="field">
         <label for="password">Mật khẩu</label>
         <div class="input-wrap">
-          <span class="input-icon">🔒</span>
           <input
             id="password"
             name="password"
@@ -49,13 +46,21 @@
         </div>
       </div>
 
+      <div class="login-options">
+        <label class="remember-login" for="remember-me">
+          <input id="remember-me" name="remember_me" type="checkbox">
+          <span aria-hidden="true"></span>
+          <span>Duy trì đăng nhập</span>
+        </label>
+        <a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu?</a>
+      </div>
+
       <button class="primary-btn" type="submit">
-        Đăng nhập <span>→</span>
+        Đăng nhập
       </button>
     </form>
 
     <div class="form-links">
-      <a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu?</a>
       <span>
         Chưa có tài khoản?
         <a href="{{ url_for('auth.register') }}">Đăng ký</a>
