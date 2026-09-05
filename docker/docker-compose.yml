@@ -1,0 +1,22 @@
+services:
+  web:
+    container_name: cloud-security-app
+    image: cloud-security-app:local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    environment:
+      PORT: "5000"
+      DATABASE_PATH: /data/database.db
+      UPLOAD_FOLDER: /data/uploads
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in the environment or a .env file}"
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+    volumes:
+      - app_data:/data
+    init: true
+    restart: unless-stopped
+
+volumes:
+  app_data:
