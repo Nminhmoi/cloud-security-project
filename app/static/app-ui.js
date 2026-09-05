@@ -30,6 +30,7 @@
   document.addEventListener("submit", (event) => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.asyncSubmit === "true") return;
     if (form.dataset.submitting === "true") {
       event.preventDefault();
       return;

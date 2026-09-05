@@ -283,6 +283,43 @@ class AdminRbacTests(unittest.TestCase):
         self.assertEqual(user_response.status_code, 302)
         self.assertTrue(user_response.headers["Location"].endswith("/documents"))
 
+    def test_browser_login_failure_stays_on_login_page_and_clears_fields(self):
+        response = self.client.post(
+            "/login",
+            data={"username": "normal-user", "password": "wrong-password"},
+        )
+
+        body = response.get_data(as_text=True)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn('id="login-form"', body)
+        self.assertIn('id="login-error"', body)
+        self.assertIn("Sai tài khoản hoặc mật khẩu!", body)
+        self.assertNotIn('value="normal-user"', body)
+        self.assertNotIn('value="wrong-password"', body)
+
+    def test_async_login_returns_inline_error_or_role_redirect(self):
+        headers = {"Accept": "application/json"}
+        failed = self.client.post(
+            "/login",
+            data={"username": "normal-user", "password": "wrong-password"},
+            headers=headers,
+        )
+        self.assertEqual(failed.status_code, 401)
+        self.assertEqual(
+            failed.get_json()["error"]["message"],
+            "Sai tài khoản hoặc mật khẩu!",
+        )
+
+        succeeded = self.client.post(
+            "/login",
+            data={"username": "normal-user", "password": "secret123"},
+            headers=headers,
+        )
+        self.assertEqual(succeeded.status_code, 200)
+        self.assertTrue(
+            succeeded.get_json()["data"]["redirect_url"].endswith("/documents")
+        )
+
         self.client.get("/logout")
         self.login_session(1, "admin-one")
         admin_response = self.client.get("/")

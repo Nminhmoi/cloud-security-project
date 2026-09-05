@@ -1,22 +1,93 @@
+x-app-image: &app-image
+  image: cloud-security-app:local
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+
+x-app-environment: &app-environment
+  PORT: "5000"
+  DATABASE_URL: "${DATABASE_URL:-}"
+  DB_HOST: "${DB_HOST:-db}"
+  DB_PORT: "${DB_PORT:-3306}"
+  DB_NAME: "${DB_NAME:-cloudbox}"
+  DB_USER: "${DB_USER:-cloudbox}"
+  DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+  AUTO_CREATE_SCHEMA: "false"
+  UPLOAD_FOLDER: /data/uploads
+  SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in .env}"
+  SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+
+x-web-service: &web-service
+  <<: *app-image
+  environment: *app-environment
+  volumes:
+    - app_data:/data
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+  init: true
+  restart: unless-stopped
+  healthcheck:
+    test:
+      - CMD
+      - python
+      - -c
+      - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=3)"
+    interval: 15s
+    timeout: 5s
+    start_period: 10s
+    retries: 4
+
 services:
-  web:
-    container_name: cloud-security-app
-    image: cloud-security-app:local
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    ports:
-      - "${APP_PORT:-5000}:5000"
+  db:
+    image: mysql:8.4
     environment:
-      PORT: "5000"
-      DATABASE_PATH: /data/database.db
-      UPLOAD_FOLDER: /data/uploads
-      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in the environment or a .env file}"
-      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+      MYSQL_DATABASE: "${DB_NAME:-cloudbox}"
+      MYSQL_USER: "${DB_USER:-cloudbox}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}"
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "mysqladmin ping --host=127.0.0.1 --user=root --password=$${MYSQL_ROOT_PASSWORD} --silent"
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    <<: *app-image
+    command: ["flask", "--app", "app.py", "db", "upgrade"]
+    environment: *app-environment
     volumes:
       - app_data:/data
+    depends_on:
+      db:
+        condition: service_healthy
     init: true
-    restart: unless-stopped
+    restart: "no"
+
+  web:
+    <<: *web-service
+    ports:
+      - "${APP_PORT:-5000}:5000"
+
+  # Only starts with --profile integration. It is intentionally absent from
+  # the normal deployment and proves that two app containers share MySQL.
+  web-secondary:
+    <<: *web-service
+    profiles: ["integration"]
+    ports:
+      - "${SECONDARY_APP_PORT:-5001}:5000"
 
 volumes:
   app_data:
+  mysql_data:

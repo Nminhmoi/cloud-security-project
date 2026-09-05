@@ -3,7 +3,6 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=5000 \
-    DATABASE_PATH=/data/database.db \
     UPLOAD_FOLDER=/data/uploads
 
 WORKDIR /app
@@ -15,6 +14,8 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=app:app app/ ./
+COPY --chown=app:app migrations/ ./migrations/
+COPY --chown=app:app admin.py ./admin.py
 
 RUN mkdir -p /data/uploads && chown -R app:app /data
 

@@ -1,236 +1,174 @@
-"""
-Module quản lý phân quyền (Role-Based Access Control)
-"""
+"""Role-based access control helpers and decorators."""
+
 from functools import wraps
-from flask import session, redirect, url_for, abort, jsonify, current_app
-from database import get_db_connection
+
+from flask import abort, current_app, jsonify, redirect, session, url_for
+from sqlalchemy.exc import IntegrityError
+
+from extensions import db
+from models import Permission, Role, User
 
 
 def get_user_role(user_id):
-    """Lấy role của người dùng"""
-    connection = get_db_connection()
-    user = connection.execute(
-        "SELECT role_id FROM users WHERE id = ?",
-        (user_id,)
-    ).fetchone()
-    connection.close()
-    return user["role_id"] if user else None
+    user = db.session.get(User, user_id)
+    return user.role_id if user else None
 
 
 def get_user_permissions(user_id):
-    """Lấy danh sách quyền của người dùng"""
-    connection = get_db_connection()
-    permissions = connection.execute(
-        """
-        SELECT p.name FROM permissions p
-        JOIN role_permissions rp ON p.id = rp.permission_id
-        JOIN users u ON rp.role_id = u.role_id
-        WHERE u.id = ?
-        """,
-        (user_id,)
-    ).fetchall()
-    connection.close()
-    return [perm["name"] for perm in permissions]
+    user = db.session.get(User, user_id)
+    if not user or not user.role:
+        return []
+    return [permission.name for permission in user.role.permissions]
 
 
 def get_role_name(user_id):
-    """Lấy tên role của người dùng"""
-    connection = get_db_connection()
-    result = connection.execute(
-        """
-        SELECT r.name FROM roles r
-        JOIN users u ON u.role_id = r.id
-        WHERE u.id = ?
-        """,
-        (user_id,)
-    ).fetchone()
-    connection.close()
-    return result["name"] if result else None
+    user = db.session.get(User, user_id)
+    return user.role_name if user else None
 
 
 def has_permission(user_id, permission_name):
-    """Kiểm tra người dùng có quyền cụ thể"""
-    permissions = get_user_permissions(user_id)
-    return permission_name in permissions
+    return permission_name in get_user_permissions(user_id)
 
 
 def has_role(user_id, role_name):
-    """Kiểm tra người dùng có role cụ thể"""
-    role = get_role_name(user_id)
-    return role == role_name
+    return get_role_name(user_id) == role_name
 
 
 def is_admin(user_id):
-    """Kiểm tra người dùng có phải admin"""
     return has_role(user_id, "admin")
 
 
-def require_login(f):
-    """Decorator yêu cầu đăng nhập"""
-    @wraps(f)
+def require_login(view):
+    @wraps(view)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
             if current_app.config.get("API_MODE"):
                 return jsonify({"error": "Vui lòng đăng nhập"}), 401
             return redirect(url_for("auth.login"))
-        return f(*args, **kwargs)
+        return view(*args, **kwargs)
+
     return decorated_function
 
 
 def require_permission(permission_name):
-    """Decorator yêu cầu quyền cụ thể"""
-    def decorator(f):
-        @wraps(f)
+    def decorator(view):
+        @wraps(view)
         def decorated_function(*args, **kwargs):
             if "user_id" not in session:
                 if current_app.config.get("API_MODE"):
                     return jsonify({"error": "Vui lòng đăng nhập"}), 401
                 return redirect(url_for("auth.login"))
-            
-            user_id = session.get("user_id")
-            if not has_permission(user_id, permission_name):
+            if not has_permission(session["user_id"], permission_name):
                 if current_app.config.get("API_MODE"):
                     return jsonify({"error": "Bạn không có quyền truy cập"}), 403
                 abort(403)
-            
-            return f(*args, **kwargs)
+            return view(*args, **kwargs)
+
         return decorated_function
+
     return decorator
 
 
 def require_role(role_name):
-    """Decorator yêu cầu role cụ thể"""
-    def decorator(f):
-        @wraps(f)
+    def decorator(view):
+        @wraps(view)
         def decorated_function(*args, **kwargs):
             if "user_id" not in session:
                 if current_app.config.get("API_MODE"):
                     return jsonify({"error": "Vui lòng đăng nhập"}), 401
                 return redirect(url_for("auth.login"))
-            
-            user_id = session.get("user_id")
-            if not has_role(user_id, role_name):
+            if not has_role(session["user_id"], role_name):
                 if current_app.config.get("API_MODE"):
                     return jsonify({"error": f"Bạn cần vai trò '{role_name}'"}), 403
                 abort(403)
-            
-            return f(*args, **kwargs)
+            return view(*args, **kwargs)
+
         return decorated_function
+
     return decorator
 
 
-def require_admin(f):
-    """Decorator yêu cầu quyền admin"""
-    return require_role("admin")(f)
+def require_admin(view):
+    return require_role("admin")(view)
 
 
 def assign_role_to_user(user_id, role_id):
-    """Gán role cho người dùng"""
-    connection = get_db_connection()
-    try:
-        connection.execute(
-            "UPDATE users SET role_id = ? WHERE id = ?",
-            (role_id, user_id)
-        )
-        connection.commit()
-        return True
-    except Exception as e:
-        current_app.logger.error(f"Lỗi gán role: {e}")
+    user = db.session.get(User, user_id)
+    role = db.session.get(Role, role_id)
+    if not user or not role:
         return False
-    finally:
-        connection.close()
+    try:
+        user.role = role
+        db.session.commit()
+        return True
+    except IntegrityError as error:
+        db.session.rollback()
+        current_app.logger.error("Lỗi gán vai trò: %s", error)
+        return False
 
 
 def get_all_roles():
-    """Lấy danh sách tất cả roles"""
-    connection = get_db_connection()
-    roles = connection.execute("SELECT id, name, description FROM roles").fetchall()
-    connection.close()
-    return [dict(row) for row in roles]
+    roles = db.session.scalars(db.select(Role).order_by(Role.id)).all()
+    return [role.to_dict() for role in roles]
 
 
 def get_all_permissions():
-    """Lấy danh sách tất cả permissions"""
-    connection = get_db_connection()
-    permissions = connection.execute("SELECT id, name, description FROM permissions").fetchall()
-    connection.close()
-    return [dict(row) for row in permissions]
+    permissions = db.session.scalars(
+        db.select(Permission).order_by(Permission.id)
+    ).all()
+    return [permission.to_dict() for permission in permissions]
 
 
 def get_role_permissions(role_id):
-    """Lấy danh sách quyền của một role"""
-    connection = get_db_connection()
-    permissions = connection.execute(
-        """
-        SELECT p.id, p.name, p.description FROM permissions p
-        JOIN role_permissions rp ON p.id = rp.permission_id
-        WHERE rp.role_id = ?
-        """,
-        (role_id,)
-    ).fetchall()
-    connection.close()
-    return [dict(row) for row in permissions]
+    role = db.session.get(Role, role_id)
+    if not role:
+        return []
+    return [permission.to_dict() for permission in sorted(role.permissions, key=lambda p: p.id)]
 
 
 def create_role(name, description=""):
-    """Tạo role mới"""
-    connection = get_db_connection()
     try:
-        connection.execute(
-            "INSERT INTO roles (name, description) VALUES (?, ?)",
-            (name, description)
-        )
-        connection.commit()
-        connection.close()
+        db.session.add(Role(name=name, description=description))
+        db.session.commit()
         return True
-    except Exception as e:
-        current_app.logger.error(f"Lỗi tạo role: {e}")
+    except IntegrityError as error:
+        db.session.rollback()
+        current_app.logger.error("Lỗi tạo vai trò: %s", error)
         return False
 
 
 def delete_role(role_id):
-    """Xóa role (nếu không phải là admin hoặc user)"""
-    if role_id in [1, 2]:  # Không xóa admin và user role
+    if role_id in (1, 2):
         return False
-    
-    connection = get_db_connection()
+    role = db.session.get(Role, role_id)
+    if not role:
+        return False
     try:
-        connection.execute("DELETE FROM roles WHERE id = ?", (role_id,))
-        connection.commit()
-        connection.close()
+        db.session.delete(role)
+        db.session.commit()
         return True
-    except Exception as e:
-        current_app.logger.error(f"Lỗi xóa role: {e}")
+    except IntegrityError as error:
+        db.session.rollback()
+        current_app.logger.error("Lỗi xóa vai trò: %s", error)
         return False
 
 
 def assign_permission_to_role(role_id, permission_id):
-    """Gán quyền cho role"""
-    connection = get_db_connection()
-    try:
-        connection.execute(
-            "INSERT OR IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)",
-            (role_id, permission_id)
-        )
-        connection.commit()
-        connection.close()
-        return True
-    except Exception as e:
-        current_app.logger.error(f"Lỗi gán quyền: {e}")
+    role = db.session.get(Role, role_id)
+    permission = db.session.get(Permission, permission_id)
+    if not role or not permission:
         return False
+    if permission not in role.permissions:
+        role.permissions.append(permission)
+        db.session.commit()
+    return True
 
 
 def revoke_permission_from_role(role_id, permission_id):
-    """Thu hồi quyền từ role"""
-    connection = get_db_connection()
-    try:
-        connection.execute(
-            "DELETE FROM role_permissions WHERE role_id = ? AND permission_id = ?",
-            (role_id, permission_id)
-        )
-        connection.commit()
-        connection.close()
-        return True
-    except Exception as e:
-        current_app.logger.error(f"Lỗi thu hồi quyền: {e}")
+    role = db.session.get(Role, role_id)
+    permission = db.session.get(Permission, permission_id)
+    if not role or not permission or permission not in role.permissions:
         return False
+    role.permissions.remove(permission)
+    db.session.commit()
+    return True

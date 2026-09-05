@@ -1,6 +1,10 @@
-from flask import Blueprint, redirect, render_template, request, session, url_for
+"""Browser routes for document management."""
 
-from database import get_db_connection
+from flask import Blueprint, redirect, render_template, request, session, url_for
+from sqlalchemy import or_
+
+from extensions import db
+from models import Document, DocumentShare, User
 from services.storage_service import save_upload, send_stored_file
 
 documents_bp = Blueprint("documents", __name__)
@@ -10,27 +14,13 @@ def _is_logged_in():
     return "user_id" in session
 
 
-def _current_role_name(connection):
-    user = connection.execute(
-        """SELECT r.name AS role_name
-           FROM users u
-           LEFT JOIN roles r ON r.id = u.role_id
-           WHERE u.id = ?""",
-        (session["user_id"],),
-    ).fetchone()
-    return user["role_name"] if user else None
-
-
 @documents_bp.route("/")
 def home():
     if not _is_logged_in():
         return render_template("home.html")
 
-    connection = get_db_connection()
-    role_name = _current_role_name(connection)
-    connection.close()
-
-    if role_name == "admin":
+    user = db.session.get(User, session["user_id"])
+    if user and user.role_name == "admin":
         return redirect(url_for("admin.dashboard"))
     return redirect(url_for("documents.index"))
 
@@ -40,39 +30,41 @@ def index():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
 
-    connection = get_db_connection()
-    if _current_role_name(connection) == "admin":
-        connection.close()
+    user = db.session.get(User, session["user_id"])
+    if user and user.role_name == "admin":
         return redirect(url_for("admin.dashboard"))
 
-    documents = connection.execute(
-        "SELECT * FROM documents WHERE user_id = ? AND is_deleted = 0",
-        (session["user_id"],),
-    ).fetchall()
-    shared_documents = connection.execute(
-        """
-        SELECT documents.*, users.username AS owner
-        FROM documents
-        JOIN document_shares
-            ON documents.id = document_shares.document_id
-        JOIN users
-            ON documents.user_id = users.id
-        WHERE document_shares.shared_with_user_id = ?
-          AND documents.is_deleted = 0
-        """,
-        (session["user_id"],),
-    ).fetchall()
-    deleted_documents = connection.execute(
-        "SELECT * FROM documents WHERE user_id = ? AND is_deleted = 1",
-        (session["user_id"],),
-    ).fetchall()
-    connection.close()
+    documents = db.session.scalars(
+        db.select(Document).where(
+            Document.user_id == session["user_id"], Document.is_deleted.is_(False)
+        )
+    ).all()
+    shared_documents = db.session.scalars(
+        db.select(Document)
+        .join(DocumentShare)
+        .where(
+            DocumentShare.shared_with_user_id == session["user_id"],
+            Document.is_deleted.is_(False),
+        )
+    ).all()
+    deleted_documents = db.session.scalars(
+        db.select(Document).where(
+            Document.user_id == session["user_id"], Document.is_deleted.is_(True)
+        )
+    ).all()
+
+    document_rows = [document.to_dict() for document in documents]
+    shared_rows = []
+    for document in shared_documents:
+        row = document.to_dict()
+        row["owner"] = document.owner.username
+        shared_rows.append(row)
 
     return render_template(
         "index.html",
-        documents=documents,
-        shared_documents=shared_documents,
-        deleted_documents=deleted_documents,
+        documents=document_rows,
+        shared_documents=shared_rows,
+        deleted_documents=[document.to_dict() for document in deleted_documents],
         active_view=request.args.get("view", "mine"),
     )
 
@@ -82,66 +74,63 @@ def upload():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
 
-    file = request.files.get("file")
-    if not file or not file.filename:
+    uploaded_file = request.files.get("file")
+    if not uploaded_file or not uploaded_file.filename:
         return "Chưa chọn file!", 400
 
-    filename = save_upload(file, session["user_id"])
-    file_size = file.content_length
+    filename = save_upload(uploaded_file, session["user_id"])
+    file_size = uploaded_file.content_length
     if not file_size:
-        file.stream.seek(0, 2)
-        file_size = file.stream.tell()
-    connection = get_db_connection()
-    connection.execute(
-        "INSERT INTO documents (filename, user_id, file_size, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
-        (filename, session["user_id"], file_size or 0),
+        uploaded_file.stream.seek(0, 2)
+        file_size = uploaded_file.stream.tell()
+
+    document = Document(
+        filename=filename,
+        user_id=session["user_id"],
+        file_size=file_size or 0,
     )
-    connection.commit()
-    connection.close()
+    db.session.add(document)
+    db.session.commit()
     return redirect(url_for("documents.index", uploaded=filename))
+
+
+def _accessible_document(document_id):
+    return db.session.scalar(
+        db.select(Document).where(
+            Document.id == document_id,
+            Document.is_deleted.is_(False),
+            or_(
+                Document.user_id == session["user_id"],
+                Document.shares.any(
+                    DocumentShare.shared_with_user_id == session["user_id"]
+                ),
+            ),
+        )
+    )
 
 
 @documents_bp.route("/download/<int:document_id>")
 def download(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
-
-    connection = get_db_connection()
-    document = connection.execute(
-        """
-        SELECT documents.*
-        FROM documents
-        LEFT JOIN document_shares
-            ON documents.id = document_shares.document_id
-        WHERE documents.id = ?
-          AND documents.is_deleted = 0
-          AND (
-              documents.user_id = ?
-              OR document_shares.shared_with_user_id = ?
-          )
-        """,
-        (document_id, session["user_id"], session["user_id"]),
-    ).fetchone()
-    connection.close()
-
+    document = _accessible_document(document_id)
     if not document:
         return "Bạn không có quyền truy cập tài liệu này!", 403
-
-    return send_stored_file(document["filename"])
+    return send_stored_file(document.filename)
 
 
 @documents_bp.route("/delete/<int:document_id>", methods=["POST"])
 def delete(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
-
-    connection = get_db_connection()
-    connection.execute(
-        "UPDATE documents SET is_deleted = 1 WHERE id = ? AND user_id = ?",
-        (document_id, session["user_id"]),
+    document = db.session.scalar(
+        db.select(Document).where(
+            Document.id == document_id, Document.user_id == session["user_id"]
+        )
     )
-    connection.commit()
-    connection.close()
+    if document:
+        document.is_deleted = True
+        db.session.commit()
     return redirect(url_for("documents.index"))
 
 
@@ -149,33 +138,31 @@ def delete(document_id):
 def favorite_document(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
-
-    connection = get_db_connection()
-    connection.execute(
-        """
-        UPDATE documents
-        SET is_favorite = CASE is_favorite WHEN 1 THEN 0 ELSE 1 END
-        WHERE id = ? AND user_id = ? AND is_deleted = 0
-        """,
-        (document_id, session["user_id"]),
+    document = db.session.scalar(
+        db.select(Document).where(
+            Document.id == document_id,
+            Document.user_id == session["user_id"],
+            Document.is_deleted.is_(False),
+        )
     )
-    connection.commit()
-    connection.close()
-    return redirect(
-        url_for("documents.index", view=request.form.get("view", "mine"))
-    )
+    if document:
+        document.is_favorite = not document.is_favorite
+        db.session.commit()
+    return redirect(url_for("documents.index", view=request.form.get("view", "mine")))
 
 
 @documents_bp.route("/restore/<int:document_id>", methods=["POST"])
 def restore_document(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
-
-    connection = get_db_connection()
-    connection.execute(
-        "UPDATE documents SET is_deleted = 0 WHERE id = ? AND user_id = ?",
-        (document_id, session["user_id"]),
+    document = db.session.scalar(
+        db.select(Document).where(
+            Document.id == document_id,
+            Document.user_id == session["user_id"],
+            Document.is_deleted.is_(True),
+        )
     )
-    connection.commit()
-    connection.close()
+    if document:
+        document.is_deleted = False
+        db.session.commit()
     return redirect(url_for("documents.index", view="deleted"))

@@ -1,8 +1,10 @@
 """Admin routes for managing users, roles, and permissions."""
 
 from flask import Blueprint, current_app, jsonify, render_template, request, session
+from sqlalchemy import func
 
-from database import get_db_connection
+from extensions import db
+from models import ActivityLog, Document, Role, User
 from permissions import (
     assign_permission_to_role,
     get_all_permissions,
@@ -16,7 +18,6 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 def _json_id(field_name):
-    """Return a positive integer from the JSON body, or None when invalid."""
     data = request.get_json(silent=True) or {}
     value = data.get(field_name)
     if isinstance(value, bool):
@@ -28,137 +29,108 @@ def _json_id(field_name):
     return value if value > 0 else None
 
 
-def _is_last_active_admin(connection, user_id):
-    user = connection.execute(
-        """SELECT u.is_active, r.name AS role_name FROM users u
-           LEFT JOIN roles r ON r.id = u.role_id WHERE u.id = ?""",
-        (user_id,),
-    ).fetchone()
-    if not user or user["role_name"] != "admin" or not user["is_active"]:
+def _is_last_active_admin(user_id):
+    user = db.session.get(User, user_id)
+    if not user or user.role_name != "admin" or not user.is_active:
         return False
-    count = connection.execute(
-        """SELECT COUNT(*) AS count FROM users u
-           JOIN roles r ON r.id = u.role_id
-           WHERE r.name = 'admin' AND u.is_active = 1"""
-    ).fetchone()["count"]
-    return count <= 1
+    active_admins = db.session.scalar(
+        db.select(func.count(User.id))
+        .join(Role)
+        .where(Role.name == "admin", User.is_active.is_(True))
+    )
+    return active_admins <= 1
 
 
 @admin_bp.route("/dashboard")
 @require_admin
 def dashboard():
-    connection = get_db_connection()
-    total_users = connection.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
-    admin_count = connection.execute(
-        """SELECT COUNT(*) AS count FROM users u
-           JOIN roles r ON r.id = u.role_id WHERE r.name = 'admin'"""
-    ).fetchone()["count"]
-    user_count = connection.execute(
-        """SELECT COUNT(*) AS count FROM users u
-           JOIN roles r ON r.id = u.role_id WHERE r.name = 'user'"""
-    ).fetchone()["count"]
-    total_documents = connection.execute(
-        "SELECT COUNT(*) AS count FROM documents WHERE is_deleted = 0"
-    ).fetchone()["count"]
-    connection.close()
-    return render_template("admin/dashboard.html", stats={
-        "total_users": total_users, "admin_count": admin_count,
-        "user_count": user_count, "total_documents": total_documents,
-    })
+    total_users = db.session.scalar(db.select(func.count(User.id)))
+    admin_count = db.session.scalar(
+        db.select(func.count(User.id)).join(Role).where(Role.name == "admin")
+    )
+    user_count = db.session.scalar(
+        db.select(func.count(User.id)).join(Role).where(Role.name == "user")
+    )
+    total_documents = db.session.scalar(
+        db.select(func.count(Document.id)).where(Document.is_deleted.is_(False))
+    )
+    return render_template(
+        "admin/dashboard.html",
+        stats={
+            "total_users": total_users,
+            "admin_count": admin_count,
+            "user_count": user_count,
+            "total_documents": total_documents,
+        },
+    )
 
 
 @admin_bp.route("/documents")
 @require_admin
 def documents_list():
-    connection = get_db_connection()
-    documents = connection.execute(
-        """SELECT d.id, d.filename, d.file_size, d.created_at, d.is_deleted,
-                  u.id AS owner_id, u.username AS owner_name
-           FROM documents d
-           JOIN users u ON u.id = d.user_id
-           ORDER BY d.created_at DESC, d.id DESC"""
-    ).fetchall()
-    connection.close()
+    documents = db.session.scalars(
+        db.select(Document).order_by(Document.created_at.desc(), Document.id.desc())
+    ).all()
     return render_template(
-        "admin/documents.html", documents=[dict(row) for row in documents]
+        "admin/documents.html",
+        documents=[document.to_dict(include_owner=True) for document in documents],
     )
 
 
 @admin_bp.route("/documents/<int:document_id>/delete", methods=["POST"])
 @require_admin
 def delete_document(document_id):
-    connection = get_db_connection()
-    try:
-        document = connection.execute(
-            "SELECT id, filename, user_id, is_deleted FROM documents WHERE id = ?",
-            (document_id,),
-        ).fetchone()
-        if not document:
-            return jsonify({"error": "Tài liệu không tồn tại"}), 404
-        if document["is_deleted"]:
-            return jsonify({"error": "Tài liệu đã bị xóa trước đó"}), 400
-        connection.execute(
-            "UPDATE documents SET is_deleted = 1 WHERE id = ?", (document_id,)
+    document = db.session.get(Document, document_id)
+    if not document:
+        return jsonify({"error": "Tài liệu không tồn tại"}), 404
+    if document.is_deleted:
+        return jsonify({"error": "Tài liệu đã bị xóa trước đó"}), 400
+
+    document.is_deleted = True
+    db.session.add(
+        ActivityLog(
+            actor_user_id=session.get("user_id"),
+            action="delete_document",
+            target_type="document",
+            target_id=document_id,
+            details=f"Xóa tài liệu {document.filename} của người dùng #{document.user_id}",
         )
-        connection.execute(
-            """INSERT INTO activity_logs
-               (actor_user_id, action, target_type, target_id, details)
-               VALUES (?, 'delete_document', 'document', ?, ?)""",
-            (
-                session.get("user_id"),
-                document_id,
-                f"Xóa tài liệu {document['filename']} của người dùng #{document['user_id']}",
-            ),
-        )
-        connection.commit()
-        return jsonify({"success": "Đã xóa tài liệu khỏi hệ thống"})
-    finally:
-        connection.close()
+    )
+    db.session.commit()
+    return jsonify({"success": "Đã xóa tài liệu khỏi hệ thống"})
 
 
 @admin_bp.route("/activity-logs")
 @require_admin
 def activity_logs():
-    connection = get_db_connection()
-    logs = connection.execute(
-        """SELECT l.id, l.action, l.target_type, l.target_id, l.details,
-                  l.created_at, COALESCE(u.username, 'Hệ thống') AS actor_name
-           FROM activity_logs l
-           LEFT JOIN users u ON u.id = l.actor_user_id
-           ORDER BY l.created_at DESC, l.id DESC
-           LIMIT 500"""
-    ).fetchall()
-    connection.close()
-    return render_template("admin/activity_logs.html", logs=[dict(row) for row in logs])
+    logs = db.session.scalars(
+        db.select(ActivityLog)
+        .order_by(ActivityLog.created_at.desc(), ActivityLog.id.desc())
+        .limit(500)
+    ).all()
+    return render_template(
+        "admin/activity_logs.html", logs=[log.to_dict() for log in logs]
+    )
 
 
 @admin_bp.route("/users")
 @require_admin
 def users_list():
-    connection = get_db_connection()
-    users = connection.execute(
-        """SELECT u.id, u.username, u.email, u.is_active, u.role_id,
-                  r.name AS role_name
-           FROM users u LEFT JOIN roles r ON u.role_id = r.id ORDER BY u.id"""
-    ).fetchall()
-    connection.close()
-    return render_template("admin/users.html", users=[dict(row) for row in users], roles=get_all_roles())
+    users = db.session.scalars(db.select(User).order_by(User.id)).all()
+    return render_template(
+        "admin/users.html",
+        users=[user.to_dict(include_role=True) for user in users],
+        roles=get_all_roles(),
+    )
 
 
 @admin_bp.route("/users/<int:user_id>", methods=["GET"])
 @require_admin
 def get_user(user_id):
-    connection = get_db_connection()
-    user = connection.execute(
-        """SELECT u.id, u.username, u.email, u.is_active, u.role_id,
-                  r.name AS role_name FROM users u
-           LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = ?""",
-        (user_id,),
-    ).fetchone()
-    connection.close()
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "Người dùng không tồn tại"}), 404
-    return jsonify(dict(user))
+    return jsonify(user.to_dict(include_role=True))
 
 
 @admin_bp.route("/users/<int:user_id>/role", methods=["POST"])
@@ -169,20 +141,19 @@ def change_user_role(user_id):
         return jsonify({"error": "role_id không hợp lệ"}), 400
     if user_id == session.get("user_id"):
         return jsonify({"error": "Không thể thay đổi vai trò của chính mình"}), 400
-    connection = get_db_connection()
-    try:
-        if not connection.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
-            return jsonify({"error": "Người dùng không tồn tại"}), 404
-        role = connection.execute("SELECT name FROM roles WHERE id = ?", (role_id,)).fetchone()
-        if not role:
-            return jsonify({"error": "Vai trò không tồn tại"}), 404
-        if role["name"] != "admin" and _is_last_active_admin(connection, user_id):
-            return jsonify({"error": "Không thể hạ quyền admin đang hoạt động cuối cùng"}), 400
-        connection.execute("UPDATE users SET role_id = ? WHERE id = ?", (role_id, user_id))
-        connection.commit()
-        return jsonify({"success": "Đổi vai trò thành công"})
-    finally:
-        connection.close()
+
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "Người dùng không tồn tại"}), 404
+    role = db.session.get(Role, role_id)
+    if not role:
+        return jsonify({"error": "Vai trò không tồn tại"}), 404
+    if role.name != "admin" and _is_last_active_admin(user_id):
+        return jsonify({"error": "Không thể hạ quyền admin đang hoạt động cuối cùng"}), 400
+
+    user.role = role
+    db.session.commit()
+    return jsonify({"success": "Đổi vai trò thành công"})
 
 
 @admin_bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
@@ -190,34 +161,32 @@ def change_user_role(user_id):
 def toggle_user_active(user_id):
     if user_id == session.get("user_id"):
         return jsonify({"error": "Không thể vô hiệu hóa tài khoản của chính mình"}), 400
-    connection = get_db_connection()
-    try:
-        user = connection.execute(
-            "SELECT username, email, is_active FROM users WHERE id = ?", (user_id,)
-        ).fetchone()
-        if not user:
-            return jsonify({"error": "Người dùng không tồn tại"}), 404
-        if user["is_active"] and _is_last_active_admin(connection, user_id):
-            return jsonify({"error": "Không thể vô hiệu hóa admin đang hoạt động cuối cùng"}), 400
-        new_status = 0 if user["is_active"] else 1
-        connection.execute("UPDATE users SET is_active = ? WHERE id = ?", (new_status, user_id))
-        action = "enable_user" if new_status else "disable_user"
-        status_label = "kích hoạt" if new_status else "vô hiệu hóa"
-        connection.execute(
-            """INSERT INTO activity_logs
-               (actor_user_id, action, target_type, target_id, details)
-               VALUES (?, ?, 'user', ?, ?)""",
-            (
-                session.get("user_id"),
-                action,
-                user_id,
-                f"Đã {status_label} tài khoản {user['username']} ({user['email'] or 'không có email'})",
+
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "Người dùng không tồn tại"}), 404
+    if user.is_active and _is_last_active_admin(user_id):
+        return jsonify({"error": "Không thể vô hiệu hóa admin đang hoạt động cuối cùng"}), 400
+
+    user.is_active = not user.is_active
+    action = "enable_user" if user.is_active else "disable_user"
+    status_label = "kích hoạt" if user.is_active else "vô hiệu hóa"
+    db.session.add(
+        ActivityLog(
+            actor_user_id=session.get("user_id"),
+            action=action,
+            target_type="user",
+            target_id=user_id,
+            details=(
+                f"Đã {status_label} tài khoản {user.username} "
+                f"({user.email or 'không có email'})"
             ),
         )
-        connection.commit()
-        return jsonify({"success": "Cập nhật trạng thái thành công", "is_active": new_status})
-    finally:
-        connection.close()
+    )
+    db.session.commit()
+    return jsonify(
+        {"success": "Cập nhật trạng thái thành công", "is_active": int(user.is_active)}
+    )
 
 
 @admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
@@ -225,43 +194,34 @@ def toggle_user_active(user_id):
 def delete_user(user_id):
     if user_id == session.get("user_id"):
         return jsonify({"error": "Không thể xóa tài khoản của chính mình"}), 400
-    connection = get_db_connection()
+
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "Người dùng không tồn tại"}), 404
+    if _is_last_active_admin(user_id):
+        return jsonify({"error": "Không thể xóa admin đang hoạt động cuối cùng"}), 400
+
+    identity = (
+        f"Đã xóa tài khoản {user.username} ({user.email or 'không có email'}), "
+        f"vai trò {user.role_name or 'chưa gán'}"
+    )
     try:
-        user = connection.execute(
-            """SELECT u.username, u.email, r.name AS role_name
-               FROM users u LEFT JOIN roles r ON r.id = u.role_id
-               WHERE u.id = ?""",
-            (user_id,),
-        ).fetchone()
-        if not user:
-            return jsonify({"error": "Người dùng không tồn tại"}), 404
-        if _is_last_active_admin(connection, user_id):
-            return jsonify({"error": "Không thể xóa admin đang hoạt động cuối cùng"}), 400
-        connection.execute("DELETE FROM document_shares WHERE shared_with_user_id = ?", (user_id,))
-        connection.execute(
-            "DELETE FROM document_shares WHERE document_id IN (SELECT id FROM documents WHERE user_id = ?)",
-            (user_id,),
+        db.session.add(
+            ActivityLog(
+                actor_user_id=session.get("user_id"),
+                action="delete_user",
+                target_type="user",
+                target_id=user_id,
+                details=identity,
+            )
         )
-        connection.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
-        connection.execute(
-            """INSERT INTO activity_logs
-               (actor_user_id, action, target_type, target_id, details)
-               VALUES (?, 'delete_user', 'user', ?, ?)""",
-            (
-                session.get("user_id"),
-                user_id,
-                f"Đã xóa tài khoản {user['username']} ({user['email'] or 'không có email'}), vai trò {user['role_name'] or 'chưa gán'}",
-            ),
-        )
-        connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
-        connection.commit()
+        db.session.delete(user)
+        db.session.commit()
         return jsonify({"success": "Xóa người dùng thành công"})
     except Exception:
-        connection.rollback()
+        db.session.rollback()
         current_app.logger.exception("Failed to delete user %s", user_id)
         return jsonify({"error": "Không thể xóa người dùng"}), 500
-    finally:
-        connection.close()
 
 
 @admin_bp.route("/roles")
@@ -270,7 +230,9 @@ def roles_list():
     roles = get_all_roles()
     for role in roles:
         role["permissions"] = get_role_permissions(role["id"])
-    return render_template("admin/roles.html", roles=roles, permissions=get_all_permissions())
+    return render_template(
+        "admin/roles.html", roles=roles, permissions=get_all_permissions()
+    )
 
 
 @admin_bp.route("/roles/<int:role_id>/permissions", methods=["GET"])
@@ -304,4 +266,6 @@ def revoke_permission(role_id):
 @admin_bp.route("/permissions")
 @require_admin
 def permissions_list():
-    return render_template("admin/permissions.html", permissions=get_all_permissions())
+    return render_template(
+        "admin/permissions.html", permissions=get_all_permissions()
+    )

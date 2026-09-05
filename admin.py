@@ -1,399 +1,186 @@
 #!/usr/bin/env python3
-"""
-Admin Management Tool - Công Cụ Quản Lý Admin
-Tạo, xem, và quản lý tài khoản admin
-"""
+"""Command-line administrator management for CloudBox."""
 
 import os
 import sys
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-if hasattr(sys.stderr, "reconfigure"):
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
 
-# Thêm thư mục app vào path để có thể import
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash
 
 from app import app
-from database import get_db_connection
-from werkzeug.security import generate_password_hash
-import sqlite3
+from extensions import db
+from models import Role, User
 
 
 class AdminManager:
-    """Quản lý tài khoản admin"""
-    
     def __init__(self):
         self.app = app
-    
+
     def create_admin(self, username, email, password):
-        """Tạo tài khoản admin mới"""
         with self.app.app_context():
-            conn = None
             try:
-                conn = get_db_connection()
-                
-                # Kiểm tra username
-                existing_user = conn.execute(
-                    "SELECT id FROM users WHERE username = ?",
-                    (username,)
-                ).fetchone()
-                
-                if existing_user:
-                    return False, f"❌ Username '{username}' đã tồn tại!"
-                
-                # Kiểm tra email
-                if email:
-                    existing_email = conn.execute(
-                        "SELECT id FROM users WHERE email = ?",
-                        (email,)
-                    ).fetchone()
-                    
-                    if existing_email:
-                        return False, f"❌ Email '{email}' đã được sử dụng!"
-                
-                # Tạo admin
-                hashed_pwd = generate_password_hash(password)
-                cursor = conn.execute(
-                    "INSERT INTO users (username, email, password, role_id, is_active) VALUES (?, ?, ?, ?, ?)",
-                    (username, email, hashed_pwd, 1, 1)
+                if db.session.scalar(
+                    db.select(User.id).where(User.username == username)
+                ):
+                    return False, f"Username '{username}' đã tồn tại!"
+                if email and db.session.scalar(
+                    db.select(User.id).where(User.email == email)
+                ):
+                    return False, f"Email '{email}' đã được sử dụng!"
+
+                user = User(
+                    username=username,
+                    email=email,
+                    password=generate_password_hash(password),
+                    role_id=1,
+                    is_active=True,
                 )
-                user_id = cursor.lastrowid
-                conn.commit()
-                conn.close()
-                
-                return True, f"✅ Admin '{username}' tạo thành công! (ID: {user_id})"
-            
-            except Exception as e:
-                return False, f"❌ Lỗi: {str(e)}"
-    
+                db.session.add(user)
+                db.session.commit()
+                return True, f"Admin '{username}' tạo thành công! (ID: {user.id})"
+            except IntegrityError as error:
+                db.session.rollback()
+                return False, f"Lỗi: {error}"
+
     def list_admins(self):
-        """Liệt kê tất cả admin"""
         with self.app.app_context():
             try:
-                conn = get_db_connection()
-                
-                admins = conn.execute(
-                    """
-                    SELECT u.id, u.username, u.email, u.is_active, r.name as role
-                    FROM users u
-                    LEFT JOIN roles r ON u.role_id = r.id
-                    WHERE r.name = 'admin'
-                    ORDER BY u.id
-                    """
-                ).fetchall()
-                
-                conn.close()
-                
+                admins = db.session.scalars(
+                    db.select(User)
+                    .join(Role)
+                    .where(Role.name == "admin")
+                    .order_by(User.id)
+                ).all()
                 if not admins:
                     return [], "Chưa có admin nào"
-                
-                return list(admins), "OK"
-            
-            except Exception as e:
-                return [], f"Lỗi: {str(e)}"
-    
+                return [
+                    {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "is_active": int(user.is_active),
+                        "role": user.role_name,
+                    }
+                    for user in admins
+                ], "OK"
+            except Exception as error:
+                return [], f"Lỗi: {error}"
+
     def change_password(self, user_id, new_password):
-        """Đổi mật khẩu admin"""
         with self.app.app_context():
             try:
-                conn = get_db_connection()
-                
-                # Kiểm tra user tồn tại
-                user = conn.execute(
-                    "SELECT id FROM users WHERE id = ?",
-                    (user_id,)
-                ).fetchone()
-                
+                user = db.session.get(User, user_id)
                 if not user:
-                    return False, "❌ Người dùng không tồn tại!"
-                
-                # Đổi mật khẩu
-                hashed_pwd = generate_password_hash(new_password)
-                conn.execute(
-                    "UPDATE users SET password = ? WHERE id = ?",
-                    (hashed_pwd, user_id)
-                )
-                conn.commit()
-                conn.close()
-                
-                return True, "✅ Mật khẩu đã được cập nhật!"
-            
-            except Exception as e:
-                return False, f"❌ Lỗi: {str(e)}"
-    
+                    return False, "Người dùng không tồn tại!"
+                user.password = generate_password_hash(new_password)
+                db.session.commit()
+                return True, "Mật khẩu đã được cập nhật!"
+            except Exception as error:
+                db.session.rollback()
+                return False, f"Lỗi: {error}"
+
     def delete_admin(self, user_id):
-        """Xóa admin (chỉ có thể xóa nếu không phải admin cuối cùng)"""
         with self.app.app_context():
             try:
-                conn = get_db_connection()
-                
-                # Đếm số admin còn lại
-                admin_count = conn.execute(
-                    """
-                    SELECT COUNT(*) as count FROM users u
-                    JOIN roles r ON u.role_id = r.id
-                    WHERE r.name = 'admin'
-                    """
-                ).fetchone()['count']
-                
-                if admin_count <= 1:
-                    return False, "❌ Không thể xóa admin cuối cùng!"
-                
-                # Xóa user
-                conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
-                conn.commit()
-                conn.close()
-                
-                return True, "✅ Admin đã được xóa!"
-            
-            except Exception as e:
-                return False, f"❌ Lỗi: {str(e)}"
-    
-    def toggle_admin_status(self, user_id):
-        """Bật/tắt trạng thái admin"""
-        with self.app.app_context():
-            try:
-                conn = get_db_connection()
-                
-                user = conn.execute(
-                    "SELECT is_active FROM users WHERE id = ?",
-                    (user_id,)
-                ).fetchone()
-                
-                if not user:
-                    return False, "❌ Người dùng không tồn tại!"
-                
-                new_status = 1 - user['is_active']
-                conn.execute(
-                    "UPDATE users SET is_active = ? WHERE id = ?",
-                    (new_status, user_id)
+                admin_count = db.session.scalar(
+                    db.select(func.count(User.id))
+                    .join(Role)
+                    .where(Role.name == "admin")
                 )
-                conn.commit()
-                conn.close()
-                
-                status_text = "Hoạt động" if new_status else "Không hoạt động"
-                return True, f"✅ Trạng thái đã cập nhật: {status_text}"
-            
-            except Exception as e:
-                return False, f"❌ Lỗi: {str(e)}"
+                if admin_count <= 1:
+                    return False, "Không thể xóa admin cuối cùng!"
+                user = db.session.get(User, user_id)
+                if not user or user.role_name != "admin":
+                    return False, "Admin không tồn tại!"
+                db.session.delete(user)
+                db.session.commit()
+                return True, "Admin đã được xóa!"
+            except Exception as error:
+                db.session.rollback()
+                return False, f"Lỗi: {error}"
+
+    def toggle_admin_status(self, user_id):
+        with self.app.app_context():
+            try:
+                user = db.session.get(User, user_id)
+                if not user or user.role_name != "admin":
+                    return False, "Admin không tồn tại!"
+                user.is_active = not user.is_active
+                db.session.commit()
+                status = "Hoạt động" if user.is_active else "Không hoạt động"
+                return True, f"Trạng thái đã cập nhật: {status}"
+            except Exception as error:
+                db.session.rollback()
+                return False, f"Lỗi: {error}"
 
 
-def print_banner():
-    """In banner"""
-    print("\n" + "="*70)
-    print("🔐 ADMIN MANAGEMENT TOOL - Công Cụ Quản Lý Admin CloudBox".center(70))
-    print("="*70 + "\n")
+def _read_user_id():
+    try:
+        return int(input("ID admin: ").strip())
+    except ValueError:
+        print("ID phải là số nguyên.")
+        return None
 
 
-def print_menu():
-    """In menu chính"""
-    print("\n📌 MENU CHÍNH:")
-    print("   1. ➕ Tạo admin mới")
-    print("   2. 📋 Xem danh sách admin")
-    print("   3. 🔑 Đổi mật khẩu admin")
-    print("   4. ✓ Bật/Tắt trạng thái admin")
-    print("   5. 🗑️  Xóa admin")
-    print("   6. 🚪 Thoát")
-    print()
-
-
-def create_admin_menu(manager):
-    """Menu tạo admin"""
-    print("\n" + "="*70)
-    print("➕ TẠO ADMIN MỚI".center(70))
-    print("="*70)
-    
-    username = input("\n👤 Username: ").strip()
-    if not username:
-        print("❌ Username không được để trống!")
-        return
-    
-    email = input("📧 Email: ").strip()
-    password = input("🔑 Password: ").strip()
-    
-    if not password or len(password) < 6:
-        print("❌ Password phải ít nhất 6 ký tự!")
-        return
-    
-    success, message = manager.create_admin(username, email, password)
-    
-    print("\n" + "="*70)
-    if success:
-        print("✅ TẠO THÀNH CÔNG!".center(70))
-        print("="*70)
-        print(f"📊 Username: {username}")
-        print(f"📧 Email:    {email}")
-        print(f"🔑 Password: {password}")
-        print(f"🔐 Role:     Admin")
-        print("="*70)
-        print("\n📌 Truy cập admin:")
-        print(f"   🌐 URL: http://localhost:5000/login")
-        print(f"   👤 Username: {username}")
-        print(f"   🔑 Password: {password}")
-    else:
-        print("❌ LỖI".center(70))
-        print("="*70)
-        print(message)
-        print("="*70)
-
-
-def list_admins_menu(manager):
-    """Menu xem danh sách admin"""
-    print("\n" + "="*70)
-    print("📋 DANH SÁCH CÁC ADMIN".center(70))
-    print("="*70)
-    
+def _show_admins(manager):
     admins, message = manager.list_admins()
-    
     if not admins:
-        print(f"\n⚠️  {message}")
+        print(message)
         return
-    
-    print(f"\n{'ID':<5} {'Username':<20} {'Email':<25} {'Trạng Thái':<15}")
-    print("-"*70)
-    
+    print("\nID  Username                 Email                         Trạng thái")
+    print("-" * 75)
     for admin in admins:
-        status = "✅ Hoạt động" if admin['is_active'] else "❌ Vô hiệu"
-        print(f"{admin['id']:<5} {admin['username']:<20} {admin['email']:<25} {status:<15}")
-    
-    print("="*70)
-
-
-def change_password_menu(manager):
-    """Menu đổi mật khẩu"""
-    print("\n" + "="*70)
-    print("🔑 ĐỔI MẬT KHẨU ADMIN".center(70))
-    print("="*70)
-    
-    # Hiện danh sách admin
-    admins, _ = manager.list_admins()
-    if not admins:
-        print("\n❌ Chưa có admin nào!")
-        return
-    
-    print("\n📋 Danh sách admin:")
-    for admin in admins:
-        print(f"   {admin['id']} - {admin['username']} ({admin['email']})")
-    
-    try:
-        user_id = int(input("\n👤 Nhập ID admin: ").strip())
-    except ValueError:
-        print("❌ ID không hợp lệ!")
-        return
-    
-    new_password = input("🔑 Mật khẩu mới: ").strip()
-    
-    if not new_password or len(new_password) < 6:
-        print("❌ Password phải ít nhất 6 ký tự!")
-        return
-    
-    success, message = manager.change_password(user_id, new_password)
-    
-    print("\n" + "="*70)
-    print(message)
-    print("="*70)
-
-
-def toggle_status_menu(manager):
-    """Menu bật/tắt trạng thái"""
-    print("\n" + "="*70)
-    print("✓ BẬT/TẮT TRẠNG THÁI ADMIN".center(70))
-    print("="*70)
-    
-    # Hiện danh sách admin
-    admins, _ = manager.list_admins()
-    if not admins:
-        print("\n❌ Chưa có admin nào!")
-        return
-    
-    print("\n📋 Danh sách admin:")
-    for admin in admins:
-        status = "✅ Hoạt động" if admin['is_active'] else "❌ Vô hiệu"
-        print(f"   {admin['id']} - {admin['username']} ({status})")
-    
-    try:
-        user_id = int(input("\n👤 Nhập ID admin: ").strip())
-    except ValueError:
-        print("❌ ID không hợp lệ!")
-        return
-    
-    success, message = manager.toggle_admin_status(user_id)
-    
-    print("\n" + "="*70)
-    print(message)
-    print("="*70)
-
-
-def delete_admin_menu(manager):
-    """Menu xóa admin"""
-    print("\n" + "="*70)
-    print("🗑️  XÓA ADMIN".center(70))
-    print("="*70)
-    
-    # Hiện danh sách admin
-    admins, _ = manager.list_admins()
-    if not admins:
-        print("\n❌ Chưa có admin nào!")
-        return
-    
-    print("\n📋 Danh sách admin:")
-    for admin in admins:
-        print(f"   {admin['id']} - {admin['username']} ({admin['email']})")
-    
-    try:
-        user_id = int(input("\n👤 Nhập ID admin cần xóa: ").strip())
-    except ValueError:
-        print("❌ ID không hợp lệ!")
-        return
-    
-    confirm = input("⚠️  Xác nhận xóa? (y/n): ").strip().lower()
-    if confirm != 'y':
-        print("❌ Đã hủy!")
-        return
-    
-    success, message = manager.delete_admin(user_id)
-    
-    print("\n" + "="*70)
-    print(message)
-    print("="*70)
+        state = "Hoạt động" if admin["is_active"] else "Đã khóa"
+        print(
+            f"{admin['id']:<3} {admin['username']:<24} "
+            f"{(admin['email'] or '-'):<29} {state}"
+        )
 
 
 def main():
-    """Hàm chính"""
-    print_banner()
-    
     manager = AdminManager()
-    
     while True:
-        print_menu()
-        
-        choice = input("👉 Nhập lựa chọn (1-6): ").strip()
-        
-        if choice == '1':
-            create_admin_menu(manager)
-        elif choice == '2':
-            list_admins_menu(manager)
-        elif choice == '3':
-            change_password_menu(manager)
-        elif choice == '4':
-            toggle_status_menu(manager)
-        elif choice == '5':
-            delete_admin_menu(manager)
-        elif choice == '6':
-            print("\n👋 Cảm ơn bạn! Tạm biệt!\n")
-            sys.exit(0)
+        print(
+            "\nCloudBox Admin\n"
+            "1. Tạo admin\n"
+            "2. Danh sách admin\n"
+            "3. Đổi mật khẩu\n"
+            "4. Bật/tắt tài khoản\n"
+            "5. Xóa admin\n"
+            "6. Thoát"
+        )
+        choice = input("Lựa chọn: ").strip()
+        if choice == "1":
+            username = input("Username: ").strip()
+            email = input("Email: ").strip().lower()
+            password = input("Password: ").strip()
+            if len(password) < 6:
+                print("Mật khẩu phải có ít nhất 6 ký tự.")
+                continue
+            print(manager.create_admin(username, email, password)[1])
+        elif choice == "2":
+            _show_admins(manager)
+        elif choice == "3":
+            user_id = _read_user_id()
+            if user_id is not None:
+                password = input("Mật khẩu mới: ").strip()
+                print(manager.change_password(user_id, password)[1])
+        elif choice == "4":
+            user_id = _read_user_id()
+            if user_id is not None:
+                print(manager.toggle_admin_status(user_id)[1])
+        elif choice == "5":
+            user_id = _read_user_id()
+            if user_id is not None:
+                print(manager.delete_admin(user_id)[1])
+        elif choice == "6":
+            break
         else:
-            print("\n❌ Lựa chọn không hợp lệ. Vui lòng chọn lại!\n")
+            print("Lựa chọn không hợp lệ.")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\n\n⏸️  Đã dừng.\n")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ Lỗi: {e}\n")
-        sys.exit(1)
+    main()
