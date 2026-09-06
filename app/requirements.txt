@@ -1,7 +1,8 @@
-Flask
-Flask-SQLAlchemy
-Flask-Migrate
-SQLAlchemy
-Werkzeug
-gunicorn
-PyMySQL
+Flask==3.1.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.1.0
+SQLAlchemy==2.0.52
+Werkzeug==3.1.8
+gunicorn==26.2.0
+PyMySQL==1.2.0
+boto3==1.43.89

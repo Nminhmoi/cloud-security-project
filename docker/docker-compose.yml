@@ -12,10 +12,13 @@ x-app-environment: &app-environment
   DB_NAME: "${DB_NAME:-cloudbox}"
   DB_USER: "${DB_USER:-cloudbox}"
   DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+  DB_SSL_CA: "${DB_SSL_CA:-}"
   AUTO_CREATE_SCHEMA: "false"
   UPLOAD_FOLDER: /data/uploads
   SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in .env}"
   SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+  AWS_REGION: "${AWS_REGION:-ap-southeast-1}"
+  AWS_S3_BUCKET: "${AWS_S3_BUCKET:-}"
 
 x-web-service: &web-service
   <<: *app-image

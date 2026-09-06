@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP_ROOT = os.path.join(PROJECT_ROOT, "app")
 sys.path.insert(0, APP_ROOT)
 
-from config import _database_uri  # noqa: E402
+from config import _database_uri, _engine_options  # noqa: E402
 
 
 class DatabaseConfigTests(unittest.TestCase):
@@ -59,6 +59,16 @@ class DatabaseConfigTests(unittest.TestCase):
         with patch.dict(os.environ, environment, clear=True):
             with self.assertRaisesRegex(RuntimeError, "DB_PORT must be an integer"):
                 _database_uri()
+
+    def test_mysql_tls_ca_is_passed_to_driver(self):
+        with patch.dict(os.environ, {"DB_SSL_CA": "/run/secrets/rds-ca.pem"}, clear=True):
+            options = _engine_options("mysql+pymysql://user:password@db/cloudbox")
+
+        self.assertTrue(options["pool_pre_ping"])
+        self.assertEqual(
+            options["connect_args"],
+            {"ssl": {"ca": "/run/secrets/rds-ca.pem"}},
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update -y
+apt-get install -y docker.io docker-compose-v2 git awscli jq openssl curl
+systemctl enable --now docker
+snap install amazon-ssm-agent --classic || true
+systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service || true
+
+git clone https://github.com/Nminhmoi/cloud-security-project.git /app
+git -C /app checkout --detach ${app_git_ref}
+
+APP_SECRET=$(aws secretsmanager get-secret-value \
+  --region ${aws_region} \
+  --secret-id ${app_secret_arn} \
+  --query SecretString --output text 2>/dev/null || true)
+if [ -z "$APP_SECRET" ] || [ "$APP_SECRET" = "None" ]; then
+  APP_SECRET=$(openssl rand -hex 32)
+  aws secretsmanager put-secret-value \
+    --region ${aws_region} \
+    --secret-id ${app_secret_arn} \
+    --secret-string "$APP_SECRET" >/dev/null
+fi
+
+DB_SECRET=$(aws secretsmanager get-secret-value \
+  --region ${aws_region} \
+  --secret-id ${rds_secret_arn} \
+  --query SecretString --output text)
+DB_USER=$(printf '%s' "$DB_SECRET" | jq -r .username)
+DB_PASSWORD=$(printf '%s' "$DB_SECRET" | jq -r .password)
+
+umask 077
+cat > /app/.env <<EOT
+SECRET_KEY='$APP_SECRET'
+APP_PORT=5000
+SESSION_COOKIE_SECURE=${https_enabled}
+DB_HOST=${rds_host}
+DB_PORT=${rds_port}
+DB_NAME=cloudbox
+DB_USER='$DB_USER'
+DB_PASSWORD='$DB_PASSWORD'
+DB_SSL_CA=/run/secrets/rds-ca.pem
+MYSQL_ROOT_PASSWORD=unused-external-rds
+AUTO_CREATE_SCHEMA=false
+AWS_REGION=${aws_region}
+AWS_S3_BUCKET=${document_bucket}
+AWS_LOG_GROUP=${application_log_group}
+RDS_CA_PATH=/app/rds-ca.pem
+EOT
+
+curl --fail --silent --show-error \
+  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  --output /app/rds-ca.pem
+chmod 0444 /app/rds-ca.pem
+
+cd /app
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.aws.yml build web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.aws.yml run --rm --no-deps migrate
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.aws.yml up -d --no-deps web

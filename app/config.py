@@ -71,14 +71,27 @@ def _engine_options(database_uri):
         # SQLite is a local/test backend. Avoid retaining Windows file handles
         # and let each short request own exactly one physical connection.
         return {"poolclass": NullPool}
-    return {"pool_pre_ping": True, "pool_recycle": 280}
+    options = {"pool_pre_ping": True, "pool_recycle": 280}
+    ssl_ca = os.environ.get("DB_SSL_CA", "").strip()
+    if ssl_ca:
+        options["connect_args"] = {"ssl": {"ca": ssl_ca}}
+    return options
 
 
 DATABASE_URI = _database_uri()
 
 
+def _secret_key():
+    configured_secret = os.environ.get("SECRET_KEY", "").strip()
+    if configured_secret:
+        return configured_secret
+    if not DATABASE_URI.startswith("sqlite:"):
+        raise RuntimeError("SECRET_KEY is required when using a shared database")
+    return "cloud-security-local-development-only"
+
+
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "cloud-security-secret-key")
+    SECRET_KEY = _secret_key()
     PERMANENT_SESSION_LIFETIME = timedelta(days=int(os.environ.get("REMEMBER_SESSION_DAYS", "30")))
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
