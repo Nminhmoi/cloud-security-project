@@ -1,0 +1,50 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowDocumentAdministration",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": [
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1",
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1/*"
+      ]
+    },
+    {
+      "Sid": "AllowOtpEmailSending",
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": "arn:aws:ses:ap-southeast-1:131160052712:identity/*"
+    },
+    {
+      "Sid": "DenyUnencryptedS3Transport",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1",
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyIamChanges",
+      "Effect": "Deny",
+      "Action": "iam:*",
+      "Resource": "*"
+    }
+  ]
+}

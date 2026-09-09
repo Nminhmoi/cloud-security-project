@@ -1,0 +1,20 @@
+{
+  "AlarmName": "dev-cloudbox-auth-failed-logins",
+  "AlarmDescription": "Detect at least five failed CloudBox logins in five minutes",
+  "ActionsEnabled": true,
+  "MetricName": "FailedLoginAttempts",
+  "Namespace": "CloudSecurityApp/Authentication",
+  "Statistic": "Sum",
+  "Dimensions": [
+    {
+      "Name": "Environment",
+      "Value": "dev"
+    }
+  ],
+  "Period": 300,
+  "EvaluationPeriods": 1,
+  "DatapointsToAlarm": 1,
+  "Threshold": 5,
+  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+  "TreatMissingData": "notBreaching"
+}

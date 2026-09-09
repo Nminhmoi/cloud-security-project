@@ -1,0 +1,35 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowS3DocumentObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1/*"
+    },
+    {
+      "Sid": "AllowS3BucketListing",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1"
+    },
+    {
+      "Sid": "DenyUnencryptedS3Transport",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1",
+        "arn:aws:s3:::dev-cloudbox-131160052712-ap-southeast-1/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    }
+  ]
+}
