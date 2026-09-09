@@ -14,7 +14,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       async function roleApi(url, permissionId) {
           const response = await fetch(url, {
                   method: 'POST',

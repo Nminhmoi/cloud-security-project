@@ -25,7 +25,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       document.getElementById('searchInput').addEventListener('input', function() {
           const q = this.value.toLowerCase().trim();
           document.querySelectorAll('.permission-table-row').forEach(row => row.hidden = !row.textContent.toLowerCase().includes(q))

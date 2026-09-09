@@ -4,13 +4,14 @@ from flask import Blueprint, jsonify, redirect, request, session, url_for
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 
-from extensions import db
+from extensions import db, limiter
 from models import Document, DocumentShare, User
 
 share_bp = Blueprint("share", __name__)
 
 
 @share_bp.route("/search-users")
+@limiter.limit("30 per minute")
 def search_users():
     if "user_id" not in session:
         return jsonify(users=[]), 401

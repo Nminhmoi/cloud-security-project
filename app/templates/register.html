@@ -12,6 +12,7 @@
 
   <section class="glass-card">
     <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="field">
         <label for="username">Tên đăng nhập</label>
         <div class="input-wrap">
@@ -20,7 +21,8 @@
             name="username"
             type="text"
             placeholder="Ví dụ: Nguyen@2026"
-            minlength="6"
+            minlength="{{ config.MIN_PASSWORD_LENGTH }}"
+            maxlength="128"
             maxlength="24"
             pattern="(?=.*[A-Za-z])(?=.*[0-9])(?=.*[^A-Za-z0-9])[\x21-\x7E]{6,24}"
             title="Dài 6–24 ký tự, gồm chữ A–Z không dấu, số, ký tự đặc biệt và không có khoảng trắng"
@@ -79,7 +81,7 @@
   </section>
 </main>
 
-<script>
+<script nonce="{{ g.csp_nonce }}">
   const usernameInput = document.getElementById("username");
   const usernameStatus = document.getElementById("username-status");
   const registerButton = document.getElementById("register-button");

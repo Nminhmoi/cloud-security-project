@@ -34,7 +34,10 @@
       <div class="account-menu">
         <span class="avatar">{{ session['username'][0]|upper }}</span>
         <strong>{{ session['username'] }}</strong>
-        <a class="logout" href="{{ url_for('auth.logout') }}">Đăng xuất</a>
+        <form class="logout-form" action="{{ url_for('auth.logout') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="logout" type="submit">Đăng xuất</button>
+        </form>
       </div>
     </header>
 
@@ -51,9 +54,12 @@
           method="POST"
           enctype="multipart/form-data"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <label for="document-upload">Chọn tài liệu</label>
-          <input id="document-upload" type="file" name="file" required aria-describedby="upload-hint">
-          <small id="upload-hint">Kiểm tra đúng file trước khi tải lên.</small>
+          <input id="document-upload" type="file" name="file" required
+                 accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.docx,.xlsx,.pptx,.zip"
+                 aria-describedby="upload-hint">
+          <small id="upload-hint">Tối đa 16 MB; chỉ nhận tài liệu, ảnh và ZIP được cho phép.</small>
           <div class="upload-drop-message" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v4h14v-4"/></svg>
             <strong>Thả tài liệu vào đây</strong>
@@ -96,6 +102,7 @@
                       action="{{ url_for('documents.restore_document', document_id=document['id']) }}"
                       method="POST"
                     >
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <button class="action-button">Khôi phục</button>
                     </form>
                   {% else %}
@@ -103,6 +110,7 @@
                       action="{{ url_for('documents.favorite_document', document_id=document['id']) }}"
                       method="POST"
                     >
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <input type="hidden" name="view" value="{{ view_name }}">
                       <button class="action-button favorite-button" title="Yêu thích" aria-pressed="{{ 'true' if document['is_favorite'] else 'false' }}">
                         {{ 'Bỏ yêu thích' if document['is_favorite'] else 'Yêu thích' }}
@@ -116,6 +124,7 @@
                       action="{{ url_for('documents.delete', document_id=document['id']) }}"
                       method="POST"
                     >
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <button class="action-button delete-button" title="Xóa tài liệu {{ document['filename'] }}">Xóa</button>
                     </form>
                   {% endif %}
@@ -184,6 +193,7 @@
 
       <dialog id="share-dialog" class="share-dialog" aria-labelledby="share-dialog-title">
         <form id="share-form" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="share-dialog-head">
             <div><p>QUYỀN TRUY CẬP TÀI LIỆU</p><h2 id="share-dialog-title">Chia sẻ tài liệu</h2></div>
             <button class="dialog-close" type="button" data-close-share aria-label="Đóng hộp thoại">×</button>
@@ -210,7 +220,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ g.csp_nonce }}">
   window.cloudBoxWorkspace = {
     activeView: {{ active_view|tojson }},
     searchUrl: {{ url_for('share.search_users')|tojson }}

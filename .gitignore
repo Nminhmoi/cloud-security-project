@@ -11,6 +11,12 @@ venv/
 *.db-journal
 *.sqlite
 *.sqlite3
+*.db.*backup*
+
+# Terraform plans can contain infrastructure and secret-derived values
+*.tfplan
+tfplan
+tfplan.*
 
 # User-uploaded runtime data
 app/uploads/

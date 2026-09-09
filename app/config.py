@@ -96,6 +96,23 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "false").strip().lower() == "true"
+    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_BYTES", str(16 * 1024 * 1024)))
+    ALLOWED_UPLOAD_EXTENSIONS = frozenset(
+        extension.strip().lower()
+        for extension in os.environ.get(
+            "ALLOWED_UPLOAD_EXTENSIONS",
+            "pdf,txt,csv,png,jpg,jpeg,docx,xlsx,pptx,zip",
+        ).split(",")
+        if extension.strip()
+    )
+    WTF_CSRF_TIME_LIMIT = 3600
+    WTF_CSRF_ENABLED = os.environ.get("WTF_CSRF_ENABLED", "true").strip().lower() == "true"
+    RATELIMIT_ENABLED = os.environ.get("RATELIMIT_ENABLED", "true").strip().lower() == "true"
+    RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_HEADERS_ENABLED = True
+    MAX_FAILED_LOGIN_ATTEMPTS = int(os.environ.get("MAX_FAILED_LOGIN_ATTEMPTS", "5"))
+    ACCOUNT_LOCK_MINUTES = int(os.environ.get("ACCOUNT_LOCK_MINUTES", "15"))
+    MIN_PASSWORD_LENGTH = int(os.environ.get("MIN_PASSWORD_LENGTH", "12"))
     DATABASE = _database_path()
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
     SQLALCHEMY_ENGINE_OPTIONS = _engine_options(DATABASE_URI)

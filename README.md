@@ -1,6 +1,6 @@
 # Cloud Security Project
 
-Ứng dụng Flask quản lý, chia sẻ tài liệu và phân quyền theo vai trò (RBAC), sử dụng SQLite.
+Ứng dụng Flask quản lý, chia sẻ tài liệu và phân quyền theo vai trò (RBAC). Môi trường local mặc định dùng SQLite; môi trường AWS dùng RDS MySQL và S3.
 
 ## Chạy nhanh trên Windows
 
@@ -30,7 +30,8 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 ## Cấu trúc chính
 
 - `app/app.py`: khởi tạo Flask và đăng ký blueprint.
-- `app/database.py`: schema và migration SQLite.
+- `app/database.py`: tương thích và nâng cấp schema SQLite cũ.
+- `migrations/`: Alembic migrations dùng cho cả SQLite và RDS.
 - `app/permissions.py`: kiểm tra role/permission và decorator bảo vệ route.
 - `app/routes/admin.py`: API và trang quản trị.
 - `app/templates/admin/`: giao diện quản trị.
@@ -44,7 +45,7 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - [PERMISSIONS_GUIDE.md](PERMISSIONS_GUIDE.md): cách dùng các hàm phân quyền.
 - [ADMIN_UI_GUIDE.md](ADMIN_UI_GUIDE.md): màn hình và API admin.
 - [INTEGRATION_EXAMPLES.md](INTEGRATION_EXAMPLES.md): ví dụ mở rộng, không phải mã đang chạy.
-- [DATABASE_SCHEMA.sql](DATABASE_SCHEMA.sql): SQL tham khảo; `app/database.py` mới là nguồn schema chính thức.
+- [DATABASE_SCHEMA.sql](DATABASE_SCHEMA.sql): SQL tham khảo; model trong `app/models/` và `migrations/` là nguồn schema chính thức.
 
 ## Kiểm thử
 
@@ -55,6 +56,9 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 ## Lưu ý bảo mật
 
 - Đặt `SECRET_KEY` bằng biến môi trường khi triển khai.
-- Chỉ các route trong `app/routes/admin.py` đang được bảo vệ bằng `@require_admin`.
-- Các request thay đổi dữ liệu dùng `POST`, nhưng dự án **chưa có CSRF token**. Cần bổ sung CSRF protection trước khi triển khai công khai.
+- Các route quản trị được bảo vệ bằng role/permission; tài liệu và chia sẻ kiểm tra quyền sở hữu hoặc quyền truy cập.
+- Form và API thay đổi dữ liệu được bảo vệ bằng CSRF token. JavaScript gửi token qua header `X-CSRFToken`.
+- Đăng nhập có rate limit, khóa tài khoản tạm thời sau nhiều lần sai và vô hiệu hóa phiên cũ khi đổi mật khẩu.
+- Upload giới hạn 16 MiB theo mặc định, kiểm tra phần mở rộng, MIME type và chữ ký tệp.
+- Khi chạy nhiều worker/instance, cấu hình `RATELIMIT_STORAGE_URI` bằng Redis thay cho `memory://`.
 - Sao lưu `database.db` trước khi migration hoặc thao tác dữ liệu quan trọng.

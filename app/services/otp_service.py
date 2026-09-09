@@ -28,10 +28,11 @@ def create_otp(user_id):
 
 def verify_otp(user_id, otp):
     record = db.session.get(PasswordResetOTP, user_id)
-    if record is None or record.expires_at < int(time.time()):
-        if record is not None:
-            db.session.delete(record)
-            db.session.commit()
+    if record is None:
+        return "invalid"
+    if record.expires_at < int(time.time()):
+        db.session.delete(record)
+        db.session.commit()
         return "expired"
 
     if record.attempts >= MAX_ATTEMPTS:

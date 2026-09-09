@@ -13,6 +13,9 @@ sys.path.insert(0, APP_ROOT)
 _temp_dir = tempfile.TemporaryDirectory()
 os.environ["DATABASE_PATH"] = os.path.join(_temp_dir.name, "test.db")
 os.environ["UPLOAD_FOLDER"] = os.path.join(_temp_dir.name, "uploads")
+os.environ["WTF_CSRF_ENABLED"] = "false"
+os.environ["RATELIMIT_ENABLED"] = "false"
+os.environ["MIN_PASSWORD_LENGTH"] = "8"
 
 from app import app  # noqa: E402
 from admin import AdminManager  # noqa: E402
@@ -48,6 +51,7 @@ class AdminRbacTests(unittest.TestCase):
         with self.client.session_transaction() as session:
             session["user_id"] = user_id
             session["username"] = username
+            session["session_version"] = 0
 
     def test_normal_user_cannot_access_admin(self):
         self.login_session(3, "normal-user")
@@ -87,7 +91,7 @@ class AdminRbacTests(unittest.TestCase):
         with self.client.session_transaction() as login_session:
             self.assertTrue(login_session.permanent)
 
-        self.client.get("/logout")
+        self.client.post("/logout")
         response = self.client.post(
             "/login", data={"username": "normal-user", "password": "secret123"}
         )
@@ -102,7 +106,7 @@ class AdminRbacTests(unittest.TestCase):
         self.assertEqual(by_username.status_code, 302)
         self.assertTrue(by_username.headers["Location"].endswith("/admin/dashboard"))
 
-        self.client.get("/logout")
+        self.client.post("/logout")
         by_email = self.client.post(
             "/login", data={"username": "USER@TEST.LOCAL", "password": "secret123"}
         )
@@ -320,7 +324,7 @@ class AdminRbacTests(unittest.TestCase):
             succeeded.get_json()["data"]["redirect_url"].endswith("/documents")
         )
 
-        self.client.get("/logout")
+        self.client.post("/logout")
         self.login_session(1, "admin-one")
         admin_response = self.client.get("/")
         self.assertEqual(admin_response.status_code, 302)

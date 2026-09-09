@@ -46,7 +46,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       const currentUserId = {{ session.get('user_id',0) }},
           rows = [...document.querySelectorAll('.user-row')];
       document.getElementById('searchInput').addEventListener('input', function() {

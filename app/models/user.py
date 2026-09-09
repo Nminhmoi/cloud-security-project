@@ -23,6 +23,19 @@ class User(db.Model):
         default=True,
         server_default=db.true(),
     )
+    failed_login_attempts = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    locked_until = db.Column(db.DateTime)
+    session_version = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
 
     role = db.relationship("Role", back_populates="users", lazy="joined")
     documents = db.relationship(

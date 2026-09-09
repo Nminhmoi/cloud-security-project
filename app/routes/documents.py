@@ -3,9 +3,9 @@
 from flask import Blueprint, redirect, render_template, request, session, url_for
 from sqlalchemy import or_
 
-from extensions import db
+from extensions import db, limiter
 from models import Document, DocumentShare, User
-from services.storage_service import save_upload, send_stored_file
+from services.storage_service import save_upload, send_stored_file, validate_upload
 
 documents_bp = Blueprint("documents", __name__)
 
@@ -70,6 +70,7 @@ def index():
 
 
 @documents_bp.route("/upload", methods=["POST"])
+@limiter.limit("10 per minute")
 def upload():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -78,11 +79,11 @@ def upload():
     if not uploaded_file or not uploaded_file.filename:
         return "Chưa chọn file!", 400
 
+    try:
+        file_size = validate_upload(uploaded_file)
+    except ValueError as error:
+        return str(error), 400
     filename = save_upload(uploaded_file, session["user_id"])
-    file_size = uploaded_file.content_length
-    if not file_size:
-        uploaded_file.stream.seek(0, 2)
-        file_size = uploaded_file.stream.tell()
 
     document = Document(
         filename=filename,

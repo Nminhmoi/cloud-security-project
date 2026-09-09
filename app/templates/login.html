@@ -17,6 +17,7 @@
     </div>
 
     <form id="login-form" method="POST" data-async-submit="true">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <p
         id="login-error"
         class="auth-form-error"
@@ -77,7 +78,7 @@
   </section>
 </main>
 
-<script>
+<script nonce="{{ g.csp_nonce }}">
   (() => {
     "use strict";
 

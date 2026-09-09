@@ -4,14 +4,12 @@ from flask import Blueprint, current_app, jsonify, render_template, request, ses
 from sqlalchemy import func
 
 from extensions import db
-from models import ActivityLog, Document, Role, User
+from models import ActivityLog, Document, Permission, Role, User
 from permissions import (
-    assign_permission_to_role,
     get_all_permissions,
     get_all_roles,
     get_role_permissions,
     require_admin,
-    revoke_permission_from_role,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -151,7 +149,17 @@ def change_user_role(user_id):
     if role.name != "admin" and _is_last_active_admin(user_id):
         return jsonify({"error": "Không thể hạ quyền admin đang hoạt động cuối cùng"}), 400
 
+    previous_role = user.role_name or "unassigned"
     user.role = role
+    db.session.add(
+        ActivityLog(
+            actor_user_id=session.get("user_id"),
+            action="change_user_role",
+            target_type="user",
+            target_id=user_id,
+            details=f"Changed role from {previous_role} to {role.name}",
+        )
+    )
     db.session.commit()
     return jsonify({"success": "Đổi vai trò thành công"})
 
@@ -247,9 +255,22 @@ def assign_permission(role_id):
     permission_id = _json_id("permission_id")
     if permission_id is None:
         return jsonify({"error": "permission_id không hợp lệ"}), 400
-    if assign_permission_to_role(role_id, permission_id):
-        return jsonify({"success": "Gán quyền thành công"})
-    return jsonify({"error": "Không thể gán quyền"}), 400
+    role = db.session.get(Role, role_id)
+    permission = db.session.get(Permission, permission_id)
+    if not role or not permission or permission in role.permissions:
+        return jsonify({"error": "Không thể gán quyền"}), 400
+    role.permissions.append(permission)
+    db.session.add(
+        ActivityLog(
+            actor_user_id=session.get("user_id"),
+            action="assign_role_permission",
+            target_type="role",
+            target_id=role_id,
+            details=f"Assigned permission {permission.name}",
+        )
+    )
+    db.session.commit()
+    return jsonify({"success": "Gán quyền thành công"})
 
 
 @admin_bp.route("/roles/<int:role_id>/revoke-permission", methods=["POST"])
@@ -258,9 +279,22 @@ def revoke_permission(role_id):
     permission_id = _json_id("permission_id")
     if permission_id is None:
         return jsonify({"error": "permission_id không hợp lệ"}), 400
-    if revoke_permission_from_role(role_id, permission_id):
-        return jsonify({"success": "Thu hồi quyền thành công"})
-    return jsonify({"error": "Không thể thu hồi quyền"}), 400
+    role = db.session.get(Role, role_id)
+    permission = db.session.get(Permission, permission_id)
+    if not role or not permission or permission not in role.permissions:
+        return jsonify({"error": "Không thể thu hồi quyền"}), 400
+    role.permissions.remove(permission)
+    db.session.add(
+        ActivityLog(
+            actor_user_id=session.get("user_id"),
+            action="revoke_role_permission",
+            target_type="role",
+            target_id=role_id,
+            details=f"Revoked permission {permission.name}",
+        )
+    )
+    db.session.commit()
+    return jsonify({"success": "Thu hồi quyền thành công"})
 
 
 @admin_bp.route("/permissions")

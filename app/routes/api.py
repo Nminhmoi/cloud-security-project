@@ -4,14 +4,20 @@ import re
 from functools import wraps
 
 from flask import Blueprint, jsonify, request, session
+from flask_wtf.csrf import generate_csrf
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 
-from extensions import db
+from extensions import db, limiter
 from models import Document, DocumentShare, User
 from routes.auth import _valid_username
-from services.storage_service import save_upload, send_stored_file
+from services.auth_service import (
+    authenticate_user,
+    establish_session,
+    password_policy_error,
+)
+from services.storage_service import save_upload, send_stored_file, validate_upload
 
 api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
@@ -42,6 +48,7 @@ def _document_dict(document, access="owner"):
 
 
 @api_bp.post("/auth/register")
+@limiter.limit("5 per hour")
 def register():
     data = _json_body()
     username = str(data.get("username", "")).strip()
@@ -54,8 +61,9 @@ def register():
         )
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
         return _error("Địa chỉ email không hợp lệ", 400)
-    if not isinstance(password, str) or len(password) < 6:
-        return _error("Mật khẩu phải có ít nhất 6 ký tự", 400)
+    password_error = password_policy_error(password)
+    if password_error:
+        return _error(password_error, 400)
 
     try:
         user = User(
@@ -72,30 +80,21 @@ def register():
 
 
 @api_bp.post("/auth/login")
+@limiter.limit("5 per minute")
 def login():
     data = _json_body()
     identifier = str(data.get("username", "")).strip().casefold()
     password = data.get("password", "")
-    user = db.session.scalar(
-        db.select(User).where(
-            or_(
-                func.lower(User.username) == identifier,
-                func.lower(User.email) == identifier,
-            )
-        )
-    )
-    if (
-        not user
-        or not isinstance(password, str)
-        or not check_password_hash(user.password, password)
-    ):
+    result = authenticate_user(identifier, password)
+    if result.status == "locked":
+        return _error("Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau", 429)
+    if result.status == "invalid":
         return _error("Tên đăng nhập hoặc mật khẩu không đúng", 401)
-    if not user.is_active:
+    if result.status == "inactive":
         return _error("Tài khoản đã bị vô hiệu hóa", 403)
 
-    session.clear()
-    session["user_id"] = user.id
-    session["username"] = user.username
+    user = result.user
+    establish_session(user)
     return jsonify(
         {
             "data": {
@@ -113,6 +112,12 @@ def login():
 def logout():
     session.clear()
     return jsonify({"data": {"message": "Đăng xuất thành công"}})
+
+
+@api_bp.get("/csrf-token")
+@limiter.limit("30 per minute")
+def csrf_token():
+    return jsonify({"data": {"csrf_token": generate_csrf()}})
 
 
 @api_bp.get("/me")
@@ -157,17 +162,21 @@ def list_documents():
 
 @api_bp.post("/documents")
 @api_login_required
+@limiter.limit("10 per minute")
 def upload_document():
     uploaded_file = request.files.get("file")
     if not uploaded_file or not uploaded_file.filename:
         return _error("Thiếu file tải lên", 400)
 
+    try:
+        file_size = validate_upload(uploaded_file)
+    except ValueError as error:
+        return _error(str(error), 400)
     filename = save_upload(uploaded_file, session["user_id"])
-    uploaded_file.stream.seek(0, 2)
     document = Document(
         filename=filename,
         user_id=session["user_id"],
-        file_size=uploaded_file.stream.tell(),
+        file_size=file_size,
     )
     db.session.add(document)
     db.session.commit()
@@ -256,6 +265,7 @@ def update_favorite(document_id):
 
 @api_bp.get("/users/search")
 @api_login_required
+@limiter.limit("30 per minute")
 def search_users():
     query = request.args.get("q", "").strip()
     if len(query) < 2:

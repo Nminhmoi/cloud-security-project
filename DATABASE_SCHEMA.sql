@@ -1,5 +1,5 @@
 -- TAI LIEU THAM KHAO - KHONG CHAY TOAN BO FILE NAY TREN DATABASE DANG CO.
--- Schema va migration chinh thuc nam trong app/database.py.
+-- Schema chinh thuc nam trong app/models/ va migrations/.
 -- Cac lenh CREATE/ALTER ben duoi co the bao loi neu bang/cot da ton tai.
 -- ================================================================
 -- HỆ THỐNG PHÂN QUYỀN - CẤU TRÚC CƠ SỞ DỮ LIỆU
@@ -63,6 +63,9 @@ CREATE TABLE role_permissions (
 -- Thêm trường role_id và is_active
 ALTER TABLE users ADD role_id INTEGER DEFAULT 2;
 ALTER TABLE users ADD is_active INTEGER DEFAULT 1;
+ALTER TABLE users ADD failed_login_attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD locked_until DATETIME;
+ALTER TABLE users ADD session_version INTEGER NOT NULL DEFAULT 0;
 -- ALTER TABLE users ADD FOREIGN KEY (role_id) REFERENCES roles(id);
 
 -- Cấu trúc hoàn chỉnh của bảng users:
@@ -73,6 +76,9 @@ ALTER TABLE users ADD is_active INTEGER DEFAULT 1;
 --     password TEXT NOT NULL,
 --     role_id INTEGER DEFAULT 2,        -- Vai trò của user (mặc định là user)
 --     is_active INTEGER DEFAULT 1,      -- Trạng thái hoạt động (1=active, 0=inactive)
+--     failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+--     locked_until DATETIME,            -- Thời điểm hết khóa đăng nhập tạm thời
+--     session_version INTEGER NOT NULL DEFAULT 0, -- Tăng để vô hiệu hóa phiên cũ
 --     FOREIGN KEY (role_id) REFERENCES roles(id)
 -- );
 

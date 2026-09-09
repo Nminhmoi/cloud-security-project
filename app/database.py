@@ -62,6 +62,19 @@ def _migrate_legacy_sqlite_schema():
         _add_column(connection, "users", "email", "TEXT")
         _add_column(connection, "users", "role_id", "INTEGER DEFAULT 2")
         _add_column(connection, "users", "is_active", "INTEGER DEFAULT 1")
+        _add_column(
+            connection,
+            "users",
+            "failed_login_attempts",
+            "INTEGER NOT NULL DEFAULT 0",
+        )
+        _add_column(connection, "users", "locked_until", "TEXT")
+        _add_column(
+            connection,
+            "users",
+            "session_version",
+            "INTEGER NOT NULL DEFAULT 0",
+        )
         connection.execute(
             """CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique
                ON users(email) WHERE email IS NOT NULL"""

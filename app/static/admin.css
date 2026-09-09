@@ -172,8 +172,21 @@
   font-size: 12px
 }
 
-.sidebar-footer a {
+.sidebar-footer a,
+.admin-logout-form button {
   color: #8e8b87
+}
+
+.admin-logout-form,
+.admin-logout-form button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.admin-logout-form button {
+  cursor: pointer;
 }
 
 .sidebar-footer svg {

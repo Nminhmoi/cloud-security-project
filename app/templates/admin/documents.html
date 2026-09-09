@@ -103,7 +103,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       const documentRows = [...document.querySelectorAll('.document-row')];
       const searchInput = document.getElementById('documentSearch');
       const statusFilter = document.getElementById('statusFilter');

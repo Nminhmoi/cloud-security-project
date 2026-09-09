@@ -47,7 +47,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       document.getElementById('currentDate').textContent = new Intl.DateTimeFormat('vi-VN', {
           day: '2-digit',
           month: '2-digit',

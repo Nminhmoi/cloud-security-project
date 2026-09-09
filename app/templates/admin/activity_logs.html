@@ -51,7 +51,7 @@
   </section>
 {% endblock %}
 {% block admin_scripts %}
-  <script>
+  <script nonce="{{ g.csp_nonce }}">
       document.getElementById('logSearch').addEventListener('input', function() {
           const query = this.value.toLowerCase().trim();
           document.querySelectorAll('.log-row').forEach(row => {

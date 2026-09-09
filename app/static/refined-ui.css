@@ -330,6 +330,15 @@ a:hover {
   background: #fff;
 }
 
+.logout-form {
+  margin: 0;
+}
+
+.logout-form .logout {
+  cursor: pointer;
+  font: inherit;
+}
+
 .document-content {
   width: min(100%, 1320px);
   margin-inline: auto;

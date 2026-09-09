@@ -63,11 +63,14 @@
         <div class="sidebar-footer">
           <div class="admin-avatar">{{ session.get('username', 'A')[:1] |upper }}</div>
           <div><strong>{{ session.get('username', 'Admin') }}</strong><small>Quản trị viên</small></div>
-          <a href="{{ url_for('auth.logout') }}" title="Đăng xuất" aria-label="Đăng xuất khỏi trang quản trị">
+          <form class="admin-logout-form" action="{{ url_for('auth.logout') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" title="Đăng xuất" aria-label="Đăng xuất khỏi trang quản trị">
             <svg>
               <use href="#i-logout" />
             </svg>
-          </a>
+            </button>
+          </form>
         </div>
       </aside>
       <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
@@ -87,7 +90,7 @@
         <div><button value="cancel" class="confirm-cancel">Hủy</button><button value="confirm" class="confirm-submit">Xác nhận</button></div>
       </form>
     </dialog>
-    <script>
+    <script nonce="{{ g.csp_nonce }}">
         const sidebar = document.getElementById('adminSidebar'),
             overlay = document.getElementById('sidebarOverlay'),
             menuToggle = document.getElementById('menuToggle');

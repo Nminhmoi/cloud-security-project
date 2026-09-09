@@ -12,6 +12,9 @@ sys.path.insert(0, APP_ROOT)
 _temp_dir = tempfile.TemporaryDirectory()
 os.environ["DATABASE_PATH"] = os.path.join(_temp_dir.name, "api-test.db")
 os.environ["UPLOAD_FOLDER"] = os.path.join(_temp_dir.name, "uploads")
+os.environ["WTF_CSRF_ENABLED"] = "false"
+os.environ["RATELIMIT_ENABLED"] = "false"
+os.environ["MIN_PASSWORD_LENGTH"] = "8"
 
 from app import app  # noqa: E402
 from database import get_db_connection  # noqa: E402
