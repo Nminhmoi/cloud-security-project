@@ -32,3 +32,23 @@ output "https_enabled" {
   value       = var.certificate_arn != null
   description = "Whether the ALB redirects HTTP to HTTPS"
 }
+
+output "rds_automated_backup_retention_days" {
+  value       = aws_db_instance.mysql.backup_retention_period
+  description = "RDS point-in-time recovery retention period"
+}
+
+output "aws_backup_vault_name" {
+  value       = var.enable_aws_backup ? aws_backup_vault.database[0].name : null
+  description = "Optional AWS Backup vault containing additional RDS recovery points"
+}
+
+output "restore_testing_enabled" {
+  value       = var.enable_restore_testing
+  description = "Whether weekly automated RDS restore testing is enabled"
+}
+
+output "otp_delivery_mode" {
+  value       = local.ses_enabled ? "ses" : "disabled"
+  description = "Password-reset OTP delivery mode on AWS"
+}

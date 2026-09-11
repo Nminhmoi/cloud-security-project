@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
 
@@ -22,7 +23,8 @@ os.environ["RATELIMIT_ENABLED"] = "false"
 from app import app as bootstrap_app, create_app  # noqa: E402
 from config import Config  # noqa: E402
 from extensions import db  # noqa: E402
-from models import ActivityLog, User  # noqa: E402
+from models import ActivityLog, PasswordResetOTP, User  # noqa: E402
+from services.email_service import EmailDeliveryError  # noqa: E402
 from services.auth_service import complete_password_reset  # noqa: E402
 
 
@@ -257,6 +259,24 @@ class SecurityControlsTests(unittest.TestCase):
         response = self.request("GET", "/documents")
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.headers["Location"].endswith("/login"))
+
+    @patch(
+        "routes.auth.send_otp_email",
+        side_effect=EmailDeliveryError("SES unavailable"),
+    )
+    def test_failed_otp_delivery_removes_code_and_hides_account_state(self, _send):
+        response = self.request(
+            "POST",
+            "/forgot-password",
+            data={"email": "secure@example.test"},
+            headers=self.csrf_headers(),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/verify-otp"))
+        with self.client.session_transaction() as browser_session:
+            self.assertEqual(browser_session["reset_user_id"], -1)
+        with self.app.app_context():
+            self.assertIsNone(db.session.get(PasswordResetOTP, 1))
 
 
 if __name__ == "__main__":

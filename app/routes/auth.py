@@ -1,7 +1,6 @@
 """Browser authentication routes."""
 
 import re
-import smtplib
 
 from flask import (
     Blueprint,
@@ -25,7 +24,7 @@ from services.auth_service import (
     establish_session,
     password_policy_error,
 )
-from services.email_service import send_otp_email
+from services.email_service import EmailDeliveryError, send_otp_email
 from services.otp_service import create_otp, delete_otp
 from services.otp_service import verify_otp as verify_otp_code
 
@@ -160,7 +159,7 @@ def forgot_password():
         otp = create_otp(user.id)
         try:
             send_otp_email(email, otp)
-        except (OSError, smtplib.SMTPException, ValueError):
+        except EmailDeliveryError:
             current_app.logger.exception("Gửi OTP thất bại")
             delete_otp(user.id)
             reset_user_id = -1

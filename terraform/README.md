@@ -93,6 +93,31 @@ For production also set:
 
 The SNS email subscription must be confirmed before alarms can deliver mail.
 
+Password-reset OTP uses Amazon SES when a verified sender is configured:
+
+```bash
+-var="ses_sender_email=owner@example.com"
+```
+
+Terraform creates the email identity, but its verification email must be
+confirmed. SES sandbox accounts can send only to verified recipients. Without
+this variable, OTP delivery on AWS is disabled and the OTP is never written to
+application logs.
+
+RDS automated point-in-time recovery retains seven days by default. Optional
+AWS Backup and weekly restore testing are explicitly opt-in because they create
+billable backup storage or temporary restore resources:
+
+```bash
+-var="db_backup_retention_days=14" \
+-var="enable_aws_backup=true" \
+-var="aws_backup_retention_days=35" \
+-var="enable_restore_testing=true"
+```
+
+See `../docs/BACKUP_AND_RECOVERY.md` and `../docs/SES_OTP.md` for verification and
+recovery procedures.
+
 ## 4. Operations
 
 Use `terraform output application_url` to find the public entry point. Connect

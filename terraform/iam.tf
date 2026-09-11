@@ -64,6 +64,19 @@ data "aws_iam_policy_document" "ec2_application" {
     ]
     resources = ["${aws_cloudwatch_log_group.application.arn}:*"]
   }
+
+  dynamic "statement" {
+    for_each = local.ses_enabled ? [1] : []
+
+    content {
+      sid = "SendOtpWithVerifiedSesIdentity"
+      actions = [
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+      ]
+      resources = [aws_ses_email_identity.otp[0].arn]
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "ec2_application" {

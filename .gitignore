@@ -17,6 +17,7 @@ venv/
 *.tfplan
 tfplan
 tfplan.*
+backups/
 
 # User-uploaded runtime data
 app/uploads/

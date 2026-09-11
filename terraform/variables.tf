@@ -82,6 +82,57 @@ variable "db_instance_class" {
   description = "RDS MySQL instance class"
 }
 
+variable "db_backup_retention_days" {
+  type        = number
+  default     = 7
+  description = "Number of days RDS automated backups and point-in-time recovery are retained"
+
+  validation {
+    condition     = var.db_backup_retention_days >= 1 && var.db_backup_retention_days <= 35
+    error_message = "db_backup_retention_days must be between 1 and 35."
+  }
+}
+
+variable "enable_aws_backup" {
+  type        = bool
+  default     = false
+  description = "Create an additional daily AWS Backup snapshot plan for RDS; this incurs backup storage charges"
+}
+
+variable "aws_backup_retention_days" {
+  type        = number
+  default     = 35
+  description = "Retention period for RDS recovery points stored in the AWS Backup vault"
+
+  validation {
+    condition     = var.aws_backup_retention_days >= 7 && var.aws_backup_retention_days <= 3650
+    error_message = "aws_backup_retention_days must be between 7 and 3650."
+  }
+}
+
+variable "enable_restore_testing" {
+  type        = bool
+  default     = false
+  description = "Run a weekly AWS Backup RDS restore test; this creates temporary billable resources"
+
+  validation {
+    condition     = !var.enable_restore_testing || var.enable_aws_backup
+    error_message = "enable_restore_testing requires enable_aws_backup=true."
+  }
+}
+
+variable "ses_sender_email" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Email identity used by Amazon SES for password-reset OTP; null disables OTP delivery on AWS"
+
+  validation {
+    condition     = var.ses_sender_email == null || can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.ses_sender_email))
+    error_message = "ses_sender_email must be null or a valid email address."
+  }
+}
+
 variable "db_multi_az" {
   type        = bool
   default     = false

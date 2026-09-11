@@ -45,6 +45,8 @@ MYSQL_ROOT_PASSWORD=unused-external-rds
 AUTO_CREATE_SCHEMA=false
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET=${document_bucket}
+OTP_DELIVERY_MODE=${otp_delivery_mode}
+AWS_SES_SENDER='${ses_sender_email}'
 AWS_LOG_GROUP=${application_log_group}
 RDS_CA_PATH=/app/rds-ca.pem
 EOT

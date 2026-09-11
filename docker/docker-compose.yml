@@ -24,8 +24,10 @@ x-app-environment: &app-environment
   MAX_FAILED_LOGIN_ATTEMPTS: "${MAX_FAILED_LOGIN_ATTEMPTS:-5}"
   ACCOUNT_LOCK_MINUTES: "${ACCOUNT_LOCK_MINUTES:-15}"
   MIN_PASSWORD_LENGTH: "${MIN_PASSWORD_LENGTH:-12}"
+  OTP_DELIVERY_MODE: "${OTP_DELIVERY_MODE:-local}"
   AWS_REGION: "${AWS_REGION:-ap-southeast-1}"
   AWS_S3_BUCKET: "${AWS_S3_BUCKET:-}"
+  AWS_SES_SENDER: "${AWS_SES_SENDER:-}"
 
 x-web-service: &web-service
   <<: *app-image
