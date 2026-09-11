@@ -152,3 +152,15 @@ to the EC2 host with AWS Systems Manager Session Manager; SSH is intentionally
 not exposed. Bootstrap diagnostics are available in
 `/var/log/cloud-init-output.log`, and application container logs are sent to
 the CloudWatch log group output by this configuration.
+
+From the repository root, verify the AWS control plane without changing any
+resources, then test the deployed endpoint:
+
+```powershell
+.venv\Scripts\python.exe scripts\aws_integration_test.py --region ap-southeast-1
+$applicationUrl = terraform -chdir=terraform output -raw application_url
+.venv\Scripts\python.exe scripts\smoke_test_deployment.py $applicationUrl --allow-http
+```
+
+Remove `--allow-http` when HTTPS is enabled. See
+`../docs/AWS_INTEGRATION_TESTING.md` for the complete acceptance procedure.

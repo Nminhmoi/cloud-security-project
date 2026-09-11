@@ -50,11 +50,20 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - [docs/SES_OTP.md](docs/SES_OTP.md): chuyển OTP từ local sang Amazon SES.
 - [docs/HTTPS_DEPLOYMENT.md](docs/HTTPS_DEPLOYMENT.md): cấp chứng chỉ ACM, Route 53 và kiểm thử HTTPS.
 - [docs/FILE_UPLOAD_SECURITY.md](docs/FILE_UPLOAD_SECURITY.md): kiểm tra upload, quota, checksum và vòng đời thùng rác.
+- [docs/AWS_INTEGRATION_TESTING.md](docs/AWS_INTEGRATION_TESTING.md): kiểm thử tích hợp read-only cho tài nguyên AWS sau triển khai.
 
 ## Kiểm thử
 
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Sau khi triển khai AWS, chạy kiểm thử control plane rồi smoke test endpoint:
+
+```powershell
+.venv\Scripts\python.exe scripts\aws_integration_test.py --region ap-southeast-1
+$applicationUrl = terraform -chdir=terraform output -raw application_url
+.venv\Scripts\python.exe scripts\smoke_test_deployment.py $applicationUrl --allow-http
 ```
 
 ## Lưu ý bảo mật
