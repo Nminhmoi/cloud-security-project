@@ -1,5 +1,7 @@
 """Admin routes for managing users, roles, and permissions."""
 
+from datetime import datetime, timezone
+
 from flask import Blueprint, current_app, jsonify, render_template, request, session
 from sqlalchemy import func
 
@@ -11,6 +13,7 @@ from permissions import (
     get_role_permissions,
     require_admin,
 )
+from services.document_service import delete_storage_keys
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -85,6 +88,7 @@ def delete_document(document_id):
         return jsonify({"error": "Tài liệu đã bị xóa trước đó"}), 400
 
     document.is_deleted = True
+    document.deleted_at = datetime.now(timezone.utc).replace(tzinfo=None)
     db.session.add(
         ActivityLog(
             actor_user_id=session.get("user_id"),
@@ -209,6 +213,7 @@ def delete_user(user_id):
     if _is_last_active_admin(user_id):
         return jsonify({"error": "Không thể xóa admin đang hoạt động cuối cùng"}), 400
 
+    storage_keys = [document.storage_reference for document in user.documents]
     identity = (
         f"Đã xóa tài khoản {user.username} ({user.email or 'không có email'}), "
         f"vai trò {user.role_name or 'chưa gán'}"
@@ -225,6 +230,7 @@ def delete_user(user_id):
         )
         db.session.delete(user)
         db.session.commit()
+        delete_storage_keys(storage_keys)
         return jsonify({"success": "Xóa người dùng thành công"})
     except Exception:
         db.session.rollback()

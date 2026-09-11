@@ -107,6 +107,19 @@ For production also set:
 
 The SNS email subscription must be confirmed before alarms can deliver mail.
 
+Upload storage defaults to 16 MiB per file, 500 MiB per user, and a 30-day
+trash window. Override these independently when needed:
+
+```bash
+-var="max_upload_bytes=16777216" \
+-var="user_storage_quota_bytes=524288000" \
+-var="deleted_document_retention_days=30"
+```
+
+Cloud-init enables a daily systemd timer that permanently purges expired
+document rows and their local/S3 objects. S3 Versioning retains deleted object
+versions for the lifecycle recovery window.
+
 Password-reset OTP uses Amazon SES when a verified sender is configured:
 
 ```bash

@@ -40,5 +40,8 @@ curl -b cookies.txt -F "file=@report.pdf" \
 
 Mật khẩu mới dài từ 12 đến 128 ký tự theo mặc định. Upload tối đa 16 MiB và chỉ
 nhận `pdf`, `txt`, `csv`, `png`, `jpg`, `jpeg`, `docx`, `xlsx`, `pptx`, `zip`.
+Metadata trả về gồm tên hiển thị, kích thước, MIME đã kiểm tra, SHA-256 và trạng
+thái scan; private `storage_key` không xuất hiện trong API. Quota mặc định là
+500 MiB cho mỗi tài khoản và tính cả tài liệu trong thùng rác.
 Server có thể trả `413` khi tệp quá lớn và `429` khi vượt giới hạn request hoặc
 tài khoản tạm thời bị khóa.

@@ -6,12 +6,14 @@ from sqlalchemy.exc import IntegrityError
 
 from extensions import db, limiter
 from models import Document, DocumentShare, User
+from permissions import require_permission
 
 share_bp = Blueprint("share", __name__)
 
 
 @share_bp.route("/search-users")
 @limiter.limit("30 per minute")
+@require_permission("share_document")
 def search_users():
     if "user_id" not in session:
         return jsonify(users=[]), 401
@@ -40,6 +42,7 @@ def search_users():
 
 
 @share_bp.route("/share/<int:document_id>", methods=["POST"])
+@require_permission("share_document")
 def share_document(document_id):
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
@@ -82,6 +85,7 @@ def share_document(document_id):
 
 
 @share_bp.route("/unshare/<int:document_id>/<int:user_id>", methods=["POST"])
+@require_permission("share_document")
 def unshare_document(document_id, user_id):
     if "user_id" not in session:
         return redirect(url_for("auth.login"))

@@ -86,6 +86,19 @@ def _migrate_legacy_sqlite_schema():
             connection, "documents", "is_deleted", "INTEGER NOT NULL DEFAULT 0"
         )
         _add_column(connection, "documents", "file_size", "INTEGER NOT NULL DEFAULT 0")
+        _add_column(connection, "documents", "storage_key", "TEXT")
+        _add_column(connection, "documents", "content_type", "TEXT")
+        _add_column(connection, "documents", "sha256", "TEXT")
+        _add_column(
+            connection,
+            "documents",
+            "scan_status",
+            "TEXT NOT NULL DEFAULT 'not_scanned'",
+        )
+        _add_column(connection, "documents", "deleted_at", "TEXT")
+        connection.execute(
+            "UPDATE documents SET storage_key = filename WHERE storage_key IS NULL"
+        )
         _add_column(connection, "documents", "created_at", "TEXT")
         connection.execute(
             "UPDATE documents SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL"

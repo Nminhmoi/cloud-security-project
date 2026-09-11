@@ -1,6 +1,7 @@
 import os
 import secrets
 
+import click
 from flask import Flask, g, jsonify, request, session
 from flask_wtf.csrf import CSRFError
 from sqlalchemy.engine import make_url
@@ -17,6 +18,7 @@ from routes.documents import documents_bp
 from routes.share import share_bp
 from routes.admin import admin_bp
 from routes.api import api_bp
+from services.document_service import purge_expired_documents
 
 
 def create_app(config_class=Config):
@@ -39,6 +41,18 @@ def create_app(config_class=Config):
     app.register_blueprint(api_bp)
     if app.config["AUTO_CREATE_SCHEMA"]:
         init_db(app)
+
+    @app.cli.command("purge-deleted-documents")
+    @click.option(
+        "--retention-days",
+        type=click.IntRange(min=0),
+        default=None,
+        help="Override DELETED_DOCUMENT_RETENTION_DAYS for this run.",
+    )
+    def purge_deleted_documents_command(retention_days):
+        """Permanently remove document trash after its retention window."""
+        purged = purge_expired_documents(retention_days)
+        click.echo(f"Purged {purged} expired document(s).")
 
     @app.before_request
     def reject_inactive_sessions():

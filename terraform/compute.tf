@@ -27,6 +27,9 @@ resource "aws_instance" "web" {
     app_secret_arn        = aws_secretsmanager_secret.app.arn
     aws_region            = var.aws_region
     document_bucket       = aws_s3_bucket.documents.id
+    max_upload_bytes      = var.max_upload_bytes
+    user_storage_quota    = var.user_storage_quota_bytes
+    trash_retention_days  = var.deleted_document_retention_days
     https_enabled         = local.https_enabled
     application_log_group = aws_cloudwatch_log_group.application.name
     rds_host              = aws_db_instance.mysql.address

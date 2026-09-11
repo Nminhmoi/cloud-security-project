@@ -49,6 +49,7 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md): backup RDS/SQLite và quy trình kiểm thử khôi phục.
 - [docs/SES_OTP.md](docs/SES_OTP.md): chuyển OTP từ local sang Amazon SES.
 - [docs/HTTPS_DEPLOYMENT.md](docs/HTTPS_DEPLOYMENT.md): cấp chứng chỉ ACM, Route 53 và kiểm thử HTTPS.
+- [docs/FILE_UPLOAD_SECURITY.md](docs/FILE_UPLOAD_SECURITY.md): kiểm tra upload, quota, checksum và vòng đời thùng rác.
 
 ## Kiểm thử
 
@@ -63,6 +64,7 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - Form và API thay đổi dữ liệu được bảo vệ bằng CSRF token. JavaScript gửi token qua header `X-CSRFToken`.
 - Đăng nhập có rate limit, khóa tài khoản tạm thời sau nhiều lần sai và vô hiệu hóa phiên cũ khi đổi mật khẩu.
 - Upload giới hạn 16 MiB theo mặc định, kiểm tra phần mở rộng, MIME type và chữ ký tệp.
+- Upload có quota theo người dùng, SHA-256, storage key ngẫu nhiên và giới hạn chống ZIP bomb; permission tài liệu được enforce trên cả web và API.
 - Khi chạy nhiều worker/instance, cấu hình `RATELIMIT_STORAGE_URI` bằng Redis thay cho `memory://`.
 - AWS deployment dùng SES cho OTP khi cấu hình sender; nếu thiếu sender, OTP bị vô hiệu hóa thay vì xuất hiện trong log.
 - RDS có point-in-time recovery; AWS Backup và restore testing có thể bật riêng vì phát sinh chi phí.

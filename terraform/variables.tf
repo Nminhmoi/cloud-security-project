@@ -179,6 +179,39 @@ variable "force_destroy_bucket" {
   description = "Allow deletion of a non-empty document bucket only in disposable dev environments"
 }
 
+variable "max_upload_bytes" {
+  type        = number
+  default     = 16777216
+  description = "Maximum HTTP upload size in bytes"
+
+  validation {
+    condition     = var.max_upload_bytes >= 1048576 && var.max_upload_bytes <= 104857600
+    error_message = "max_upload_bytes must be between 1 MiB and 100 MiB."
+  }
+}
+
+variable "user_storage_quota_bytes" {
+  type        = number
+  default     = 524288000
+  description = "Per-user storage quota including soft-deleted documents"
+
+  validation {
+    condition     = var.user_storage_quota_bytes == 0 || var.user_storage_quota_bytes >= var.max_upload_bytes
+    error_message = "user_storage_quota_bytes must be zero (unlimited) or at least max_upload_bytes."
+  }
+}
+
+variable "deleted_document_retention_days" {
+  type        = number
+  default     = 30
+  description = "Days before soft-deleted document rows and objects are purged"
+
+  validation {
+    condition     = var.deleted_document_retention_days >= 1 && var.deleted_document_retention_days <= 365
+    error_message = "deleted_document_retention_days must be between 1 and 365."
+  }
+}
+
 variable "alarm_email" {
   type        = string
   default     = null

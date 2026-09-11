@@ -5,7 +5,17 @@ from sqlalchemy import or_
 
 from extensions import db, limiter
 from models import Document, DocumentShare, User
-from services.storage_service import save_upload, send_stored_file, validate_upload
+from permissions import require_permission
+from services.document_service import (
+    DocumentScanPending,
+    StorageQuotaExceeded,
+    UnsafeDocument,
+    create_document,
+    ensure_document_downloadable,
+    mark_document_deleted,
+    restore_document as restore_document_record,
+)
+from services.storage_service import send_stored_file
 
 documents_bp = Blueprint("documents", __name__)
 
@@ -26,6 +36,7 @@ def home():
 
 
 @documents_bp.route("/documents")
+@require_permission("view_documents")
 def index():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -71,6 +82,7 @@ def index():
 
 @documents_bp.route("/upload", methods=["POST"])
 @limiter.limit("10 per minute")
+@require_permission("create_document")
 def upload():
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -80,19 +92,12 @@ def upload():
         return "Chưa chọn file!", 400
 
     try:
-        file_size = validate_upload(uploaded_file)
+        document = create_document(uploaded_file, session["user_id"])
+    except StorageQuotaExceeded as error:
+        return str(error), 413
     except ValueError as error:
         return str(error), 400
-    filename = save_upload(uploaded_file, session["user_id"])
-
-    document = Document(
-        filename=filename,
-        user_id=session["user_id"],
-        file_size=file_size or 0,
-    )
-    db.session.add(document)
-    db.session.commit()
-    return redirect(url_for("documents.index", uploaded=filename))
+    return redirect(url_for("documents.index", uploaded=document.filename))
 
 
 def _accessible_document(document_id):
@@ -111,16 +116,24 @@ def _accessible_document(document_id):
 
 
 @documents_bp.route("/download/<int:document_id>")
+@require_permission("view_documents")
 def download(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
     document = _accessible_document(document_id)
     if not document:
         return "Bạn không có quyền truy cập tài liệu này!", 403
-    return send_stored_file(document.filename)
+    try:
+        ensure_document_downloadable(document)
+    except DocumentScanPending as error:
+        return str(error), 423
+    except UnsafeDocument as error:
+        return str(error), 403
+    return send_stored_file(document.storage_reference, document.filename)
 
 
 @documents_bp.route("/delete/<int:document_id>", methods=["POST"])
+@require_permission("delete_document")
 def delete(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -130,12 +143,12 @@ def delete(document_id):
         )
     )
     if document:
-        document.is_deleted = True
-        db.session.commit()
+        mark_document_deleted(document)
     return redirect(url_for("documents.index"))
 
 
 @documents_bp.route("/favorite/<int:document_id>", methods=["POST"])
+@require_permission("edit_document")
 def favorite_document(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -153,6 +166,7 @@ def favorite_document(document_id):
 
 
 @documents_bp.route("/restore/<int:document_id>", methods=["POST"])
+@require_permission("delete_document")
 def restore_document(document_id):
     if not _is_logged_in():
         return redirect(url_for("auth.login"))
@@ -164,6 +178,5 @@ def restore_document(document_id):
         )
     )
     if document:
-        document.is_deleted = False
-        db.session.commit()
+        restore_document_record(document)
     return redirect(url_for("documents.index", view="deleted"))

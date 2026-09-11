@@ -11,13 +11,23 @@ from werkzeug.security import generate_password_hash
 
 from extensions import db, limiter
 from models import Document, DocumentShare, User
+from permissions import require_permission
 from routes.auth import _valid_username
 from services.auth_service import (
     authenticate_user,
     establish_session,
     password_policy_error,
 )
-from services.storage_service import save_upload, send_stored_file, validate_upload
+from services.document_service import (
+    DocumentScanPending,
+    StorageQuotaExceeded,
+    UnsafeDocument,
+    create_document,
+    ensure_document_downloadable,
+    mark_document_deleted,
+    restore_document as restore_document_record,
+)
+from services.storage_service import send_stored_file
 
 api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
@@ -132,6 +142,7 @@ def me():
 
 @api_bp.get("/documents")
 @api_login_required
+@require_permission("view_documents")
 def list_documents():
     view = request.args.get("view", "mine")
     if view == "shared":
@@ -163,23 +174,18 @@ def list_documents():
 @api_bp.post("/documents")
 @api_login_required
 @limiter.limit("10 per minute")
+@require_permission("create_document")
 def upload_document():
     uploaded_file = request.files.get("file")
     if not uploaded_file or not uploaded_file.filename:
         return _error("Thiếu file tải lên", 400)
 
     try:
-        file_size = validate_upload(uploaded_file)
+        document = create_document(uploaded_file, session["user_id"])
+    except StorageQuotaExceeded as error:
+        return _error(str(error), 413)
     except ValueError as error:
         return _error(str(error), 400)
-    filename = save_upload(uploaded_file, session["user_id"])
-    document = Document(
-        filename=filename,
-        user_id=session["user_id"],
-        file_size=file_size,
-    )
-    db.session.add(document)
-    db.session.commit()
     return jsonify({"data": _document_dict(document)}), 201
 
 
@@ -200,15 +206,23 @@ def _accessible_document(document_id):
 
 @api_bp.get("/documents/<int:document_id>/download")
 @api_login_required
+@require_permission("view_documents")
 def download_document(document_id):
     document = _accessible_document(document_id)
     if not document:
         return _error("Không tìm thấy tài liệu hoặc bạn không có quyền truy cập", 404)
-    return send_stored_file(document.filename)
+    try:
+        ensure_document_downloadable(document)
+    except DocumentScanPending as error:
+        return _error(str(error), 423)
+    except UnsafeDocument as error:
+        return _error(str(error), 403)
+    return send_stored_file(document.storage_reference, document.filename)
 
 
 @api_bp.delete("/documents/<int:document_id>")
 @api_login_required
+@require_permission("delete_document")
 def delete_document(document_id):
     document = db.session.scalar(
         db.select(Document).where(
@@ -219,13 +233,13 @@ def delete_document(document_id):
     )
     if not document:
         return _error("Không tìm thấy tài liệu thuộc sở hữu của bạn", 404)
-    document.is_deleted = True
-    db.session.commit()
+    mark_document_deleted(document)
     return "", 204
 
 
 @api_bp.post("/documents/<int:document_id>/restore")
 @api_login_required
+@require_permission("delete_document")
 def restore_document(document_id):
     document = db.session.scalar(
         db.select(Document).where(
@@ -236,13 +250,13 @@ def restore_document(document_id):
     )
     if not document:
         return _error("Không tìm thấy tài liệu đã xóa thuộc sở hữu của bạn", 404)
-    document.is_deleted = False
-    db.session.commit()
+    restore_document_record(document)
     return jsonify({"data": {"id": document_id, "is_deleted": False}})
 
 
 @api_bp.patch("/documents/<int:document_id>/favorite")
 @api_login_required
+@require_permission("edit_document")
 def update_favorite(document_id):
     data = _json_body()
     if not isinstance(data.get("is_favorite"), bool):
@@ -266,6 +280,7 @@ def update_favorite(document_id):
 @api_bp.get("/users/search")
 @api_login_required
 @limiter.limit("30 per minute")
+@require_permission("share_document")
 def search_users():
     query = request.args.get("q", "").strip()
     if len(query) < 2:
@@ -296,6 +311,7 @@ def search_users():
 
 @api_bp.get("/documents/<int:document_id>/shares")
 @api_login_required
+@require_permission("share_document")
 def list_shares(document_id):
     document = db.session.scalar(
         db.select(Document).where(
@@ -318,6 +334,7 @@ def list_shares(document_id):
 
 @api_bp.post("/documents/<int:document_id>/shares")
 @api_login_required
+@require_permission("share_document")
 def create_share(document_id):
     recipient = str(_json_body().get("recipient", "")).strip()
     if not recipient:
@@ -363,6 +380,7 @@ def create_share(document_id):
 
 @api_bp.delete("/documents/<int:document_id>/shares/<int:user_id>")
 @api_login_required
+@require_permission("share_document")
 def delete_share(document_id, user_id):
     share = db.session.scalar(
         db.select(DocumentShare)

@@ -52,4 +52,6 @@ is_admin(user_id)
 
 ## Phạm vi hiện tại
 
-Route admin đã dùng RBAC. Các route tài liệu hiện chủ yếu kiểm tra đăng nhập và quyền sở hữu; permission `create_document`, `delete_document`... chưa được áp dụng đồng bộ lên tất cả route. Xem `INTEGRATION_EXAMPLES.md` nếu muốn mở rộng, nhưng cần điều chỉnh ví dụ theo route thực tế.
+Route admin dùng RBAC theo vai trò. Route tài liệu web và API kết hợp permission
+theo hành động với kiểm tra owner/shared trên từng document. Khi thêm endpoint
+tài liệu mới, phải giữ cả hai lớp kiểm tra này.

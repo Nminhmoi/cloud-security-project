@@ -1,3 +1,4 @@
+import io
 import os
 import sys
 import tempfile
@@ -168,6 +169,29 @@ class AdminRbacTests(unittest.TestCase):
             connection.close()
         self.login_session(1, "admin-one")
         self.assertEqual(self.client.post("/admin/users/3/delete").status_code, 200)
+
+    def test_delete_user_removes_private_storage_objects(self):
+        self.login_session(3, "normal-user")
+        uploaded = self.client.post(
+            "/upload",
+            data={"file": (io.BytesIO(b"private"), "private.txt")},
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(uploaded.status_code, 302)
+        with app.app_context():
+            connection = get_db_connection()
+            storage_key = connection.execute(
+                "SELECT storage_key FROM documents WHERE user_id = 3"
+            ).fetchone()["storage_key"]
+            connection.close()
+        storage_path = os.path.join(
+            app.config["UPLOAD_FOLDER"], *storage_key.split("/")
+        )
+        self.assertTrue(os.path.isfile(storage_path))
+
+        self.login_session(1, "admin-one")
+        self.assertEqual(self.client.post("/admin/users/3/delete").status_code, 200)
+        self.assertFalse(os.path.exists(storage_path))
 
     def test_toggle_user_active_is_audited(self):
         self.login_session(1, "admin-one")

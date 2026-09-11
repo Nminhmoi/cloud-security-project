@@ -97,6 +97,19 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "false").strip().lower() == "true"
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_BYTES", str(16 * 1024 * 1024)))
+    USER_STORAGE_QUOTA_BYTES = int(
+        os.environ.get("USER_STORAGE_QUOTA_BYTES", str(500 * 1024 * 1024))
+    )
+    DELETED_DOCUMENT_RETENTION_DAYS = int(
+        os.environ.get("DELETED_DOCUMENT_RETENTION_DAYS", "30")
+    )
+    MAX_ARCHIVE_MEMBERS = int(os.environ.get("MAX_ARCHIVE_MEMBERS", "1000"))
+    MAX_ARCHIVE_UNCOMPRESSED_BYTES = int(
+        os.environ.get("MAX_ARCHIVE_UNCOMPRESSED_BYTES", str(128 * 1024 * 1024))
+    )
+    MAX_ARCHIVE_COMPRESSION_RATIO = float(
+        os.environ.get("MAX_ARCHIVE_COMPRESSION_RATIO", "100")
+    )
     ALLOWED_UPLOAD_EXTENSIONS = frozenset(
         extension.strip().lower()
         for extension in os.environ.get(

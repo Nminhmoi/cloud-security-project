@@ -45,6 +45,9 @@ MYSQL_ROOT_PASSWORD=unused-external-rds
 AUTO_CREATE_SCHEMA=false
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET=${document_bucket}
+MAX_UPLOAD_BYTES=${max_upload_bytes}
+USER_STORAGE_QUOTA_BYTES=${user_storage_quota}
+DELETED_DOCUMENT_RETENTION_DAYS=${trash_retention_days}
 OTP_DELIVERY_MODE=${otp_delivery_mode}
 AWS_SES_SENDER='${ses_sender_email}'
 AWS_LOG_GROUP=${application_log_group}
@@ -66,3 +69,31 @@ docker compose --env-file .env \
 docker compose --env-file .env \
   -f docker/docker-compose.yml \
   -f docker/docker-compose.aws.yml up -d --no-deps web
+
+cat > /etc/systemd/system/cloudbox-trash-purge.service <<'EOT'
+[Unit]
+Description=Purge expired CloudBox document trash
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/app
+ExecStart=/usr/bin/docker compose --env-file /app/.env -f /app/docker/docker-compose.yml -f /app/docker/docker-compose.aws.yml run --rm --no-deps web flask --app app.py purge-deleted-documents
+EOT
+
+cat > /etc/systemd/system/cloudbox-trash-purge.timer <<'EOT'
+[Unit]
+Description=Run CloudBox document trash purge daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target
+EOT
+
+systemctl daemon-reload
+systemctl enable --now cloudbox-trash-purge.timer

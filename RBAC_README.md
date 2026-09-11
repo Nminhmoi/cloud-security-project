@@ -13,7 +13,10 @@ Role được xác định bằng tên trong lúc kiểm tra quyền. Không nê
 
 `view_documents`, `create_document`, `edit_document`, `delete_document`, `share_document`, `manage_users`, `manage_roles`, `view_reports`, `manage_system`.
 
-Hiện tại các trang admin dùng `@require_admin`, tức kiểm tra role `admin`. Các permission chi tiết đã có trong database và thư viện nhưng chưa được gắn vào toàn bộ route tài liệu.
+Các trang admin dùng `@require_admin`, tức kiểm tra role `admin`. Route tài liệu
+trên cả web và REST API enforce `view_documents`, `create_document`,
+`edit_document`, `delete_document` và `share_document`; thu hồi một permission
+sẽ có hiệu lực ở request tiếp theo.
 
 ## Schema
 
@@ -49,6 +52,8 @@ Schema và migration chính thức nằm trong `app/database.py`. `DATABASE_SCHE
 | POST | `/admin/roles/<id>/revoke-permission` | Thu hồi quyền |
 | GET | `/admin/permissions` | Danh sách quyền |
 
-## Giới hạn bảo mật
+## Bảo vệ bổ sung
 
-Dự án chưa triển khai CSRF token và audit log. Không xem việc dùng method `POST` là CSRF protection.
+Các request thay đổi dữ liệu có CSRF token; thao tác quản trị quan trọng được
+ghi audit log. Permission theo hành động luôn kết hợp với kiểm tra owner/shared
+trên từng tài liệu.

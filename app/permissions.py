@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from flask import abort, current_app, jsonify, redirect, session, url_for
+from flask import abort, current_app, jsonify, redirect, request, session, url_for
 from sqlalchemy.exc import IntegrityError
 
 from extensions import db
@@ -38,12 +38,20 @@ def is_admin(user_id):
     return has_role(user_id, "admin")
 
 
+def _is_api_request():
+    return current_app.config.get("API_MODE") or request.path.startswith("/api/")
+
+
+def _api_error(message, status):
+    return jsonify({"error": {"message": message, "status": status}}), status
+
+
 def require_login(view):
     @wraps(view)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
-            if current_app.config.get("API_MODE"):
-                return jsonify({"error": "Vui lòng đăng nhập"}), 401
+            if _is_api_request():
+                return _api_error("Vui lòng đăng nhập", 401)
             return redirect(url_for("auth.login"))
         return view(*args, **kwargs)
 
@@ -55,12 +63,12 @@ def require_permission(permission_name):
         @wraps(view)
         def decorated_function(*args, **kwargs):
             if "user_id" not in session:
-                if current_app.config.get("API_MODE"):
-                    return jsonify({"error": "Vui lòng đăng nhập"}), 401
+                if _is_api_request():
+                    return _api_error("Vui lòng đăng nhập", 401)
                 return redirect(url_for("auth.login"))
             if not has_permission(session["user_id"], permission_name):
-                if current_app.config.get("API_MODE"):
-                    return jsonify({"error": "Bạn không có quyền truy cập"}), 403
+                if _is_api_request():
+                    return _api_error("Bạn không có quyền truy cập", 403)
                 abort(403)
             return view(*args, **kwargs)
 
@@ -74,8 +82,8 @@ def require_role(role_name):
         @wraps(view)
         def decorated_function(*args, **kwargs):
             if "user_id" not in session:
-                if current_app.config.get("API_MODE"):
-                    return jsonify({"error": "Vui lòng đăng nhập"}), 401
+                if _is_api_request():
+                    return _api_error("Vui lòng đăng nhập", 401)
                 return redirect(url_for("auth.login"))
             if not has_role(session["user_id"], role_name):
                 if current_app.config.get("API_MODE"):
