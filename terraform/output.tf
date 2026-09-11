@@ -9,7 +9,7 @@ output "web_server_id" {
 }
 
 output "application_url" {
-  value       = "${var.certificate_arn == null ? "http" : "https"}://${aws_lb.web.dns_name}"
+  value       = "${local.https_enabled ? "https" : "http"}://${local.application_hostname}"
   description = "CloudBox load balancer URL"
 }
 
@@ -29,8 +29,18 @@ output "s3_bucket_name" {
 }
 
 output "https_enabled" {
-  value       = var.certificate_arn != null
+  value       = local.https_enabled
   description = "Whether the ALB redirects HTTP to HTTPS"
+}
+
+output "tls_certificate_arn" {
+  value       = local.effective_certificate_arn
+  description = "ACM certificate attached to the ALB HTTPS listener"
+}
+
+output "custom_domain_name" {
+  value       = var.domain_name
+  description = "Optional custom DNS name routed to the CloudBox ALB"
 }
 
 output "rds_automated_backup_retention_days" {

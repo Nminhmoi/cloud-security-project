@@ -48,6 +48,7 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - [DATABASE_SCHEMA.sql](DATABASE_SCHEMA.sql): SQL tham khảo; model trong `app/models/` và `migrations/` là nguồn schema chính thức.
 - [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md): backup RDS/SQLite và quy trình kiểm thử khôi phục.
 - [docs/SES_OTP.md](docs/SES_OTP.md): chuyển OTP từ local sang Amazon SES.
+- [docs/HTTPS_DEPLOYMENT.md](docs/HTTPS_DEPLOYMENT.md): cấp chứng chỉ ACM, Route 53 và kiểm thử HTTPS.
 
 ## Kiểm thử
 
@@ -65,4 +66,5 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - Khi chạy nhiều worker/instance, cấu hình `RATELIMIT_STORAGE_URI` bằng Redis thay cho `memory://`.
 - AWS deployment dùng SES cho OTP khi cấu hình sender; nếu thiếu sender, OTP bị vô hiệu hóa thay vì xuất hiện trong log.
 - RDS có point-in-time recovery; AWS Backup và restore testing có thể bật riêng vì phát sinh chi phí.
+- Production cần domain riêng và HTTPS; script smoke test kiểm tra TLS, header bảo mật, cookie và CSRF sau triển khai.
 - Sao lưu `database.db` trước khi migration hoặc thao tác dữ liệu quan trọng.

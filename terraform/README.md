@@ -74,14 +74,28 @@ during cloud-init. Existing deployments use the state address migrations in
 because immutable settings changed. Inspect the saved plan carefully and copy
 any existing bucket objects before approving a replacement.
 
-For HTTPS, issue/validate an ACM certificate in the same region and add:
+For HTTPS with an existing certificate in the same region, add:
 
 ```bash
+-var="domain_name=cloudbox.example.com" \
 -var="certificate_arn=arn:aws:acm:REGION:ACCOUNT:certificate/ID"
 ```
 
-Without `certificate_arn`, the ALB exposes HTTP for development and the output
-`https_enabled` is false. Do not treat that mode as production-ready.
+When neither an existing certificate nor managed domain settings are supplied,
+the ALB exposes HTTP for development and the output `https_enabled` is false.
+Do not treat that mode as production-ready.
+
+Alternatively, Terraform can request and DNS-validate a certificate, create the
+Route 53 alias, and return the custom HTTPS URL:
+
+```bash
+-var="domain_name=cloudbox.example.com" \
+-var="route53_zone_id=Z1234567890"
+```
+
+The hosted zone must be public and the domain must be under your control. See
+`../docs/HTTPS_DEPLOYMENT.md` for prerequisites and the post-deployment smoke
+test.
 
 For production also set:
 

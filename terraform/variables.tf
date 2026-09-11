@@ -76,6 +76,34 @@ variable "certificate_arn" {
   }
 }
 
+variable "domain_name" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Optional public FQDN for CloudBox, for example cloudbox.example.com"
+
+  validation {
+    condition     = var.domain_name == null || can(regex("^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,63}$", var.domain_name))
+    error_message = "domain_name must be null or a valid fully qualified domain name."
+  }
+
+  validation {
+    condition = (
+      var.domain_name == null && var.route53_zone_id == null && var.certificate_arn == null
+      ) || (
+      var.domain_name != null && (var.certificate_arn != null || var.route53_zone_id != null)
+    )
+    error_message = "HTTPS requires domain_name plus certificate_arn or route53_zone_id; TLS cannot use the default ALB hostname."
+  }
+}
+
+variable "route53_zone_id" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Optional public Route 53 hosted zone ID used for ACM validation and the ALB alias"
+}
+
 variable "db_instance_class" {
   type        = string
   default     = "db.t3.micro"
