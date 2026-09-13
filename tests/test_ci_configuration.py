@@ -62,6 +62,21 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertRegex(requirements, r"(?m)^bandit==\d+\.\d+\.\d+$")
         self.assertRegex(requirements, r"(?m)^pip-audit==\d+\.\d+\.\d+$")
 
+    def test_trivy_exceptions_are_scoped_and_documented(self):
+        workflow = self.read(".github/workflows/ci.yml")
+        ignore_file = self.read(".trivyignore.yaml")
+
+        self.assertIn("trivyignores: .trivyignore.yaml", workflow)
+        for check_id, path in (
+            ("AWS-0053", "terraform/load-balancer.tf"),
+            ("AWS-0054", "terraform/load-balancer.tf"),
+            ("AWS-0104", "terraform/security-groups.tf"),
+            ("AWS-0132", "terraform/storage.tf"),
+        ):
+            self.assertIn(f"id: {check_id}", ignore_file)
+            self.assertIn(f'      - "{path}"', ignore_file)
+        self.assertEqual(ignore_file.count("statement:"), 4)
+
 
 if __name__ == "__main__":
     unittest.main()

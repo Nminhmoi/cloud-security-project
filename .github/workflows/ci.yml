@@ -108,6 +108,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           hide-progress: true
+          trivyignores: .trivyignore.yaml
       - name: Build the application image
         run: docker build --tag cloudbox-ci:${{ github.sha }} --file docker/Dockerfile .
       - name: Scan image vulnerabilities

@@ -1,0 +1,17 @@
+misconfigurations:
+  - id: AWS-0053
+    paths:
+      - "terraform/load-balancer.tf"
+    statement: The ALB is the intentional public entry point for this user-facing development application.
+  - id: AWS-0054
+    paths:
+      - "terraform/load-balancer.tf"
+    statement: HTTP-only mode is retained for the coursework environment until an optional domain and ACM certificate are configured.
+  - id: AWS-0104
+    paths:
+      - "terraform/security-groups.tf"
+    statement: Bootstrap requires public package repositories; internet egress is explicitly limited to TCP ports 80 and 443.
+  - id: AWS-0132
+    paths:
+      - "terraform/storage.tf"
+    statement: The coursework environment deliberately uses SSE-S3 to avoid the recurring cost of a customer-managed KMS key.

@@ -51,10 +51,30 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_web" {
   referenced_security_group_id = aws_security_group.web.id
 }
 
-resource "aws_vpc_security_group_egress_rule" "web_outbound" {
+resource "aws_vpc_security_group_egress_rule" "web_to_database" {
+  security_group_id            = aws_security_group.web.id
+  description                  = "MySQL to the application database"
+  from_port                    = 3306
+  to_port                      = 3306
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = aws_security_group.database.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "web_http_outbound" {
   security_group_id = aws_security_group.web.id
-  description       = "Package repositories and AWS APIs"
-  ip_protocol       = "-1"
+  description       = "HTTP package repositories during instance bootstrap"
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
+  security_group_id = aws_security_group.web.id
+  description       = "HTTPS package repositories and AWS APIs"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
 }
 

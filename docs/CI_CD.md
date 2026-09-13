@@ -22,6 +22,13 @@ The CI workflow has four required jobs:
    infrastructure misconfiguration, and high/critical fixed vulnerabilities
    in the built application image.
 
+Trivy exceptions are kept in `.trivyignore.yaml`. Every exception is limited
+to one file and includes its reason. The current exceptions document deliberate
+development-only choices: the user-facing ALB is public, HTTP remains available
+until a domain and ACM certificate are configured, bootstrap traffic is limited
+to outbound TCP 80/443, and S3 uses the no-additional-cost SSE-S3 option. Review
+these exceptions before treating the environment as production.
+
 Configure the `main` branch protection rule to require all four jobs before a
 pull request can merge. CI receives only `contents: read`; it has no AWS token
 permission and no deployment secrets.
@@ -36,6 +43,8 @@ To run the Python gates locally:
 .venv\Scripts\python.exe -m bandit -r app scripts security `
   -x security/iam/test_iam.py,security/monitoring/test_monitoring.py `
   --severity-level high
+trivy fs --scanners secret,misconfig --severity HIGH,CRITICAL `
+  --ignorefile .trivyignore.yaml --skip-dirs .venv .
 ```
 
 ## Controlled AWS deployment
