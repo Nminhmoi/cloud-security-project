@@ -1,22 +1,21 @@
-# CloudBox AWS infrastructure
+# Hạ tầng AWS của CloudBox
 
-This root module creates a two-AZ VPC, an internet-facing ALB, one EC2
-application host managed through SSM, private RDS MySQL, private versioned S3
-document storage, Secrets Manager entries, VPC Flow Logs, and CloudWatch
-alarms. EC2 port 5000 is reachable only from the ALB. The database is never
-public.
+Root module này tạo VPC trên hai Availability Zone, ALB public, một EC2 chạy
+ứng dụng và được quản trị qua SSM, RDS MySQL private, S3 private có versioning,
+Secrets Manager, VPC Flow Logs và CloudWatch alarms. Port 5000 của EC2 chỉ nhận
+kết nối từ ALB; database không bao giờ được public.
 
-The configuration is split by concern (`data.tf`, `locals.tf`, `network.tf`,
+Cấu hình được chia theo chức năng (`data.tf`, `locals.tf`, `network.tf`,
 `security-groups.tf`, `database.tf`, `storage.tf`, `iam.tf`,
-`load-balancer.tf`, `compute.tf`, and `observability.tf`) but remains one root
-module. Moving a resource block between these files does not change its
-Terraform address. EC2 bootstrap logic lives in
-`templates/cloud-init.sh.tftpl` so it can be reviewed and tested separately.
+`load-balancer.tf`, `compute.tf`, `observability.tf`) nhưng vẫn là một root
+module. Di chuyển resource block giữa các file này không đổi Terraform address.
+Logic bootstrap EC2 nằm trong `templates/cloud-init.sh.tftpl` để có thể review
+và kiểm thử riêng.
 
-## 1. Create the remote-state bucket once
+## 1. Tạo bucket lưu trạng thái từ xa một lần
 
-The backend bucket must exist before `terraform init`. Choose a globally unique
-name and create it outside this root module:
+Backend bucket phải tồn tại trước `terraform init`. Chọn tên bucket duy nhất
+toàn cầu và tạo nó bên ngoài root module này:
 
 ```bash
 export TF_STATE_BUCKET="your-account-cloudbox-terraform-state"
@@ -39,12 +38,12 @@ aws s3api put-bucket-encryption \
   '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
 ```
 
-For `us-east-1`, omit `--create-bucket-configuration`.
+Với Region `us-east-1`, bỏ `--create-bucket-configuration`.
 
-## 2. Initialize and validate
+## 2. Khởi tạo và kiểm tra
 
-Run from the `terraform` directory. Native S3 lockfiles protect concurrent
-state updates; no DynamoDB table is required.
+Chạy từ thư mục `terraform`. Native S3 lockfile bảo vệ state khi có thao tác
+đồng thời nên không cần DynamoDB table.
 
 ```bash
 terraform init -migrate-state \
@@ -55,12 +54,12 @@ terraform fmt -check
 terraform validate
 ```
 
-Commit `.terraform.lock.hcl`; never commit `.terraform/`, state, plan files, or
-secret `.tfvars` files.
+Commit `.terraform.lock.hcl`; không commit `.terraform/`, state, plan hoặc file
+`.tfvars` chứa secret.
 
-## 3. Plan a pinned application revision
+## 3. Tạo kế hoạch với phiên bản ứng dụng cố định
 
-Deploy an exact commit rather than a moving branch:
+Triển khai chính xác một commit thay vì branch có thể thay đổi:
 
 ```bash
 export APP_GIT_REF="$(git -C .. rev-parse HEAD)"
@@ -68,36 +67,34 @@ terraform plan -var="app_git_ref=$APP_GIT_REF" -out=tfplan
 terraform apply tfplan
 ```
 
-The referenced commit must already exist on GitHub because EC2 checks it out
-during cloud-init. Existing deployments use the state address migrations in
-`moved.tf`, but EC2 and the original S3 bucket may still require replacement
-because immutable settings changed. Inspect the saved plan carefully and copy
-any existing bucket objects before approving a replacement.
+Commit được tham chiếu phải tồn tại trên GitHub vì EC2 checkout nó trong
+cloud-init. Deployment cũ sử dụng state address migration trong `moved.tf`,
+nhưng EC2 và S3 bucket ban đầu vẫn có thể cần thay thế do immutable setting thay
+đổi. Xem kỹ plan và sao chép object hiện có trước khi chấp nhận thay bucket.
 
-For HTTPS with an existing certificate in the same region, add:
+Nếu dùng HTTPS với certificate có sẵn trong cùng Region, thêm:
 
 ```bash
 -var="domain_name=cloudbox.example.com" \
 -var="certificate_arn=arn:aws:acm:REGION:ACCOUNT:certificate/ID"
 ```
 
-When neither an existing certificate nor managed domain settings are supplied,
-the ALB exposes HTTP for development and the output `https_enabled` is false.
-Do not treat that mode as production-ready.
+Khi không có certificate hoặc cấu hình managed domain, ALB dùng HTTP cho dev và
+output `https_enabled` là false. Không coi chế độ này là phù hợp để mở công khai.
 
-Alternatively, Terraform can request and DNS-validate a certificate, create the
-Route 53 alias, and return the custom HTTPS URL:
+Terraform cũng có thể yêu cầu certificate, xác minh DNS, tạo Route 53 alias và
+trả về custom HTTPS URL:
 
 ```bash
 -var="domain_name=cloudbox.example.com" \
 -var="route53_zone_id=Z1234567890"
 ```
 
-The hosted zone must be public and the domain must be under your control. See
-`../docs/HTTPS_DEPLOYMENT.md` for prerequisites and the post-deployment smoke
-test.
+Hosted zone phải public và domain thuộc quyền kiểm soát của bạn. Xem
+[HTTPS_DEPLOYMENT.md](../docs/HTTPS_DEPLOYMENT.md) để biết điều kiện và cách
+smoke test sau deployment.
 
-For production also set:
+Nếu cần môi trường có khả năng bảo vệ cao hơn, có thể bật:
 
 ```bash
 -var="db_multi_az=true" \
@@ -105,10 +102,10 @@ For production also set:
 -var="alarm_email=operator@example.com"
 ```
 
-The SNS email subscription must be confirmed before alarms can deliver mail.
+Phải xác nhận SNS email subscription trước khi alarm có thể gửi thông báo.
 
-Upload storage defaults to 16 MiB per file, 500 MiB per user, and a 30-day
-trash window. Override these independently when needed:
+Upload mặc định tối đa 16 MiB mỗi file, quota 500 MiB mỗi user và giữ thùng rác
+30 ngày. Có thể đổi từng giá trị:
 
 ```bash
 -var="max_upload_bytes=16777216" \
@@ -116,24 +113,22 @@ trash window. Override these independently when needed:
 -var="deleted_document_retention_days=30"
 ```
 
-Cloud-init enables a daily systemd timer that permanently purges expired
-document rows and their local/S3 objects. S3 Versioning retains deleted object
-versions for the lifecycle recovery window.
+Cloud-init bật systemd timer hằng ngày để xóa vĩnh viễn document record và
+object local/S3 hết hạn trong thùng rác. S3 Versioning giữ version object đã xóa
+theo lifecycle recovery window.
 
-Password-reset OTP uses Amazon SES when a verified sender is configured:
+Password-reset OTP dùng Amazon SES khi có sender đã xác minh:
 
 ```bash
 -var="ses_sender_email=owner@example.com"
 ```
 
-Terraform creates the email identity, but its verification email must be
-confirmed. SES sandbox accounts can send only to verified recipients. Without
-this variable, OTP delivery on AWS is disabled and the OTP is never written to
-application logs.
+Terraform tạo email identity nhưng người dùng vẫn phải xác nhận email AWS gửi.
+SES sandbox chỉ gửi được tới recipient đã xác minh. Nếu không truyền biến này,
+OTP trên AWS bị tắt và không được ghi vào application log.
 
-RDS automated point-in-time recovery retains seven days by default. Optional
-AWS Backup and weekly restore testing are explicitly opt-in because they create
-billable backup storage or temporary restore resources:
+Point-in-time recovery của RDS mặc định giữ bảy ngày. AWS Backup và restore
+testing là tùy chọn vì tạo thêm chi phí lưu trữ hoặc resource tạm:
 
 ```bash
 -var="db_backup_retention_days=14" \
@@ -142,19 +137,18 @@ billable backup storage or temporary restore resources:
 -var="enable_restore_testing=true"
 ```
 
-See `../docs/BACKUP_AND_RECOVERY.md` and `../docs/SES_OTP.md` for verification and
-recovery procedures.
+Xem [BACKUP_AND_RECOVERY.md](../docs/BACKUP_AND_RECOVERY.md) và
+[SES_OTP.md](../docs/SES_OTP.md) để biết cách xác minh và khôi phục.
 
-## 4. Operations
+## 4. Vận hành
 
-Use `terraform output application_url` to find the public entry point. Connect
-to the EC2 host with AWS Systems Manager Session Manager; SSH is intentionally
-not exposed. Bootstrap diagnostics are available in
-`/var/log/cloud-init-output.log`, and application container logs are sent to
-the CloudWatch log group output by this configuration.
+Dùng `terraform output application_url` để lấy entry point công khai. Kết nối
+EC2 bằng AWS Systems Manager Session Manager; SSH không được mở. Log bootstrap
+nằm ở `/var/log/cloud-init-output.log`; log application container được gửi tới
+CloudWatch log group trong Terraform output.
 
-From the repository root, verify the AWS control plane without changing any
-resources, then test the deployed endpoint:
+Từ thư mục gốc, kiểm tra AWS control plane mà không thay đổi resource, sau đó
+kiểm tra endpoint đã triển khai:
 
 ```powershell
 .venv\Scripts\python.exe scripts\aws_integration_test.py --region ap-southeast-1
@@ -162,5 +156,6 @@ $applicationUrl = terraform -chdir=terraform output -raw application_url
 .venv\Scripts\python.exe scripts\smoke_test_deployment.py $applicationUrl --allow-http
 ```
 
-Remove `--allow-http` when HTTPS is enabled. See
-`../docs/AWS_INTEGRATION_TESTING.md` for the complete acceptance procedure.
+Bỏ `--allow-http` khi HTTPS đã bật. Xem
+[AWS_INTEGRATION_TESTING.md](../docs/AWS_INTEGRATION_TESTING.md) để biết toàn bộ
+quy trình nghiệm thu.

@@ -1,12 +1,13 @@
-# Password-reset OTP with Amazon SES
+# Khôi phục mật khẩu bằng OTP qua Amazon SES
 
-Local development can use `OTP_DELIVERY_MODE=local`. AWS deployments never log
-OTP values: delivery is `ses` when `ses_sender_email` is configured, otherwise
-it is `disabled` and password reset fails closed with the same browser flow.
+Local có thể dùng `OTP_DELIVERY_MODE=local`. Deployment AWS không ghi giá trị
+OTP vào log: chế độ gửi là `ses` khi có `ses_sender_email`; nếu không sẽ là
+`disabled` và quá trình reset password dừng an toàn nhưng vẫn giữ cùng luồng
+phản hồi trên trình duyệt.
 
-## Provision and verify the sender
+## Tạo và xác minh địa chỉ gửi
 
-Pass an address that you control when planning Terraform:
+Truyền địa chỉ email thuộc quyền kiểm soát của bạn khi tạo Terraform plan:
 
 ```powershell
 $appGitRef = (git rev-parse HEAD).Trim()
@@ -16,8 +17,8 @@ terraform -chdir=terraform plan `
   -out=tfplan
 ```
 
-Applying creates an SES email identity in `ap-southeast-1`. Open the verification
-email sent by AWS before testing OTP delivery. Confirm its status with:
+Apply sẽ tạo SES email identity trong `ap-southeast-1`. Mở email xác minh AWS
+gửi tới địa chỉ đó trước khi thử OTP. Kiểm tra trạng thái bằng:
 
 ```powershell
 aws ses get-identity-verification-attributes `
@@ -25,25 +26,24 @@ aws ses get-identity-verification-attributes `
   --identities owner@example.com
 ```
 
-The EC2 instance role can send only from the Terraform-managed identity. Boto3
-uses the instance profile's temporary credentials; no AWS access key is stored
-in `.env` or the container.
+EC2 instance role chỉ được gửi từ identity do Terraform quản lý. Boto3 sử dụng
+temporary credentials của instance profile; không lưu AWS access key trong
+`.env` hoặc container.
 
 ## SES sandbox
 
-While the AWS account is in the SES sandbox, recipients must also be verified
-unless a mailbox-simulator address is used. For real users, request production
-access from the SES console and keep sending enabled only in the intended AWS
-Region.
+Khi AWS account còn trong SES sandbox, địa chỉ nhận cũng phải được xác minh, trừ
+khi dùng mailbox simulator. Nếu phục vụ người dùng thật, cần yêu cầu production
+access trong SES console và chỉ bật gửi tại AWS Region dự kiến.
 
-## Smoke test
+## Kiểm thử nhanh
 
-1. Verify the sender identity and, in sandbox, the recipient identity.
-2. Open `/forgot-password` through the ALB.
-3. Submit the registered recipient email.
-4. Confirm an OTP email arrives and expires after two minutes.
-5. Enter an invalid OTP three times and confirm the code is revoked.
-6. Complete a valid reset and confirm old sessions no longer work.
+1. Xác minh sender identity và recipient identity nếu còn trong sandbox.
+2. Mở `/forgot-password` qua ALB.
+3. Gửi email đã đăng ký.
+4. Xác nhận email OTP tới nơi và hết hạn sau hai phút.
+5. Nhập OTP sai ba lần và xác nhận mã bị thu hồi.
+6. Reset thành công và xác nhận session cũ không còn dùng được.
 
-Do not paste OTP values into issue trackers, screenshots, CloudWatch logs or the
-project report.
+Không đưa giá trị OTP vào issue tracker, ảnh chụp màn hình, CloudWatch log hoặc
+báo cáo dự án.

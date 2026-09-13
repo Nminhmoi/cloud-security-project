@@ -1,48 +1,47 @@
-# AWS integration testing
+# Kiểm thử tích hợp AWS
 
-CloudBox includes two complementary post-deployment tests:
+CloudBox có hai công cụ kiểm tra bổ trợ sau khi triển khai:
 
-- `scripts/aws_integration_test.py` checks the deployed AWS control plane.
-- `scripts/smoke_test_deployment.py` checks the public HTTP/HTTPS behavior.
+- `scripts/aws_integration_test.py` kiểm tra AWS control plane đã triển khai.
+- `scripts/smoke_test_deployment.py` kiểm tra hành vi HTTP/HTTPS công khai.
 
-The AWS test is read-only. It does not upload an object, send an OTP, create a
-snapshot, or otherwise mutate AWS resources. It validates:
+Kiểm thử AWS chỉ thực hiện thao tác đọc. Công cụ không upload object, gửi OTP,
+tạo snapshot hay thay đổi tài nguyên AWS. Các nội dung được xác minh gồm:
 
-- the active AWS account and principal;
-- EC2 running state, required IMDSv2 tokens, instance profile, and SSM status;
-- private encrypted RDS, automated backup retention, and endpoint identity;
-- private, encrypted, versioned S3 storage in the expected region;
-- ALB listeners and healthy EC2 target registration;
-- the EC2 IAM profile, SSM policy, and absence of an unrestricted `Allow */*`
-  statement in the application policy;
-- RDS Secrets Manager metadata without reading the secret value;
-- application log retention, CloudWatch alarms, and active VPC Flow Logs.
+- AWS account và principal đang hoạt động;
+- trạng thái EC2, yêu cầu IMDSv2 token, instance profile và trạng thái SSM;
+- RDS không public, có mã hóa, thời gian giữ automated backup và endpoint;
+- S3 private, có mã hóa, versioning và nằm đúng Region;
+- listener của ALB và EC2 target ở trạng thái healthy;
+- IAM profile của EC2, SSM policy và không có câu lệnh `Allow */*` không giới hạn
+  trong application policy;
+- metadata của RDS secret mà không đọc giá trị secret;
+- thời gian giữ application log, CloudWatch alarm và VPC Flow Logs đang hoạt động.
 
-## Prerequisites
+## Điều kiện trước khi chạy
 
-Apply the current Terraform code once so the integration-specific outputs are
-stored in state. Then authenticate the AWS CLI with a read-capable deployment
-operator identity:
+Apply Terraform ít nhất một lần để các output phục vụ integration test được lưu
+trong state. Sau đó đăng nhập AWS CLI bằng operator identity có quyền đọc:
 
 ```powershell
 aws sts get-caller-identity
 terraform -chdir=terraform output
 ```
 
-The operator needs read actions for STS, EC2, SSM, RDS, S3 bucket
-configuration, ELBv2, IAM, Secrets Manager metadata, CloudWatch Logs, and
-CloudWatch alarms. The test never calls `secretsmanager:GetSecretValue`.
+Operator cần quyền đọc STS, EC2, SSM, RDS, cấu hình S3 bucket, ELBv2, IAM,
+metadata Secrets Manager, CloudWatch Logs và CloudWatch alarms. Công cụ không
+bao giờ gọi `secretsmanager:GetSecretValue`.
 
-## Run the test
+## Chạy kiểm thử
 
-From the repository root:
+Từ thư mục gốc repository:
 
 ```powershell
 .venv\Scripts\python.exe scripts\aws_integration_test.py `
   --region ap-southeast-1
 ```
 
-For a named AWS profile:
+Nếu dùng AWS profile riêng:
 
 ```powershell
 .venv\Scripts\python.exe scripts\aws_integration_test.py `
@@ -50,19 +49,19 @@ For a named AWS profile:
   --region ap-southeast-1
 ```
 
-Run the public endpoint smoke test immediately afterwards:
+Ngay sau đó, chạy smoke test cho endpoint công khai:
 
 ```powershell
 $applicationUrl = terraform -chdir=terraform output -raw application_url
 .venv\Scripts\python.exe scripts\smoke_test_deployment.py $applicationUrl --allow-http
 ```
 
-Remove `--allow-http` once HTTPS is configured. A production acceptance run
-must use HTTPS and must not pass that flag.
+Bỏ `--allow-http` sau khi đã cấu hình HTTPS. Một lần nghiệm thu cho môi trường
+công khai phải dùng HTTPS và không được truyền cờ này.
 
-Use `--json` for CI or archived evidence. An output snapshot can also be
-captured and tested with `--outputs-file`, but Terraform output JSON can reveal
-infrastructure identifiers and should not be committed:
+Dùng `--json` để lưu bằng chứng hoặc tích hợp CI. Có thể lưu snapshot output rồi
+kiểm tra bằng `--outputs-file`, nhưng Terraform output JSON có thể chứa định danh
+hạ tầng nên không được commit:
 
 ```powershell
 terraform -chdir=terraform output -json | Out-File tf-output.json -Encoding utf8
@@ -73,5 +72,5 @@ terraform -chdir=terraform output -json | Out-File tf-output.json -Encoding utf8
 Remove-Item -LiteralPath tf-output.json
 ```
 
-The command exits with status `1` if any invariant fails, making it suitable
-for a protected deployment job once CI uses short-lived AWS credentials.
+Lệnh trả exit code `1` nếu bất kỳ invariant nào thất bại. Vì vậy có thể dùng nó
+trong deployment job được bảo vệ khi CI sử dụng AWS credentials ngắn hạn.

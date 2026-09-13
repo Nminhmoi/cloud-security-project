@@ -1,14 +1,14 @@
-# File upload security and lifecycle
+# Bảo mật tải lên và vòng đời file
 
-CloudBox validates uploads before they reach local storage or S3. The current
-no-cost controls include a 16 MiB request/file limit, a per-user storage quota,
-extension and MIME allowlists, file signatures, Office container validation,
-archive safety limits, SHA-256 checksums, private randomized storage keys, RBAC,
-and a recoverable trash window.
+CloudBox kiểm tra file trước khi đưa vào local storage hoặc S3. Các control
+không phát sinh thêm chi phí gồm giới hạn 16 MiB, quota theo người dùng,
+allowlist extension và MIME, file signature, cấu trúc Office, giới hạn an toàn
+archive, checksum SHA-256, storage key riêng tư ngẫu nhiên, RBAC và thùng rác có
+thể khôi phục.
 
-## Configuration
+## Cấu hình
 
-The defaults can be changed with environment variables:
+Có thể thay đổi giá trị mặc định bằng biến môi trường:
 
 ```dotenv
 MAX_UPLOAD_BYTES=16777216
@@ -19,56 +19,54 @@ MAX_ARCHIVE_UNCOMPRESSED_BYTES=134217728
 MAX_ARCHIVE_COMPRESSION_RATIO=100
 ```
 
-The user quota counts both active and soft-deleted documents because both still
-consume storage. Set `USER_STORAGE_QUOTA_BYTES=0` only when an unlimited quota
-is explicitly intended.
+Quota tính cả tài liệu đang hoạt động và đã xóa mềm vì cả hai vẫn chiếm dung
+lượng. Chỉ đặt `USER_STORAGE_QUOTA_BYTES=0` khi thực sự muốn không giới hạn.
 
-## Metadata and object keys
+## Siêu dữ liệu và object key
 
-`filename` is the sanitized user-facing name. `storage_key` is the private,
-randomized location and is never returned by the document API. New uploads also
-record the validated content type, byte size, SHA-256 checksum and scan status.
-Existing database rows fall back to the legacy `filename` storage reference.
+`filename` là tên hiển thị đã được làm sạch. `storage_key` là vị trí riêng tư,
+ngẫu nhiên và không được trả về bởi document API. Upload mới còn lưu MIME đã
+kiểm tra, kích thước byte, SHA-256 và trạng thái scan. Bản ghi database cũ có
+thể dùng `filename` làm storage reference dự phòng.
 
-Apply the schema migration before deploying the new application revision:
+Chạy migration trước khi triển khai phiên bản ứng dụng mới:
 
 ```powershell
 docker compose --env-file .env -f docker/docker-compose.yml run --rm migrate
 ```
 
-## Trash cleanup
+## Dọn thùng rác
 
-Soft deletion records `deleted_at`; restoring a document clears it. Run this
-command periodically to remove database rows and local/S3 objects after the
-retention window:
+Xóa mềm ghi `deleted_at`; khôi phục sẽ xóa giá trị này. Chạy định kỳ lệnh sau để
+xóa database record và object local/S3 sau thời hạn lưu:
 
 ```powershell
 docker compose --env-file .env -f docker/docker-compose.yml run --rm web `
   flask --app app.py purge-deleted-documents
 ```
 
-For an immediate disposable-environment test, pass `--retention-days 0`. Do not
-use zero retention in an environment where users expect trash recovery. S3
-Versioning retains deleted object versions for the Terraform lifecycle window;
-expired delete markers are cleaned automatically.
+Để kiểm tra ngay trên môi trường dùng một lần, truyền `--retention-days 0`.
+Không dùng thời hạn bằng 0 nếu người dùng cần khôi phục từ thùng rác. S3
+Versioning giữ các version đã xóa trong thời gian lifecycle của Terraform và tự
+dọn expired delete marker.
 
-AWS instances created by this Terraform root module enable
-`cloudbox-trash-purge.timer`, which runs the same command once per day. Check it
-through Systems Manager Session Manager with:
+EC2 được tạo bởi Terraform sẽ bật `cloudbox-trash-purge.timer` để chạy cùng lệnh
+mỗi ngày. Kiểm tra qua Systems Manager Session Manager:
 
 ```bash
 systemctl status cloudbox-trash-purge.timer
 journalctl -u cloudbox-trash-purge.service
 ```
 
-## Malware scanning boundary
+## Giới hạn của việc quét mã độc
 
-MIME, signatures and archive checks are structural validation, not malware
-scanning. Before accepting untrusted public uploads in production, integrate an
-asynchronous scanner and use `scan_status` values such as `pending`, `clean`,
-`infected` and `failed`. Downloads must remain blocked until the result is
-`clean`; the application already blocks `pending`, `infected` and `failed`
-records. [GuardDuty Malware Protection for S3](https://docs.aws.amazon.com/guardduty/latest/ug/how-malware-protection-for-s3-gdu-works.html)
-is a suitable AWS option, but it is not enabled by default because object
-scanning is billable. With scanning disabled, new files use `not_scanned` and
-remain downloadable after structural validation.
+Kiểm tra MIME, signature và archive chỉ xác minh cấu trúc, không phải quét mã
+độc. Nếu nhận upload công khai không tin cậy, cần tích hợp scanner bất đồng bộ
+và dùng các trạng thái `pending`, `clean`, `infected`, `failed`. Download phải
+bị chặn cho đến khi kết quả là `clean`; ứng dụng hiện chặn record ở trạng thái
+`pending`, `infected` và `failed`.
+
+[GuardDuty Malware Protection for S3](https://docs.aws.amazon.com/guardduty/latest/ug/how-malware-protection-for-s3-gdu-works.html)
+là một lựa chọn AWS phù hợp nhưng không bật mặc định vì tính phí theo object.
+Khi chưa có scanner, file mới mang trạng thái `not_scanned` và vẫn được tải sau
+khi vượt qua structural validation.

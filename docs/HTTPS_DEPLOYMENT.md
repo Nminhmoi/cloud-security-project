@@ -1,25 +1,25 @@
-# HTTPS deployment
+# Triển khai HTTPS
 
-CloudBox supports an existing ACM certificate or a Terraform-managed ACM
-certificate with Route 53 DNS validation. HTTP-only mode remains available for
-temporary development environments but is not production-ready.
+CloudBox hỗ trợ certificate ACM có sẵn hoặc certificate do Terraform quản lý và
+xác minh DNS qua Route 53. Chế độ chỉ HTTP vẫn dùng được cho môi trường dev tạm
+thời nhưng không phù hợp để mở công khai.
 
-## Prerequisites
+## Điều kiện
 
-You need a public domain you control. AWS cannot issue a public ACM certificate
-for the default `*.elb.amazonaws.com` load-balancer name. For the fully managed
-path, the domain's public hosted zone must be in Route 53 in the same AWS
-account.
+Cần một public domain thuộc quyền kiểm soát của bạn. AWS không cấp public ACM
+certificate cho hostname mặc định `*.elb.amazonaws.com` của load balancer. Nếu
+muốn Terraform quản lý toàn bộ, public hosted zone của domain phải nằm trong
+Route 53 cùng AWS account.
 
-Find the hosted zone ID:
+Tìm hosted zone ID:
 
 ```powershell
 aws route53 list-hosted-zones-by-name --dns-name example.com
 ```
 
-## Terraform-managed certificate and DNS
+## Chứng chỉ và DNS do Terraform quản lý
 
-Commit and push the application before planning:
+Commit và push ứng dụng trước khi tạo plan:
 
 ```powershell
 $appGitRef = (git rev-parse HEAD).Trim()
@@ -30,14 +30,13 @@ terraform -chdir=terraform plan `
   -out=tfplan
 ```
 
-Terraform requests an ACM certificate, writes the validation CNAME, waits for
-issuance, creates an alias to the ALB, enables the TLS 1.2/1.3 listener and
-changes port 80 to an HTTPS redirect. ACM can renew the certificate while its
-DNS validation record remains present.
+Terraform yêu cầu ACM certificate, tạo CNAME xác minh, chờ cấp certificate, tạo
+ALB alias, bật listener TLS 1.2/1.3 và chuyển port 80 thành redirect HTTPS. ACM
+có thể tự gia hạn miễn là DNS validation record vẫn tồn tại.
 
-## Existing certificate
+## Chứng chỉ có sẵn
 
-If a certificate and DNS record are managed elsewhere, pass its ARN:
+Nếu certificate và DNS được quản lý ở nơi khác, truyền ARN:
 
 ```powershell
 terraform -chdir=terraform plan `
@@ -46,12 +45,12 @@ terraform -chdir=terraform plan `
   -var="certificate_arn=arn:aws:acm:ap-southeast-1:ACCOUNT:certificate/ID"
 ```
 
-The certificate must be in the same Region as the ALB and must cover the custom
-hostname. Configure the external DNS provider to point that hostname to the ALB.
+Certificate phải nằm cùng Region với ALB và bao phủ hostname tùy chỉnh. Cấu
+hình DNS provider bên ngoài trỏ hostname đó tới ALB.
 
-## Verification
+## Xác minh
 
-After apply and target health recovery:
+Sau khi apply và ALB target trở lại trạng thái healthy:
 
 ```powershell
 terraform -chdir=terraform output application_url
@@ -59,15 +58,15 @@ terraform -chdir=terraform output application_url
   https://cloudbox.example.com
 ```
 
-The smoke test is read-only. It verifies trusted certificate validation, TLS
-1.2/1.3, at least 14 days before certificate expiry, the HTTP-to-HTTPS redirect,
-HSTS/CSP and other security headers, a `Secure`/`HttpOnly`/`SameSite` session
-cookie, and the CSRF endpoint.
+Smoke test chỉ đọc. Công cụ kiểm tra certificate tin cậy, TLS 1.2/1.3, còn ít
+nhất 14 ngày trước khi certificate hết hạn, redirect HTTP sang HTTPS, HSTS/CSP,
+các security header khác, session cookie `Secure`/`HttpOnly`/`SameSite` và CSRF
+endpoint.
 
-Also confirm plain HTTP redirects:
+Xác nhận HTTP thường được redirect:
 
 ```powershell
 curl.exe -I http://cloudbox.example.com
 ```
 
-Expected: `HTTP/1.1 301` with a `Location` beginning with `https://`.
+Kết quả mong đợi là `HTTP/1.1 301` với `Location` bắt đầu bằng `https://`.

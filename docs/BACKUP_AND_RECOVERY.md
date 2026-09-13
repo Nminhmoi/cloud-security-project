@@ -1,14 +1,14 @@
-# Backup and recovery
+# Sao lưu và khôi phục
 
-CloudBox uses separate recovery controls for local SQLite and Amazon RDS. A
-backup is only considered useful after its integrity or restore path has been
-tested.
+CloudBox dùng cơ chế khôi phục riêng cho SQLite local và Amazon RDS. Một bản sao
+lưu chỉ được xem là hữu ích sau khi đã kiểm tra tính toàn vẹn hoặc thử đường
+khôi phục của nó.
 
 ## Amazon RDS
 
-RDS automated backups and point-in-time recovery are enabled for seven days by
-default. Terraform also retains automated backups when the managed DB instance
-is deleted. Change the retention window with:
+Automated backup và point-in-time recovery của RDS mặc định được giữ trong bảy
+ngày. Terraform cũng giữ automated backup khi DB instance được quản lý bị xóa.
+Thay đổi thời gian lưu bằng:
 
 ```powershell
 terraform -chdir=terraform plan `
@@ -16,9 +16,9 @@ terraform -chdir=terraform plan `
   -var="db_backup_retention_days=14"
 ```
 
-For an additional daily snapshot retained in a dedicated AWS Backup vault,
-enable the optional plan. Its default retention is 35 days. The plan starts at
-20:00 UTC, outside the RDS automated backup window of 18:00-19:00 UTC.
+Để tạo thêm snapshot hằng ngày trong AWS Backup vault riêng, bật plan tùy chọn.
+Thời gian giữ mặc định là 35 ngày. Plan bắt đầu lúc 20:00 UTC, ngoài cửa sổ RDS
+automated backup từ 18:00 đến 19:00 UTC.
 
 ```powershell
 terraform -chdir=terraform plan `
@@ -27,12 +27,12 @@ terraform -chdir=terraform plan `
   -var="aws_backup_retention_days=35"
 ```
 
-AWS Backup storage is billable. The vault has `force_destroy=false`, so
-Terraform cannot silently delete recovery points still retained in it.
+Dung lượng AWS Backup phát sinh chi phí. Vault đặt `force_destroy=false`, vì
+vậy Terraform không thể âm thầm xóa các recovery point vẫn còn thời hạn lưu.
 
-### Verify recovery points
+### Kiểm tra điểm khôi phục
 
-These commands are read-only:
+Các lệnh sau chỉ đọc:
 
 ```powershell
 aws rds describe-db-instance-automated-backups `
@@ -44,13 +44,13 @@ aws backup list-recovery-points-by-backup-vault `
   --backup-vault-name dev-cloudbox-database-vault
 ```
 
-Record the latest successful recovery point, creation time and lifecycle in the
-project test evidence.
+Ghi lại recovery point thành công gần nhất, thời điểm tạo và lifecycle trong
+bằng chứng kiểm thử của dự án.
 
-### Automated restore drill
+### Thử nghiệm khôi phục tự động
 
-Restore testing creates a temporary RDS resource and therefore costs money. It
-is disabled by default. Enable it only together with AWS Backup:
+Restore testing tạo RDS resource tạm thời nên phát sinh chi phí và mặc định bị
+tắt. Chỉ bật cùng AWS Backup:
 
 ```powershell
 terraform -chdir=terraform plan `
@@ -59,26 +59,25 @@ terraform -chdir=terraform plan `
   -var="enable_restore_testing=true"
 ```
 
-The test runs weekly, selects the latest snapshot from the previous seven days,
-restores it, keeps a one-hour validation window and lets AWS Backup clean up the
-temporary resource. Never remove the `awsbackup-restore-test` tag from a test
-resource because AWS uses it during cleanup.
+Kiểm thử chạy hằng tuần, chọn snapshot mới nhất trong bảy ngày trước, khôi phục,
+giữ cửa sổ xác minh một giờ rồi để AWS Backup dọn resource tạm. Không xóa tag
+`awsbackup-restore-test` vì AWS dùng tag này trong quá trình dọn dẹp.
 
-Inspect results with:
+Xem kết quả bằng:
 
 ```powershell
 aws backup list-restore-testing-plans --region ap-southeast-1
 aws backup list-restore-jobs --region ap-southeast-1
 ```
 
-Before a real incident cutover, restore into a **new** RDS instance, validate
-schema and row counts, then change the application DB endpoint in a reviewed
-deployment. Do not overwrite or delete the original database during diagnosis.
+Khi xử lý sự cố thật, khôi phục vào một RDS instance **mới**, kiểm tra schema và
+số bản ghi, sau đó mới đổi DB endpoint qua một lần triển khai được xem xét. Không
+ghi đè hoặc xóa database gốc trong lúc chẩn đoán.
 
-## Local SQLite
+## SQLite cục bộ
 
-The helper uses SQLite's online backup API, runs `PRAGMA integrity_check`, prints
-a SHA-256 checksum and refuses to overwrite any destination.
+Công cụ sử dụng online backup API của SQLite, chạy `PRAGMA integrity_check`, in
+checksum SHA-256 và từ chối ghi đè mọi file đích đã tồn tại.
 
 ```powershell
 .venv\Scripts\python.exe scripts\database_backup.py backup
@@ -88,6 +87,6 @@ a SHA-256 checksum and refuses to overwrite any destination.
   --output recovered\database.db
 ```
 
-Start a local validation instance with `DATABASE_PATH` pointing to the restored
-file. Replace the active `database.db` only after application checks pass and a
-second copy of the original has been retained.
+Chạy một instance local để xác minh với `DATABASE_PATH` trỏ tới file đã khôi
+phục. Chỉ thay `database.db` đang dùng sau khi kiểm tra ứng dụng đạt và đã giữ
+thêm một bản sao của database gốc.

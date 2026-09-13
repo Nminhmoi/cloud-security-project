@@ -1,15 +1,15 @@
-# Database models and migrations
+# Mô hình cơ sở dữ liệu và migration
 
-CloudBox uses SQLAlchemy models and Flask-Migrate/Alembic. SQLite remains the
-default local backend; production uses the same models with Amazon RDS MySQL.
+CloudBox dùng SQLAlchemy model và Flask-Migrate/Alembic. SQLite là backend local
+mặc định; Docker và phương án AWS dùng cùng model với MySQL trên Amazon RDS.
 
-## Local development
+## Phát triển cục bộ
 
-When `DATABASE_URL` is omitted, the app opens the project `database.db` and
-creates missing tables for local convenience.
+Khi không có `DATABASE_URL`, ứng dụng mở `database.db` ở thư mục gốc và tự tạo
+các bảng còn thiếu để thuận tiện cho local.
 
-An existing SQLite database created before Alembic already has the initial
-schema. Mark it as current once instead of attempting to recreate its tables:
+Với database SQLite được tạo trước khi dự án dùng Alembic, đánh dấu database ở
+revision hiện tại một lần thay vì cố tạo lại các bảng:
 
 ```powershell
 $env:AUTO_CREATE_SCHEMA = "false"
@@ -17,41 +17,40 @@ $env:AUTO_CREATE_SCHEMA = "false"
 Remove-Item Env:AUTO_CREATE_SCHEMA
 ```
 
-Back up `database.db` before stamping or applying future migrations.
+Sao lưu `database.db` trước khi stamp hoặc chạy migration mới.
 
-## New database or RDS MySQL
+## Cơ sở dữ liệu mới hoặc RDS MySQL
 
-Set the connection URL and disable automatic schema creation:
+Đặt connection URL và tắt tự động tạo schema:
 
 ```text
 DATABASE_URL=mysql+pymysql://cloudbox_user:password@host:3306/cloudbox?charset=utf8mb4
 AUTO_CREATE_SCHEMA=false
 ```
 
-Apply every committed migration before starting the web process:
+Chạy toàn bộ migration đã commit trước khi khởi động web:
 
 ```powershell
 .venv\Scripts\flask.exe --app app/app.py db upgrade
 ```
 
-The initial migration also inserts the built-in `admin` and `user` roles and
-their permissions. It does not create an administrator account; use
-`python admin.py` after the migration.
+Migration đầu tiên cũng seed role `admin`, `user` và các permission mặc định.
+Nó không tạo tài khoản quản trị; dùng `python admin.py` sau migration.
 
-Docker Compose can instead supply `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
-and `DB_PASSWORD`. The application builds and safely escapes the PyMySQL URL;
-`DATABASE_URL` takes precedence when both forms are present. See
-`docs/DOCKER_MYSQL.md` for the two-container persistence test.
+Docker Compose có thể cung cấp riêng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`
+và `DB_PASSWORD`. Ứng dụng tạo và escape PyMySQL URL an toàn;
+`DATABASE_URL` được ưu tiên khi cả hai cách cùng tồn tại. Xem
+[DOCKER_MYSQL.md](DOCKER_MYSQL.md) để kiểm tra nhiều container dùng chung dữ liệu.
 
-## Schema development
+## Phát triển lược đồ
 
-After changing a model:
+Sau khi thay đổi model:
 
 ```powershell
-.venv\Scripts\flask.exe --app app/app.py db migrate -m "describe the change"
+.venv\Scripts\flask.exe --app app/app.py db migrate -m "mo ta thay doi"
 .venv\Scripts\flask.exe --app app/app.py db check
 .venv\Scripts\flask.exe --app app/app.py db upgrade
 ```
 
-Review every generated revision before committing it. Production must never
-use `db.create_all()` as a replacement for versioned migrations.
+Luôn xem lại migration được sinh trước khi commit. Môi trường AWS không được
+dùng `db.create_all()` thay cho migration có version.

@@ -45,3 +45,15 @@ thái scan; private `storage_key` không xuất hiện trong API. Quota mặc đ
 500 MiB cho mỗi tài khoản và tính cả tài liệu trong thùng rác.
 Server có thể trả `413` khi tệp quá lớn và `429` khi vượt giới hạn request hoặc
 tài khoản tạm thời bị khóa.
+
+## Quy ước quyền truy cập
+
+- `401`: chưa có session hợp lệ.
+- `403`: đã đăng nhập nhưng thiếu permission hoặc file không vượt qua kiểm tra
+  an toàn.
+- `404`: tài nguyên không tồn tại hoặc không thuộc phạm vi người dùng được xem.
+- Permission theo hành động luôn được kết hợp với quyền sở hữu hoặc quan hệ
+  chia sẻ; biết ID tài liệu không tạo ra quyền truy cập.
+
+API này dùng session cookie và CSRF, không phải Bearer token/JWT. Vì vậy client
+phải giữ cả cookie và CSRF token trong cùng một phiên.

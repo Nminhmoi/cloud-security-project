@@ -1,44 +1,41 @@
-# CI/CD and security gates
+# CI/CD và các cổng kiểm tra bảo mật
 
-CloudBox uses two GitHub Actions workflows:
+CloudBox sử dụng hai workflow GitHub Actions:
 
-- `.github/workflows/ci.yml` runs on pull requests and pushes to `main`.
-- `.github/workflows/deploy.yml` runs only through an explicit manual dispatch.
+- `.github/workflows/ci.yml` chạy khi có pull request hoặc push lên `main`.
+- `.github/workflows/deploy.yml` chỉ chạy khi người dùng chủ động chọn manual dispatch.
 
-All third-party actions are pinned to full commit SHAs. Dependabot checks those
-pins and the Python, Docker, and Terraform dependencies every week.
+Mọi action bên thứ ba đều được ghim bằng commit SHA đầy đủ. Dependabot kiểm tra
+các SHA này cùng dependency Python, Docker và Terraform mỗi tuần.
 
-## Continuous integration
+## Tích hợp liên tục
 
-The CI workflow has four required jobs:
+Workflow CI có bốn job chính:
 
-1. `Python tests` compiles the source and runs the application and security
-   unit tests on Python 3.12, matching the Docker image.
-2. `Python security` runs `pip-audit` against runtime dependencies and Bandit
-   against application scripts. High-severity Bandit findings fail the job.
-3. `Terraform` checks formatting and validates the root module without
-   connecting to its remote backend or AWS account.
-4. `Container and IaC security` uses Trivy to detect committed secrets,
-   infrastructure misconfiguration, and high/critical fixed vulnerabilities
-   in the built application image.
+1. `Python tests` compile source và chạy unit test của ứng dụng cùng module
+   security trên Python 3.12, trùng với Docker image.
+2. `Python security` chạy `pip-audit` cho runtime dependency và Bandit cho mã
+   ứng dụng. Finding Bandit mức High sẽ làm job thất bại.
+3. `Terraform` kiểm tra format và validate root module mà không kết nối remote
+   backend hoặc AWS account.
+4. `Container and IaC security` dùng Trivy để tìm secret đã commit, lỗi cấu hình
+   hạ tầng và lỗ hổng High/Critical đã có bản sửa trong application image.
 
-The runtime image pins the Python base-image digest, installs current Debian
-security updates during the build, and removes Python packaging tools after
-application dependencies are installed. Dependabot proposes base-image digest
-updates so those changes remain explicit and reviewable.
+Runtime image ghim digest của Python base image, cài Debian security update khi
+build và gỡ công cụ đóng gói Python sau khi cài dependency. Dependabot đề xuất
+cập nhật digest để mỗi thay đổi đều rõ ràng và có thể xem xét.
 
-Trivy exceptions are kept in `.trivyignore.yaml`. Every exception is limited
-to one file and includes its reason. The current exceptions document deliberate
-development-only choices: the user-facing ALB is public, HTTP remains available
-until a domain and ACM certificate are configured, bootstrap traffic is limited
-to outbound TCP 80/443, and S3 uses the no-additional-cost SSE-S3 option. Review
-these exceptions before treating the environment as production.
+Ngoại lệ Trivy nằm trong `.trivyignore.yaml`. Mỗi ngoại lệ giới hạn ở một file
+và có lý do. Các ngoại lệ hiện tại mô tả lựa chọn có chủ ý cho môi trường dev:
+ALB công khai, HTTP còn tồn tại khi chưa có domain/ACM, bootstrap chỉ dùng
+outbound TCP 80/443 và S3 dùng SSE-S3 không phát sinh thêm phí. Phải xem lại các
+ngoại lệ trước khi mở môi trường công khai.
 
-Configure the `main` branch protection rule to require all four jobs before a
-pull request can merge. CI receives only `contents: read`; it has no AWS token
-permission and no deployment secrets.
+Nên cấu hình branch protection của `main` yêu cầu cả bốn job đạt trước khi
+merge. CI chỉ có quyền `contents: read`, không có AWS token permission hoặc
+deployment secret.
 
-To run the Python gates locally:
+Chạy các cổng kiểm tra Python ở local:
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements-dev.txt
@@ -52,25 +49,24 @@ trivy fs --scanners secret,misconfig --severity HIGH,CRITICAL `
   --ignorefile .trivyignore.yaml --skip-dirs .venv .
 ```
 
-## Controlled AWS deployment
+## Triển khai AWS có kiểm soát
 
-The deployment workflow uses GitHub OIDC to obtain short-lived AWS
-credentials. Do not add `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` as
-repository secrets.
+Workflow triển khai dùng GitHub OIDC để lấy AWS credentials ngắn hạn. Không
+thêm `AWS_ACCESS_KEY_ID` hoặc `AWS_SECRET_ACCESS_KEY` vào repository secrets.
 
-Create a GitHub environment named `cloudbox-dev` and configure:
+Tạo GitHub environment tên `cloudbox-dev` và cấu hình:
 
-| Type | Name | Example or purpose |
-| --- | --- | --- |
+| Loại | Tên | Ví dụ hoặc mục đích |
+|---|---|---|
 | Variable | `AWS_REGION` | `ap-southeast-1` |
-| Variable | `AWS_ACCOUNT_ID` | Expected 12-digit AWS account ID |
-| Variable | `AWS_ROLE_ARN` | OIDC deployment role ARN |
-| Variable | `TF_STATE_BUCKET` | Existing private Terraform state bucket |
+| Variable | `AWS_ACCOUNT_ID` | AWS account ID gồm 12 chữ số |
+| Variable | `AWS_ROLE_ARN` | ARN của OIDC deployment role |
+| Variable | `TF_STATE_BUCKET` | Terraform state bucket private đã tồn tại |
 | Variable | `TF_STATE_KEY` | `cloudbox/dev/terraform.tfstate` |
-| Secret | `TF_VARS_JSON` | Optional JSON object containing non-default Terraform variables |
+| Secret | `TF_VARS_JSON` | JSON tùy chọn chứa Terraform variable không dùng mặc định |
 
-Do not put `app_git_ref` in `TF_VARS_JSON`; the workflow always pins it to the
-selected GitHub commit. A development value could be:
+Không đặt `app_git_ref` trong `TF_VARS_JSON`; workflow luôn ghim biến này vào
+Git commit được chọn. Ví dụ cấu hình development:
 
 ```json
 {
@@ -81,15 +77,14 @@ selected GitHub commit. A development value could be:
 }
 ```
 
-Require reviewers for the `cloudbox-dev` environment and restrict its
-deployment branch to `main`. The workflow also rejects `apply=true` outside
-`refs/heads/main`.
+Yêu cầu reviewer cho environment `cloudbox-dev` và giới hạn deployment branch
+ở `main`. Workflow cũng từ chối `apply=true` bên ngoài `refs/heads/main`.
 
-## AWS OIDC trust
+## Quan hệ tin cậy AWS OIDC
 
-Create the GitHub OIDC provider for `https://token.actions.githubusercontent.com`
-with audience `sts.amazonaws.com`, then give the deployment role a trust policy
-restricted to this repository and protected environment:
+Tạo GitHub OIDC provider cho `https://token.actions.githubusercontent.com` với
+audience `sts.amazonaws.com`, sau đó cấu hình trust policy của deployment role
+chỉ cho repository và protected environment này:
 
 ```json
 {
@@ -112,17 +107,17 @@ restricted to this repository and protected environment:
 }
 ```
 
-Attach a deployment policy limited to the AWS services and resources managed
-by this Terraform module. Avoid `AdministratorAccess`; keep this deployment
-role separate from the much smaller EC2 application role.
+Gắn deployment policy chỉ gồm các service và resource do Terraform module quản
+lý. Tránh `AdministratorAccess`; deployment role phải tách biệt với EC2
+application role có phạm vi nhỏ hơn nhiều.
 
-## Running CD
+## Chạy CD
 
-Open **Actions → Deploy CloudBox to AWS → Run workflow**:
+Mở **Actions → Deploy CloudBox to AWS → Run workflow**:
 
-- Leave `apply` disabled to obtain a Terraform plan only.
-- Enable `apply` only after reviewing the plan and expected cost.
+- Không bật `apply` nếu chỉ muốn tạo Terraform plan.
+- Chỉ bật `apply` sau khi đã xem plan và chi phí dự kiến.
 
-An apply waits for the ALB target, runs the read-only AWS integration test, and
-then runs the public endpoint smoke test. It never stores the Terraform plan as
-an artifact because plan files can contain secret-derived values.
+Sau khi apply, workflow chờ ALB target, chạy AWS integration test chỉ đọc rồi
+chạy smoke test cho endpoint công khai. Terraform plan không được lưu thành
+artifact vì file plan có thể chứa giá trị được suy ra từ secret.
