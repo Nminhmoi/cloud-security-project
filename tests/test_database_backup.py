@@ -8,9 +8,7 @@ from scripts.database_backup import (
     backup_database,
     restore_database,
     verify_database,
-)
-
-
+)   
 class DatabaseBackupTests(unittest.TestCase):
     def setUp(self):
         self.temporary_directory = tempfile.TemporaryDirectory()
