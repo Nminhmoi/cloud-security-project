@@ -17,6 +17,9 @@ venv/
 *.tfplan
 tfplan
 tfplan.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
 backups/
 
 # User-uploaded runtime data

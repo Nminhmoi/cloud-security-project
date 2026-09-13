@@ -1,0 +1,5 @@
+-r app/requirements.txt
+
+# CI security gates. Keep exact versions so local and hosted checks agree.
+bandit==1.9.4
+pip-audit==2.10.1

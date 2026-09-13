@@ -51,6 +51,7 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - [docs/HTTPS_DEPLOYMENT.md](docs/HTTPS_DEPLOYMENT.md): cấp chứng chỉ ACM, Route 53 và kiểm thử HTTPS.
 - [docs/FILE_UPLOAD_SECURITY.md](docs/FILE_UPLOAD_SECURITY.md): kiểm tra upload, quota, checksum và vòng đời thùng rác.
 - [docs/AWS_INTEGRATION_TESTING.md](docs/AWS_INTEGRATION_TESTING.md): kiểm thử tích hợp read-only cho tài nguyên AWS sau triển khai.
+- [docs/CI_CD.md](docs/CI_CD.md): CI, quét bảo mật, Dependabot và triển khai AWS thủ công qua OIDC.
 
 ## Kiểm thử
 

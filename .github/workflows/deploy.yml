@@ -1,0 +1,124 @@
+name: Deploy CloudBox to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Apply the reviewed Terraform plan (main branch only)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-cloudbox-dev
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    name: Terraform plan and controlled apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: cloudbox-dev
+    defaults:
+      run:
+        shell: bash
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+    steps:
+      - name: Check out the selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate protected deployment inputs
+        env:
+          APPLY_REQUESTED: ${{ inputs.apply }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+        run: |
+          test -n "$AWS_REGION"
+          test -n "$AWS_ACCOUNT_ID"
+          test -n "$AWS_ROLE_ARN"
+          test -n "$TF_STATE_BUCKET"
+          test -n "$TF_STATE_KEY"
+          if [[ "$APPLY_REQUESTED" == "true" && "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Apply is restricted to refs/heads/main" >&2
+            exit 1
+          fi
+      - name: Configure short-lived AWS credentials
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: cloudbox-${{ github.run_id }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.2
+          terraform_wrapper: false
+      - name: Set up Python for post-deployment checks
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: app/requirements.txt
+      - name: Load protected Terraform variables
+        env:
+          TF_VARS_JSON: ${{ secrets.TF_VARS_JSON }}
+        run: |
+          if [[ -n "$TF_VARS_JSON" ]]; then
+            printf '%s' "$TF_VARS_JSON" > terraform/ci.auto.tfvars.json
+          fi
+      - name: Initialize remote state
+        run: |
+          terraform -chdir=terraform init -input=false \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="region=$AWS_REGION"
+      - name: Check Terraform formatting
+        run: terraform -chdir=terraform fmt -check -recursive
+      - name: Validate Terraform
+        run: terraform -chdir=terraform validate
+      - name: Create a revision-pinned plan
+        run: |
+          terraform -chdir=terraform plan -input=false -lock-timeout=5m \
+            -var="aws_region=$AWS_REGION" \
+            -var="app_git_ref=$GITHUB_SHA" \
+            -out=tfplan
+      - name: Apply the reviewed plan
+        if: ${{ inputs.apply }}
+        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan
+      - name: Wait for the application target
+        if: ${{ inputs.apply }}
+        run: |
+          target_group_arn="$(terraform -chdir=terraform output -raw target_group_arn)"
+          instance_id="$(terraform -chdir=terraform output -raw web_server_id)"
+          aws elbv2 wait target-in-service \
+            --region "$AWS_REGION" \
+            --target-group-arn "$target_group_arn" \
+            --targets "Id=$instance_id"
+      - name: Install integration-test dependencies
+        if: ${{ inputs.apply }}
+        run: python -m pip install -r app/requirements.txt
+      - name: Verify AWS resources
+        if: ${{ inputs.apply }}
+        run: python scripts/aws_integration_test.py --region "$AWS_REGION"
+      - name: Smoke test the public endpoint
+        if: ${{ inputs.apply }}
+        run: |
+          application_url="$(terraform -chdir=terraform output -raw application_url)"
+          https_enabled="$(terraform -chdir=terraform output -raw https_enabled)"
+          if [[ "$https_enabled" == "true" ]]; then
+            python scripts/smoke_test_deployment.py "$application_url"
+          else
+            python scripts/smoke_test_deployment.py "$application_url" --allow-http
+          fi
+      - name: Remove ephemeral plan and variables
+        if: ${{ always() }}
+        run: rm -f terraform/tfplan terraform/ci.auto.tfvars.json
