@@ -22,6 +22,11 @@ The CI workflow has four required jobs:
    infrastructure misconfiguration, and high/critical fixed vulnerabilities
    in the built application image.
 
+The runtime image pins the Python base-image digest, installs current Debian
+security updates during the build, and removes Python packaging tools after
+application dependencies are installed. Dependabot proposes base-image digest
+updates so those changes remain explicit and reviewable.
+
 Trivy exceptions are kept in `.trivyignore.yaml`. Every exception is limited
 to one file and includes its reason. The current exceptions document deliberate
 development-only choices: the user-facing ALB is public, HTTP remains available

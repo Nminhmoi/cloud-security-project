@@ -62,6 +62,19 @@ class CiConfigurationTests(unittest.TestCase):
         self.assertRegex(requirements, r"(?m)^bandit==\d+\.\d+\.\d+$")
         self.assertRegex(requirements, r"(?m)^pip-audit==\d+\.\d+\.\d+$")
 
+    def test_runtime_image_applies_security_updates_and_removes_build_tools(self):
+        dockerfile = self.read("docker/Dockerfile")
+        self.assertRegex(
+            dockerfile,
+            r"(?m)^FROM python:3\.12-slim@sha256:[0-9a-f]{64}$",
+        )
+        self.assertIn(
+            "DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes --no-install-recommends",
+            dockerfile,
+        )
+        self.assertIn("rm -rf /var/lib/apt/lists/*", dockerfile)
+        self.assertIn("pip uninstall --yes pip setuptools wheel", dockerfile)
+
     def test_trivy_exceptions_are_scoped_and_documented(self):
         workflow = self.read(".github/workflows/ci.yml")
         ignore_file = self.read(".trivyignore.yaml")
