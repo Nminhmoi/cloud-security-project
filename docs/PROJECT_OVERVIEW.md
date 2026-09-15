@@ -98,6 +98,3 @@ Sản phẩm đặt kiểm soát bảo mật ngay trong luồng quản lý tài 
 - WAF, Auto Scaling, SIEM và malware scanning trả phí.
 - Mobile application, OAuth/social login và public developer API bằng JWT.
 - Chứng nhận tuân thủ hoặc tuyên bố hệ thống đã vượt qua pentest.
-
-Các mục ngoài phạm vi có thể được nêu ở phần hướng phát triển, nhưng không phải
-điều kiện để hoàn thành bài tập lớn.

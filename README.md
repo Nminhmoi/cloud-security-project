@@ -53,6 +53,7 @@ Xem [docs/README.md](docs/README.md) để tra cứu toàn bộ tài liệu. Cá
 - [Cài đặt](docs/SETUP.md)
 - [REST API](docs/API.md)
 - [RBAC và quản trị](docs/RBAC.md)
+- [Quy trình kiểm thử](docs/TESTING.md)
 - [Terraform/AWS](terraform/README.md)
 
 ## Kiểm thử
