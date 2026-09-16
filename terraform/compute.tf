@@ -36,7 +36,7 @@ resource "aws_instance" "web" {
     rds_port              = aws_db_instance.mysql.port
     rds_secret_arn        = aws_db_instance.mysql.master_user_secret[0].secret_arn
     otp_delivery_mode     = local.ses_enabled ? "ses" : "disabled"
-    ses_sender_email      = coalesce(var.ses_sender_email, "")
+    ses_sender_email      = var.ses_sender_email != null ? var.ses_sender_email : ""
   })
 
   metadata_options {
