@@ -50,6 +50,13 @@ def _login_failure(message, status):
     return render_template("login.html", login_error=message), status
 
 
+def _registration_failure(message, status):
+    """Keep browser registration failures on the registration screen."""
+    if _wants_json_response():
+        return jsonify(error={"message": message, "status": status}), status
+    return render_template("register.html", register_error=message), status
+
+
 def _valid_username(username):
     return bool(
         6 <= len(username) <= 24
@@ -71,12 +78,14 @@ def register():
     password = request.form["password"]
 
     if not _valid_username(username):
-        return "Tên đăng nhập phải dài 6-24 ký tự, có chữ, số và ký tự đặc biệt!", 400
+        return _registration_failure(
+            "Tên đăng nhập phải dài 6-24 ký tự, có chữ, số và ký tự đặc biệt!", 400
+        )
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
-        return "Địa chỉ email không hợp lệ!", 400
+        return _registration_failure("Địa chỉ email không hợp lệ!", 400)
     password_error = password_policy_error(password)
     if password_error:
-        return password_error, 400
+        return _registration_failure(password_error, 400)
 
     try:
         user = User(
@@ -88,7 +97,7 @@ def register():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return "Tên đăng nhập hoặc email đã tồn tại!", 409
+        return _registration_failure("Tên đăng nhập hoặc email đã tồn tại!", 409)
 
     return redirect(url_for("auth.login"))
 
