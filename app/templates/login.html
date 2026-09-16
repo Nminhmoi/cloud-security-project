@@ -18,13 +18,19 @@
 
     <form id="login-form" method="POST" data-async-submit="true">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <p
+      <div
         id="login-error"
-        class="auth-form-error"
+        class="auth-form-error auth-toast"
         role="alert"
         aria-live="assertive"
         {% if not login_error %}hidden{% endif %}
-      >{{ login_error or '' }}</p>
+      >
+        <span class="auth-form-error-icon" aria-hidden="true">!</span>
+        <span class="auth-form-error-content">
+          <strong class="auth-form-error-title">Không thể đăng nhập</strong>
+          <span class="auth-form-error-message">{{ login_error or '' }}</span>
+        </span>
+      </div>
 
       <div class="field">
         <label for="username">Tên đăng nhập hoặc email</label>
@@ -50,6 +56,7 @@
             type="password"
             placeholder="Nhập mật khẩu"
             required
+            minlength="{{ config.MIN_PASSWORD_LENGTH }}"
             autocomplete="current-password"
           >
         </div>
@@ -87,11 +94,12 @@
     const password = document.getElementById("password");
     const submitButton = document.getElementById("login-submit");
     const errorBox = document.getElementById("login-error");
+    const errorMessage = errorBox.querySelector(".auth-form-error-message");
     const defaultButtonLabel = submitButton.textContent.trim();
 
     const clearError = () => {
       errorBox.hidden = true;
-      errorBox.textContent = "";
+      errorMessage.textContent = "";
       username.removeAttribute("aria-invalid");
       password.removeAttribute("aria-invalid");
     };
@@ -105,8 +113,9 @@
       username.focus();
     };
 
-    const showError = (message) => {
-      errorBox.textContent = message;
+    const showError = (message, title = "Không thể đăng nhập") => {
+      errorBox.querySelector(".auth-form-error-title").textContent = title;
+      errorMessage.textContent = message;
       errorBox.hidden = false;
       clearCredentials();
     };
@@ -122,7 +131,15 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (!form.reportValidity()) return;
+      if (!form.reportValidity()) {
+        if (password.validity.tooShort) {
+          showError(
+            `Mật khẩu phải có ít nhất {{ config.MIN_PASSWORD_LENGTH }} ký tự.`,
+            "Mật khẩu chưa đủ dài"
+          );
+        }
+        return;
+      }
 
       clearError();
       setSubmitting(true);
