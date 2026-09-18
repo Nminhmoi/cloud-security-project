@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (MiKTeX 25.12) (preloaded format=xelatex 2026.8.19)  17 SEP 2026 19:29
+This is XeTeX, Version 3.141592653-2.6-0.999997 (MiKTeX 25.12) (preloaded format=xelatex 2026.8.19)  18 SEP 2026 10:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1081,57 +1081,71 @@ File: evidence/smoke-test-ubuntu.png Graphic file (type bmp)
 <evidence/smoke-test-ubuntu.png>
 [54
 
-] [55] [56] [57] [58] [59] [60]
+] [55] [56] [57] [58]
+File: evidence/github-actions-success.png Graphic file (type bmp)
+<evidence/github-actions-success.png>
+File: evidence/pip-audit-ci.png Graphic file (type bmp)
+<evidence/pip-audit-ci.png>
+File: evidence/bandit-ci.png Graphic file (type bmp)
+<evidence/bandit-ci.png>
+ [59] [60] [61] [62] [63]
+File: evidence/trivy-iac.png Graphic file (type bmp)
+<evidence/trivy-iac.png>
+File: evidence/trivy-image.png Graphic file (type bmp)
+<evidence/trivy-image.png>
+File: evidence/restart-sha256-ubuntu.png Graphic file (type bmp)
+<evidence/restart-sha256-ubuntu.png>
+ [64] [65] [66]
 File: evidence/attack-simulation-results.png Graphic file (type bmp)
 <evidence/attack-simulation-results.png>
- [61]
+ [67]
 File: evidence/unittest-app-details-ubuntu.png Graphic file (type bmp)
 <evidence/unittest-app-details-ubuntu.png>
 File: evidence/unittest-88-pass.png Graphic file (type bmp)
 <evidence/unittest-88-pass.png>
- [62] [63] [64] [65] [66] [67
+ [68]
+[69] [70] [71] [72] [73] [74
 
-] [68]
-[69
+] [75] [76
 
 
-] [70]
+] [77]
 PHỤ LỤC A.
 
-Underfull \hbox (badness 2922) in paragraph at lines 2136--2137
+Underfull \hbox (badness 2922) in paragraph at lines 2193--2194
 \TU/TimesNewRoman(0)/m/n/13 Trước khi chạy ứng dụng, cấu hình SECRET_KEY riêng 
 cho môi trường;
  []
 
-[71
+[78
 
 ]
 PHỤ LỤC B.
-[72
+[79
 
 ]
 PHỤ LỤC C.
-[73
+[80
 
 ]
 PHỤ LỤC D.
 LaTeX Font Info:    Font shape `TU/Consolas(0)/m/n' will be
-(Font)              scaled to size 7.79999pt on input line 2214.
+(Font)              scaled to size 7.79999pt on input line 2271.
 LaTeX Font Info:    External font `cmex7' loaded for size
-(Font)              <7> on input line 2214.
-ignored error: Infinite glue shrinkage found in box being split [74
+(Font)              <7> on input line 2271.
+ignored error: Infinite glue shrinkage found in box being split [81
 
 ]
-ignored error: Infinite glue shrinkage found in box being split [75] [76]
+ignored error: Infinite glue shrinkage found in box being split [82] [83]
 PHỤ LỤC E.
-[77
+[84
 
 ]
 PHỤ LỤC F.
-ignored error: Infinite glue shrinkage found in box being split [78
+ignored error: Infinite glue shrinkage found in box being split [85
 
-] [79]
-(ATTT1.aux)
+] [86]
+[87] (ATTT1.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -1143,12 +1157,12 @@ LaTeX Font Warning: Size substitutions with differences
 
  ) 
 Here is how much of TeX's memory you used:
- 24322 strings out of 402987
- 496688 string characters out of 5448731
- 1087379 words of memory out of 5000000
- 52625 multiletter control sequences out of 15000+600000
+ 24388 strings out of 402987
+ 498551 string characters out of 5448731
+ 1086916 words of memory out of 5000000
+ 52685 multiletter control sequences out of 15000+600000
  634160 words of font info for 110 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  89i,13n,104p,729b,786s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on ATTT1.pdf (96 pages).
+Output written on ATTT1.pdf (104 pages).

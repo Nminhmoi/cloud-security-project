@@ -1895,11 +1895,68 @@ Terraform apply đã tạo môi trường AWS thử nghiệm; bằng chứng tư
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Kiểm thử CI/CD}
-Bảy test cấu hình CI đều đạt; chúng đối chiếu workflow và các điều kiện mong đợi trong repository. Các lệnh Python được chạy lại ngoài GitHub gồm compileall, pip check, hai suite unittest và Bandit. Pip-audit, Docker build và Trivy thuộc pipeline đã khai báo; chỉ ghi trạng thái thực thi của toàn bộ workflow hosted khi có bằng chứng run gắn với đúng commit.
+Bảy test cấu hình CI đều đạt; chúng đối chiếu workflow và các điều kiện mong đợi trong repository. Bổ sung cho kiểm thử cấu hình, Hình~\ref{fig:ci-success} ghi nhận lần chạy CI số 5 trên GitHub Actions với commit rút gọn \texttt{9815bfa}, nhánh \texttt{main}, trạng thái Success và tổng thời gian 1 phút 6 giây. Cả bốn job Python tests, Python security, Terraform và Container and IaC security đều thành công. Đây là bằng chứng thực thi CI, không phải bằng chứng workflow triển khai AWS đã chạy thành công.
+
+\AnhBangChung{evidence/github-actions-success.png}
+{Tổng quan lần chạy CI số 5 thành công trên GitHub Actions}
+{fig:ci-success}
+
+\subsection{Kiểm tra dependency và mã nguồn Python}
+Hình~\ref{fig:pip-audit-ci} thể hiện bước kiểm tra dependency bằng pip-audit đối với \nolinkurl{app/requirements.txt}, với kết quả ``No known vulnerabilities found''. Như vậy, công cụ không phát hiện lỗ hổng đã biết trong các dependency được kiểm tra tại thời điểm chạy, theo nguồn dữ liệu lỗ hổng mà công cụ sử dụng. Kết quả này không khẳng định mọi thư viện đều an toàn tuyệt đối, không bao quát lỗi logic của ứng dụng và có thể thay đổi khi thông tin lỗ hổng mới được công bố. Ảnh cũng ghi nhận Python 3.12.14 trên runner GitHub Actions, khác với Python 3.14 trong máy ảo Ubuntu chạy bộ test local.
+
+\AnhBangChung{evidence/pip-audit-ci.png}
+{Kết quả pip-audit trên GitHub Actions: không phát hiện lỗ hổng đã biết}
+{fig:pip-audit-ci}
 
 Bandit 1.9.4 quét app, scripts và security với hai tệp test được loại trừ theo lệnh CI. Tổng thống kê là 3.522 dòng mã, không có phát hiện High; thống kê vẫn ghi nhận ba cảnh báo Low và hai Medium. Bộ lọc High cho kết quả đạt nhưng không có nghĩa mọi mức cảnh báo đều bằng không.
 
-Để đánh giá quy trình triển khai đầy đủ, cần gắn kết quả pipeline với đúng commit và artifact được triển khai. Báo cáo hiện không có commit xác minh từ kho Git gốc, do đó đối tượng kiểm tra là bản mã nguồn đóng gói. Không suy diễn các log ghi sẵn trong tài liệu dự án thành kết quả thực thi mới.
+\AnhBangChung{evidence/bandit-ci.png}
+{Kết quả Bandit: không có High, còn ba Low và hai Medium}
+{fig:bandit-ci}
+
+\subsection{Phân tích các cảnh báo Bandit}
+Kết quả ở Hình~\ref{fig:bandit-ci} cần được đọc theo hai tiêu chí khác nhau: mức độ nghiêm trọng (Severity) và độ tin cậy của phát hiện (Confidence). Severity cho biết mức ảnh hưởng tiềm tàng mà quy tắc của công cụ gán cho cảnh báo, gồm Low, Medium và High. Confidence phản ánh mức độ chắc chắn của công cụ đối với phát hiện đó. Vì vậy, một cảnh báo có Confidence High không đồng nghĩa với một lỗ hổng có Severity High. Các con số này giúp định hướng rà soát, nhưng không thay thế việc xem xét đầu vào, đường thực thi và môi trường triển khai.
+
+Trong workflow của dự án, Bandit được chạy với tùy chọn \texttt{--severity-level high}. Do không có phát hiện đạt ngưỡng này, bước kiểm tra trả về thành công và phần kết quả hiển thị ``No issues identified''. Tuy nhiên, thống kê vẫn ghi nhận ba cảnh báo Low và hai cảnh báo Medium. Hai thông tin này không mâu thuẫn: pipeline đã đạt ngưỡng kiểm tra được đặt ra, chứ không khẳng định toàn bộ mã nguồn không còn vấn đề bảo mật.
+
+Để làm rõ các cảnh báo còn lại, phần phân tích dưới đây đối chiếu kết quả quét các tệp Python đang được Git theo dõi trong bản mã nguồn hiện có, với hai tệp test được loại trừ như cấu hình CI. Lần rà soát này ghi nhận cùng số lượng ba Low và hai Medium. Đây là phần bổ sung từ mã nguồn hiện tại; ảnh tổng kết CI không tự cung cấp vị trí chi tiết của từng phát hiện và cũng không chứng minh hai bản mã nguồn hoàn toàn giống nhau.
+
+\subsubsection{Cảnh báo về địa chỉ lắng nghe của ứng dụng}
+Cảnh báo B104, mức Medium, xuất hiện tại lệnh \texttt{app.run(host="0.0.0.0", port=5000)} trong \nolinkurl{app/app.py}. Địa chỉ này cho phép ứng dụng lắng nghe trên mọi giao diện IPv4 của môi trường chạy. Nếu cổng dịch vụ được mở ra mạng ngoài, phạm vi truy cập có thể rộng hơn mong muốn khi phát triển hoặc thử nghiệm.
+
+Trong CloudBox, lệnh trên nằm trong nhánh khởi chạy trực tiếp tệp Python. Container sử dụng Gunicorn nên không thực thi nhánh này để khởi động máy chủ. Việc lắng nghe trên mọi giao diện trong container có thể là lựa chọn cần thiết để nhận lưu lượng qua cổng được ánh xạ; do đó không thể chỉ dựa vào địa chỉ \texttt{0.0.0.0} để kết luận hệ thống có lỗ hổng. Điều cần kiểm tra là cổng nào được công khai, nguồn nào được phép kết nối và firewall hoặc security group có giới hạn đúng phạm vi hay không. Cảnh báo này được xem là một điểm cần kiểm soát khi triển khai, không phải bằng chứng ứng dụng đã bị truy cập trái phép.
+
+\subsubsection{Cảnh báo về xây dựng truy vấn SQL}
+Cảnh báo B608, mức Medium và độ tin cậy Low, nằm trong \nolinkurl{security/iam/user_evaluator.py}. Công cụ phát hiện câu truy vấn được tạo bằng f-string nên đánh dấu khả năng SQL Injection. Nguy cơ này sẽ đáng lo nếu dữ liệu không tin cậy được ghép trực tiếp vào câu SQL và làm thay đổi ý nghĩa của truy vấn.
+
+Qua đối chiếu đoạn mã hiện tại, các phần được chèn vào truy vấn chỉ được lựa chọn từ những chuỗi cố định. Chẳng hạn, biểu thức email là \texttt{u.email} hoặc \texttt{NULL}; phần nối bảng role là một mệnh đề JOIN định sẵn hoặc chuỗi rỗng. Không thấy dữ liệu nhập từ biểu mẫu người dùng được ghép trực tiếp vào các vị trí này. Vì vậy, chưa có căn cứ xác nhận đường khai thác SQL Injection tại đoạn mã được rà soát. Nếu chức năng sau này được mở rộng để nhận điều kiện lọc hoặc tên trường từ bên ngoài, cần đánh giá lại và không tiếp tục dựa vào nhận xét của phiên bản hiện tại.
+
+\subsubsection{Các cảnh báo khi gọi Terraform bằng subprocess}
+Ba cảnh báo Low gồm B404, B603 và B607 tập trung trong \nolinkurl{scripts/aws_integration_test.py}. B404 lưu ý việc sử dụng mô-đun subprocess; B603 yêu cầu xem xét đầu vào khi gọi chương trình ngoài; B607 cảnh báo việc gọi executable bằng tên \texttt{terraform} thay vì đường dẫn tuyệt đối. Đây là ba góc kiểm tra quanh cùng một nhóm thao tác, không nhất thiết tương ứng với ba đường tấn công độc lập.
+
+Script hiện truyền lệnh và tham số dưới dạng danh sách, không bật \texttt{shell=True}. Cách gọi này tránh để shell diễn giải chuỗi đầu vào thành nhiều lệnh, qua đó giảm rủi ro chèn lệnh shell. Tuy nhiên, việc tìm Terraform qua biến môi trường PATH vẫn phụ thuộc độ tin cậy của máy chạy. Nếu executable hoặc thư mục trong PATH bị thay thế, script có thể gọi nhầm chương trình. Bởi vậy, môi trường kiểm thử cần sử dụng bản Terraform được cài đặt có kiểm soát, bảo vệ đường dẫn thực thi và không nhận thư mục Terraform từ nguồn không tin cậy.
+
+Từ các phân tích trên, kết quả Bandit được đánh giá là đạt ngưỡng High của CI, đồng thời còn năm phát hiện cần được quản lý theo ngữ cảnh. Rà soát chưa xác nhận khả năng khai thác của các phát hiện này trong những đoạn mã đã xem xét; điều đó không tương đương với kết luận chúng luôn vô hại trong mọi môi trường. Các giới hạn về mạng, nguồn đầu vào và chương trình thực thi cần được duy trì và kiểm tra lại khi hệ thống thay đổi. Việc ghi nhận rõ những điều kiện này phù hợp hơn với mục tiêu đánh giá an toàn thông tin của đề tài so với chỉ dựa vào trạng thái thành công của pipeline.
+
+\subsection{Kiểm tra cấu hình hạ tầng và Docker image}
+Ảnh Trivy tại Hình~\ref{fig:trivy-iac} ghi nhận cột Misconfigurations bằng 0 ở các mục Dockerfile và Terraform được hiển thị. Dấu gạch ngang trong cột Secrets không được diễn giải thành số phát hiện bằng 0. Kết luận chỉ áp dụng cho phạm vi bộ quét, ngưỡng High/Critical và các ngoại lệ của lần chạy này.
+
+\AnhBangChung{evidence/trivy-iac.png}
+{Bảng kết quả Trivy đối với Dockerfile và cấu hình Terraform}
+{fig:trivy-iac}
+
+Ảnh quét image tại Hình~\ref{fig:trivy-image} hiển thị image mang tag commit bắt đầu bằng \texttt{9815bfa}, tương ứng mã commit rút gọn trên trang CI. Các hàng hệ điều hành và package hiển thị đều có giá trị Vulnerabilities bằng 0 theo chính sách quét đã cấu hình. Bước quét image sử dụng ngưỡng High/Critical và bỏ qua lỗ hổng chưa có bản sửa; kết quả này không khẳng định image không còn bất kỳ lỗ hổng nào. Bộ ảnh cũng chưa liên kết image này với một instance AWS đang chạy.
+
+\AnhBangChung{evidence/trivy-image.png}
+{Kết quả Trivy quét lỗ hổng Docker image theo ngưỡng của CI}
+{fig:trivy-image}
+
+\section{Kiểm tra nội dung tài liệu sau khi khởi động lại container}
+Phép thử trên Ubuntu thực hiện restart hai dịch vụ db và web, sau đó kiểm tra cả hai trở về trạng thái healthy. Hai bản \texttt{requirements-dev.txt} lưu trong thư mục tải về trước và sau phép thử có cùng SHA-256, như Hình~\ref{fig:restart-sha256}. Kết quả xác nhận nội dung hai bản tệp đối chiếu không thay đổi trong phép thử. Ảnh terminal chưa thể hiện thao tác tải trên giao diện và chưa kiểm chứng lại quyền chia sẻ của các tài khoản; vì vậy không suy rộng thành kết luận toàn bộ dữ liệu và phân quyền đều được bảo toàn. Đây là kiểm tra sau restart, không phải phục hồi từ bản sao lưu.
+
+\AnhBangChung{evidence/restart-sha256-ubuntu.png}
+{Hai dịch vụ healthy sau restart và SHA-256 hai bản tài liệu trùng nhau}
+{fig:restart-sha256}
 
 \section{Mô phỏng các kịch bản tấn công}
 \subsection{Phạm vi và quy trình thực hiện}
@@ -1986,11 +2043,11 @@ Unittest security & 10/10 đạt & Các mô-đun trong bộ test, không phải 
 Compileall & Thành công & Mã Python được biên dịch cú pháp\\
 Pip check & Không lỗi dependency & Tương thích yêu cầu package đã cài, không đánh giá CVE\\
 Bandit High & Không có High & Còn thống kê Low/Medium; không thay pentest\\
-Docker/MySQL & Hai dịch vụ healthy & Trạng thái container và truy cập trang đăng nhập; chưa xác nhận persistence qua restart\\
+Docker/MySQL & Healthy sau restart & Hai bản tệp có SHA-256 trùng nhau; chưa kiểm chứng lại quyền chia sẻ\\
 Smoke test local & HTTP 200; headers đạt & Endpoint đăng nhập, CSRF và chính sách phản hồi trong chế độ HTTP\\
 Terraform/AWS & Đã apply môi trường thử nghiệm & Chứng minh triển khai; chưa thay kiểm thử phục hồi\\
 Mô phỏng tấn công & ATK-01--ATK-10 & Kết quả theo Bảng~\ref{tab:attack-simulation} và hồ sơ ảnh\\
-Pip-audit/Trivy & Chưa chạy tại đây & Không kết luận dependency/image sạch lỗ hổng\\\bottomrule
+Pip-audit/Trivy & CI số 5 thành công & Đạt theo ngưỡng và ngoại lệ cấu hình; không chứng minh sạch mọi lỗ hổng\\\bottomrule
 \end{tabularx}\end{table}
 Tổng cộng 88/88 test tự động đạt, tương ứng 100\% số test đã chạy. Mẫu số là số phương thức kiểm thử được thực thi, không phải số nguy cơ có thể xảy ra. Kết quả Docker, AWS và mô phỏng tấn công được báo cáo riêng, không cộng vào mẫu số 88. Chưa đo coverage nên không ghi tỷ lệ bao phủ mã nguồn, và chưa kiểm thử tải nên không ghi thông lượng hay thời gian đáp ứng của hệ thống.
 
@@ -2027,7 +2084,7 @@ Docker và IaC làm rõ kiến trúc đồng thời tăng khả năng tái lập
 \section{Hạn chế của mô hình}
 Các hạn chế quan trọng được xác định trực tiếp từ mã nguồn và phạm vi thực nghiệm. Không có bộ quét malware hoàn chỉnh; not\_scanned vẫn tải được. Rate limiter memory không tổng hợp qua các worker. Quota kiểm tra và ghi dữ liệu tách rời, chưa có bằng chứng chống vượt ngưỡng khi đồng thời.
 
-Luồng reset chưa có token giao dịch một lần phía máy chủ sau OTP; đăng xuất chưa thu hồi mọi bản sao cookie. Runtime AWS sử dụng credential master RDS và có quyền sửa secret ứng dụng. Log chưa toàn diện và chưa chống sửa đổi độc lập. Việc triển khai AWS và Docker/MySQL đã được thực hiện, nhưng chưa thay thế bằng chứng quét image, kiểm thử tải, phát cảnh báo thực tế hoặc diễn tập phục hồi đồng bộ RDS/S3.
+Luồng reset chưa có token giao dịch một lần phía máy chủ sau OTP; đăng xuất chưa thu hồi mọi bản sao cookie. Runtime AWS sử dụng credential master RDS và có quyền sửa secret ứng dụng. Log chưa toàn diện và chưa chống sửa đổi độc lập. CI số 5 bổ sung bằng chứng quét image theo ngưỡng cấu hình; vẫn chưa có kiểm thử tải, phát cảnh báo thực tế hoặc diễn tập phục hồi đồng bộ RDS/S3. Kết quả đối chiếu tệp sau restart chưa thay thế kiểm thử phục hồi và xác minh lại quyền tài liệu.
 
 Các hạn chế trên không phủ nhận kết quả 88 test đã đạt; chúng chỉ ra những thuộc tính chưa được các test hiện có chứng minh. Phát triển tiếp theo cần bổ sung kiểm soát và ca thử phù hợp, thay vì chỉ tăng số lượng test bằng các tình huống lặp lại.
 
@@ -2328,7 +2385,7 @@ Backup SQLite & database backup script & Ba test đạt; không bao gồm toàn 
 S3, RDS, EC2 & Terraform, AWS adapters và kiểm tra chỉ đọc & Đã triển khai thử nghiệm; đối chiếu AWS-01--AWS-08\\
 TLS & ALB có điều kiện; RDS config & Ghi theo output thực tế; ALB--EC2 vẫn là HTTP\\
 Audit log & activity logs & Một phần hành động; chưa bất biến\\
-CI/CD & Workflow và test cấu hình & Chỉ xác nhận run hosted khi có URL/ảnh gắn đúng commit\\
+CI/CD & CI số 5, commit 9815bfa thành công & Có ảnh pip-audit, Bandit và Trivy; chưa chứng minh triển khai AWS cùng commit\\
 Reset một lần & OTP và session reset & Cần token giao dịch có hạn phía máy chủ\\
 Đặc quyền DB & RDS secret trong bootstrap & Runtime còn dùng master; cần tách user\\\bottomrule
 \end{longtable}}
@@ -2357,6 +2414,12 @@ Hồ sơ triển khai liên kết phiên bản mã, biến cấu hình không ch
 DOC-01 & \nolinkurl{docker-compose-ubuntu.png} & Docker 29.7.2, Compose v5.5.0 và hai container healthy\\
 DOC-02 & \nolinkurl{cloudbox-ui-ubuntu.png} & Trang đăng nhập qua localhost trong Ubuntu VirtualBox\\
 DOC-03 & \nolinkurl{smoke-test-ubuntu.png} & HTTP 200 tại login/CSRF và security headers đạt\\
+DOC-04 & \nolinkurl{restart-sha256-ubuntu.png} & Restart, hai dịch vụ healthy và SHA-256 hai bản tệp trùng nhau\\
+CI-01 & \nolinkurl{github-actions-success.png} & CI số 5 thành công, commit 9815bfa\\
+CI-02 & \nolinkurl{pip-audit-ci.png} & Không phát hiện lỗ hổng đã biết trong dependency được kiểm tra tại thời điểm chạy\\
+CI-03 & \nolinkurl{bandit-ci.png} & Bandit: High 0, Medium 2, Low 3\\
+CI-04 & \nolinkurl{trivy-iac.png} & Các mục Dockerfile/Terraform hiển thị Misconfigurations 0\\
+CI-05 & \nolinkurl{trivy-image.png} & Các hàng image/package hiển thị Vulnerabilities 0 theo bộ lọc\\
 AWS-01 & \nolinkurl{terraform-apply-success.png} & Apply complete và output đã che dữ liệu nhạy cảm\\
 AWS-02--07 & \nolinkurl{aws-resource-status.png} & Trạng thái ALB/target, EC2/SSM, RDS, S3, IAM và CloudWatch\\
 AWS-08 & \nolinkurl{cloudbox-alb-access.png} & Giao diện CloudBox qua URL của ALB\\

@@ -2,7 +2,7 @@ import os
 import secrets
 
 import click
-from flask import Flask, g, jsonify, request, session
+from flask import Flask, g, jsonify, render_template, request, session
 from flask_wtf.csrf import CSRFError
 from sqlalchemy.engine import make_url
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -94,6 +94,13 @@ def create_app(config_class=Config):
                 "max-age=31536000; includeSubDomains"
             )
         return response
+
+    @app.errorhandler(403)
+    def handle_forbidden(_error):
+        message = "Bạn không có quyền truy cập nội dung này."
+        if request.path.startswith("/api/") or request.is_json:
+            return jsonify(error={"message": message, "status": 403}), 403
+        return render_template("forbidden.html"), 403
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):

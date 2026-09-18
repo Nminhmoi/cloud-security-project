@@ -183,37 +183,44 @@
 \contentsline {section}{\numberline {5.9}Kiểm thử cơ sở dữ liệu và lưu trữ}{58}{section.5.9}%
 \contentsline {section}{\numberline {5.10}Kiểm thử triển khai AWS}{58}{section.5.10}%
 \contentsline {section}{\numberline {5.11}Kiểm thử CI/CD}{59}{section.5.11}%
-\contentsline {section}{\numberline {5.12}Mô phỏng các kịch bản tấn công}{59}{section.5.12}%
-\contentsline {subsection}{\numberline {5.12.1}Phạm vi và quy trình thực hiện}{59}{subsection.5.12.1}%
-\contentsline {subsection}{\numberline {5.12.2}Tấn công đăng nhập và OTP}{60}{subsection.5.12.2}%
-\contentsline {subsection}{\numberline {5.12.3}Vượt quyền và IDOR/BOLA}{60}{subsection.5.12.3}%
-\contentsline {subsection}{\numberline {5.12.4}Tấn công vào ứng dụng web và tệp tải lên}{60}{subsection.5.12.4}%
-\contentsline {subsection}{\numberline {5.12.5}Tấn công vào phiên và tài nguyên AWS}{61}{subsection.5.12.5}%
-\contentsline {section}{\numberline {5.13}Tổng hợp kết quả}{62}{section.5.13}%
-\contentsline {section}{\numberline {5.14}Đánh giá mô hình bảo vệ dữ liệu}{64}{section.5.14}%
-\contentsline {subsection}{\numberline {5.14.1}Mức độ bảo vệ tính bí mật}{64}{subsection.5.14.1}%
-\contentsline {subsection}{\numberline {5.14.2}Mức độ bảo vệ tính toàn vẹn}{64}{subsection.5.14.2}%
-\contentsline {subsection}{\numberline {5.14.3}Mức độ bảo vệ tính sẵn sàng}{65}{subsection.5.14.3}%
-\contentsline {subsection}{\numberline {5.14.4}Khả năng phát hiện và truy vết}{65}{subsection.5.14.4}%
-\contentsline {section}{\numberline {5.15}Ưu điểm của mô hình}{65}{section.5.15}%
-\contentsline {section}{\numberline {5.16}Hạn chế của mô hình}{65}{section.5.16}%
-\contentsline {section}{\numberline {5.17}Rủi ro còn lại và thứ tự cải tiến}{66}{section.5.17}%
-\contentsline {section}{\numberline {5.18}Kết luận chương}{66}{section.5.18}%
-\contentsline {chapter}{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{67}{section*.22}%
-\contentsline {section}{1. Kết luận}{67}{section*.23}%
-\contentsline {section}{2. Hạn chế}{67}{section*.24}%
-\contentsline {section}{3. Hướng phát triển}{67}{section*.25}%
-\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{69}{section*.26}%
-\contentsline {chapter}{\numberline {A}Hướng dẫn cài đặt và chạy kiểm thử cục bộ}{71}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Hướng dẫn kiểm chứng Docker và Terraform}{72}{appendix.B}%
-\contentsline {section}{\numberline {B.1}Docker}{72}{section.B.1}%
-\contentsline {section}{\numberline {B.2}Terraform}{72}{section.B.2}%
-\contentsline {chapter}{\numberline {C}Danh sách API chính}{73}{appendix.C}%
-\contentsline {chapter}{\numberline {D}Danh mục kiểm thử đã thực thi}{74}{appendix.D}%
-\contentsline {section}{\numberline {D.1}Bộ kiểm thử ứng dụng}{74}{section.D.1}%
-\contentsline {section}{\numberline {D.2}Bộ kiểm thử mô-đun bảo mật}{76}{section.D.2}%
-\contentsline {chapter}{\numberline {E}Ma trận hiện thực và bằng chứng}{77}{appendix.E}%
-\contentsline {chapter}{\numberline {F}Quy trình phục hồi và thu thập bằng chứng}{78}{appendix.F}%
-\contentsline {section}{\numberline {F.1}Phục hồi SQLite vào tệp mới}{78}{section.F.1}%
-\contentsline {section}{\numberline {F.2}Danh mục bằng chứng triển khai Cloud}{78}{section.F.2}%
-\contentsline {section}{\numberline {F.3}Cách chỉnh sửa báo cáo LaTeX}{79}{section.F.3}%
+\contentsline {subsection}{\numberline {5.11.1}Kiểm tra dependency và mã nguồn Python}{59}{subsection.5.11.1}%
+\contentsline {subsection}{\numberline {5.11.2}Phân tích các cảnh báo Bandit}{62}{subsection.5.11.2}%
+\contentsline {subsubsection}{Cảnh báo về địa chỉ lắng nghe của ứng dụng}{62}{subsubsection*.21}%
+\contentsline {subsubsection}{Cảnh báo về xây dựng truy vấn SQL}{63}{subsubsection*.22}%
+\contentsline {subsubsection}{Các cảnh báo khi gọi Terraform bằng subprocess}{63}{subsubsection*.23}%
+\contentsline {subsection}{\numberline {5.11.3}Kiểm tra cấu hình hạ tầng và Docker image}{64}{subsection.5.11.3}%
+\contentsline {section}{\numberline {5.12}Kiểm tra nội dung tài liệu sau khi khởi động lại container}{64}{section.5.12}%
+\contentsline {section}{\numberline {5.13}Mô phỏng các kịch bản tấn công}{66}{section.5.13}%
+\contentsline {subsection}{\numberline {5.13.1}Phạm vi và quy trình thực hiện}{66}{subsection.5.13.1}%
+\contentsline {subsection}{\numberline {5.13.2}Tấn công đăng nhập và OTP}{66}{subsection.5.13.2}%
+\contentsline {subsection}{\numberline {5.13.3}Vượt quyền và IDOR/BOLA}{66}{subsection.5.13.3}%
+\contentsline {subsection}{\numberline {5.13.4}Tấn công vào ứng dụng web và tệp tải lên}{67}{subsection.5.13.4}%
+\contentsline {subsection}{\numberline {5.13.5}Tấn công vào phiên và tài nguyên AWS}{67}{subsection.5.13.5}%
+\contentsline {section}{\numberline {5.14}Tổng hợp kết quả}{68}{section.5.14}%
+\contentsline {section}{\numberline {5.15}Đánh giá mô hình bảo vệ dữ liệu}{69}{section.5.15}%
+\contentsline {subsection}{\numberline {5.15.1}Mức độ bảo vệ tính bí mật}{69}{subsection.5.15.1}%
+\contentsline {subsection}{\numberline {5.15.2}Mức độ bảo vệ tính toàn vẹn}{71}{subsection.5.15.2}%
+\contentsline {subsection}{\numberline {5.15.3}Mức độ bảo vệ tính sẵn sàng}{71}{subsection.5.15.3}%
+\contentsline {subsection}{\numberline {5.15.4}Khả năng phát hiện và truy vết}{71}{subsection.5.15.4}%
+\contentsline {section}{\numberline {5.16}Ưu điểm của mô hình}{71}{section.5.16}%
+\contentsline {section}{\numberline {5.17}Hạn chế của mô hình}{72}{section.5.17}%
+\contentsline {section}{\numberline {5.18}Rủi ro còn lại và thứ tự cải tiến}{72}{section.5.18}%
+\contentsline {section}{\numberline {5.19}Kết luận chương}{73}{section.5.19}%
+\contentsline {chapter}{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{74}{section*.25}%
+\contentsline {section}{1. Kết luận}{74}{section*.26}%
+\contentsline {section}{2. Hạn chế}{74}{section*.27}%
+\contentsline {section}{3. Hướng phát triển}{74}{section*.28}%
+\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{76}{section*.29}%
+\contentsline {chapter}{\numberline {A}Hướng dẫn cài đặt và chạy kiểm thử cục bộ}{78}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Hướng dẫn kiểm chứng Docker và Terraform}{79}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Docker}{79}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Terraform}{79}{section.B.2}%
+\contentsline {chapter}{\numberline {C}Danh sách API chính}{80}{appendix.C}%
+\contentsline {chapter}{\numberline {D}Danh mục kiểm thử đã thực thi}{81}{appendix.D}%
+\contentsline {section}{\numberline {D.1}Bộ kiểm thử ứng dụng}{81}{section.D.1}%
+\contentsline {section}{\numberline {D.2}Bộ kiểm thử mô-đun bảo mật}{83}{section.D.2}%
+\contentsline {chapter}{\numberline {E}Ma trận hiện thực và bằng chứng}{84}{appendix.E}%
+\contentsline {chapter}{\numberline {F}Quy trình phục hồi và thu thập bằng chứng}{85}{appendix.F}%
+\contentsline {section}{\numberline {F.1}Phục hồi SQLite vào tệp mới}{85}{section.F.1}%
+\contentsline {section}{\numberline {F.2}Danh mục bằng chứng triển khai Cloud}{85}{section.F.2}%
+\contentsline {section}{\numberline {F.3}Cách chỉnh sửa báo cáo LaTeX}{87}{section.F.3}%

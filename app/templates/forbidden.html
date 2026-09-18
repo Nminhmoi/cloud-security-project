@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Không có quyền truy cập · CloudBox{% endblock %}
+{% block body_class %}document-page{% endblock %}
+{% block content %}
+<div class="document-app">
+  <aside class="document-sidebar">
+    <a class="sidebar-brand" href="{{ url_for('documents.home') }}">
+      <span class="mini-mark" aria-hidden="true">CB</span>
+      <span>CloudBox</span>
+    </a>
+    <p class="sidebar-label">QUẢN LÝ TÀI LIỆU</p>
+    <nav class="document-nav" aria-label="Điều hướng tài liệu">
+      <a class="nav-item" href="{{ url_for('documents.index', view='mine') }}">Tài liệu của tôi</a>
+      <a class="nav-item" href="{{ url_for('documents.index', view='shared') }}">Tài liệu chia sẻ</a>
+    </nav>
+  </aside>
+  <div class="document-main">
+    <header class="document-header">
+      <div></div>
+      <div class="account-menu">
+        {% if session.get('user_id') %}
+        <span class="avatar" aria-hidden="true">{{ session.get('username', '?')[:1]|upper }}</span>
+        <strong>{{ session.get('username', '') }}</strong>
+        <form class="logout-form" action="{{ url_for('auth.logout') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="logout" type="submit">Đăng xuất</button>
+        </form>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}">Đăng nhập</a>
+        {% endif %}
+      </div>
+    </header>
+    <main class="document-content" id="main-content">
+      <section class="content-heading" aria-labelledby="forbidden-title">
+        <div>
+          <p>403 · Truy cập bị từ chối</p>
+          <h1 id="forbidden-title">Bạn không có quyền truy cập</h1>
+          <p>Yêu cầu không được phép thực hiện với tài khoản hiện tại.</p>
+          <p>Nếu cần truy cập tài liệu, hãy liên hệ chủ sở hữu để kiểm tra quyền chia sẻ.</p>
+          <a href="{{ url_for('documents.home') }}">Quay lại CloudBox</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+{% endblock %}

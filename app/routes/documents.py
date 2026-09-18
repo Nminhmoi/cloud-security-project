@@ -1,6 +1,6 @@
 """Browser routes for document management."""
 
-from flask import Blueprint, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, redirect, render_template, request, session, url_for
 from sqlalchemy import or_
 
 from extensions import db, limiter
@@ -122,7 +122,7 @@ def download(document_id):
         return redirect(url_for("auth.login"))
     document = _accessible_document(document_id)
     if not document:
-        return "Bạn không có quyền truy cập tài liệu này!", 403
+        abort(403)
     try:
         ensure_document_downloadable(document)
     except DocumentScanPending as error:

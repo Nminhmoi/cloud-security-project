@@ -1,6 +1,6 @@
 """Browser routes for document sharing."""
 
-from flask import Blueprint, jsonify, redirect, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 
@@ -55,7 +55,7 @@ def share_document(document_id):
         )
     )
     if not document:
-        return "Bạn không có quyền chia sẻ tài liệu này!", 403
+        abort(403)
 
     recipient = request.form.get("recipient", "").strip()
     normalized_recipient = recipient.casefold()

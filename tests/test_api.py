@@ -53,6 +53,44 @@ class ApiTests(unittest.TestCase):
             content_type="multipart/form-data",
         )
 
+    def test_browser_denial_shows_account_without_document_content(self):
+        self.login()
+        document_id = self.upload().get_json()["data"]["id"]
+        self.client.post("/api/v1/auth/logout")
+        self.login("reader#2")
+        for path in (f"/download/{document_id}", "/download/999999", "/admin/dashboard"):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 403)
+            self.assertNotIn("Location", response.headers)
+            html = response.get_data(as_text=True)
+            self.assertIn("reader#2", html)
+            self.assertIn("Bạn không có quyền truy cập", html)
+            self.assertNotIn("classified", html)
+            self.assertNotIn("report.txt", html)
+        api_response = self.client.get(f"/api/v1/documents/{document_id}/download")
+        self.assertEqual(api_response.status_code, 404)
+        self.assertTrue(api_response.is_json)
+
+    def test_browser_download_after_share_revocation_shows_account(self):
+        self.login()
+        document_id = self.upload().get_json()["data"]["id"]
+        self.client.post(f"/api/v1/documents/{document_id}/shares", json={"recipient": "reader#2"})
+        self.client.post("/api/v1/auth/logout")
+        self.login("reader#2")
+        response = self.client.get(f"/download/{document_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, b"classified")
+        response.close()
+        self.client.post("/api/v1/auth/logout")
+        self.login()
+        self.client.delete(f"/api/v1/documents/{document_id}/shares/2")
+        self.client.post("/api/v1/auth/logout")
+        self.login("reader#2")
+        response = self.client.get(f"/download/{document_id}")
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("reader#2", response.get_data(as_text=True))
+        self.assertNotIn(b"classified", response.data)
+
     def test_registration_validates_input_and_rejects_duplicates(self):
         invalid_username = self.client.post(
             "/api/v1/auth/register",

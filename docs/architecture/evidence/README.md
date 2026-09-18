@@ -1,5 +1,17 @@
 # Ảnh bằng chứng cho báo cáo
 
+Bổ sung sáu ảnh mới vào Chương 5:
+
+- `github-actions-success.png`: CI số 5, commit `9815bfa`, bốn job thành công.
+- `pip-audit-ci.png`: ảnh cập nhật ngày 18-09-2026, có tổng kết `No known vulnerabilities found`; kết luận trong phạm vi dependency và dữ liệu lỗ hổng tại thời điểm chạy.
+- `bandit-ci.png`: High 0, Medium 2, Low 3.
+- `trivy-iac.png`: bảng quét cấu hình theo bộ lọc CI.
+- `trivy-image.png`: bảng quét image theo bộ lọc CI.
+- `restart-sha256-ubuntu.png`: restart, hai container healthy, hai bản tệp cùng SHA-256; chưa có ảnh đối chiếu quyền chia sẻ.
+
+Các ảnh CI là bằng chứng GitHub Actions, không phải chạy trong máy ảo local.
+Chưa có ảnh nghiệm thu AWS, gửi SES thực tế hoặc phục hồi từ bản sao lưu.
+
 Đã chèn sáu ảnh Ubuntu do nhóm cung cấp ngày 17-09-2026:
 
 - Chương 4, Docker hóa: `docker-compose-ubuntu.png`, `cloudbox-ui-ubuntu.png`.
