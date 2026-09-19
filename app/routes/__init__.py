@@ -1,1 +1,1 @@
-"""Flask blueprints."""
+"""Các blueprint của Flask."""

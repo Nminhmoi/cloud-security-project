@@ -1,4 +1,4 @@
-"""Read-only HTTPS and security smoke test for a deployed CloudBox instance."""
+"""Kiểm thử nhanh HTTPS và bảo mật ở chế độ chỉ đọc cho phiên bản CloudBox đã triển khai."""
 
 import argparse
 import http.cookiejar
@@ -17,7 +17,7 @@ from urllib.request import (
 
 
 class SmokeTestError(RuntimeError):
-    """Raised when a deployment does not meet the smoke-test contract."""
+    """Ngoại lệ khi bản triển khai không đáp ứng các yêu cầu của kiểm thử nhanh."""
 
 
 def validate_security_headers(headers, require_https=True):

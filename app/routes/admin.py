@@ -1,4 +1,4 @@
-"""Admin routes for managing users, roles, and permissions."""
+"""Các tuyến quản trị dùng để quản lý người dùng, vai trò và quyền."""
 
 from datetime import datetime, timezone
 

@@ -1,1 +1,1 @@
-"""Operational helpers for CloudBox."""
+"""Các công cụ hỗ trợ vận hành CloudBox."""

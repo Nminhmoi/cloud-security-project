@@ -1,15 +1,15 @@
 """${message}
 
-Revision ID: ${up_revision}
-Revises: ${down_revision | comma,n}
-Create Date: ${create_date}
+Mã phiên bản: ${up_revision}
+Phiên bản trước: ${down_revision | comma,n}
+Ngày tạo: ${create_date}
 
 """
 from alembic import op
 import sqlalchemy as sa
 ${imports if imports else ""}
 
-# revision identifiers, used by Alembic.
+# Các mã định danh phiên bản được Alembic sử dụng.
 revision = ${repr(up_revision)}
 down_revision = ${repr(down_revision)}
 branch_labels = ${repr(branch_labels)}

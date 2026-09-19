@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Validate the project IAM policy examples against explicit local rules.
+"""Kiểm tra các chính sách IAM mẫu của dự án theo các quy tắc cục bộ cụ thể.
 
-This deterministic linter is not a replacement for AWS IAM Access Analyzer.
-It reports the checks it performed instead of claiming universal security.
+Công cụ kiểm tra theo quy tắc cố định này không thay thế AWS IAM Access Analyzer.
+Công cụ báo cáo các phép kiểm tra đã thực hiện, không khẳng định hệ thống an toàn toàn diện.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ def _as_list(value):
 
 
 class IAMPolicyValidator:
-    """Lint an IAM identity-policy document using project security rules."""
+    """Kiểm tra tài liệu chính sách danh tính IAM theo quy tắc bảo mật của dự án."""
 
     VALID_VERSIONS = {"2012-10-17", "2008-10-17"}
 

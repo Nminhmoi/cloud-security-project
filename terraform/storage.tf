@@ -1,4 +1,4 @@
-# --- S3 document storage ---
+# --- Lưu trữ tài liệu trên S3 ---
 resource "aws_s3_bucket" "documents" {
   bucket        = local.bucket_name
   force_destroy = var.force_destroy_bucket

@@ -1,4 +1,4 @@
-"""Private local/S3 storage helpers with upload validation."""
+"""Các hàm hỗ trợ lưu trữ riêng tư cục bộ hoặc trên S3, kèm kiểm tra tệp tải lên."""
 
 import hashlib
 import os
@@ -73,7 +73,7 @@ def _download_name(stored_filename):
 
 
 def _validate_storage_key(storage_key):
-    """Reject absolute, ambiguous, and traversing local paths/S3 keys."""
+    """Từ chối đường dẫn cục bộ hoặc khóa S3 tuyệt đối, không rõ ràng hoặc chứa thành phần vượt thư mục."""
     if not isinstance(storage_key, str) or not storage_key or "\x00" in storage_key:
         raise ValueError("Storage key không hợp lệ")
     if "\\" in storage_key:
@@ -161,7 +161,7 @@ def _stream_sha256(stream):
 
 
 def validate_upload(file):
-    """Validate the upload and return trusted metadata for persistence."""
+    """Kiểm tra tệp tải lên và trả về siêu dữ liệu đáng tin cậy để lưu trữ."""
     safe_name = secure_filename(file.filename or "")
     if not safe_name or "." not in safe_name:
         raise ValueError("Tên tệp hoặc phần mở rộng không hợp lệ")

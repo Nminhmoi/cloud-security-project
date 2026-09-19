@@ -1,4 +1,4 @@
-# --- EC2 application host ---
+# --- Máy chủ EC2 chạy ứng dụng ---
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -42,8 +42,8 @@ resource "aws_instance" "web" {
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
-    # Containers need one additional network hop to obtain temporary role
-    # credentials from IMDSv2. No static AWS keys are injected into containers.
+    # Container cần thêm một chặng mạng để lấy thông tin xác thực tạm thời của vai trò
+    # từ IMDSv2. Không đưa khóa AWS tĩnh vào container.
     http_put_response_hop_limit = 2
   }
 

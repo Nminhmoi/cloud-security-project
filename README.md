@@ -1,6 +1,6 @@
 # Cloud Security Project
 
-Ứng dụng Flask quản lý, chia sẻ tài liệu và phân quyền theo vai trò (RBAC). Môi trường local mặc định dùng SQLite; môi trường AWS dùng RDS MySQL và S3.
+CloudBox là ứng dụng quản lý và chia sẻ tài liệu được xây dựng bằng Flask, có phân quyền theo vai trò (RBAC). Bạn có thể chạy trên máy cá nhân với SQLite hoặc triển khai lên AWS với RDS MySQL và S3.
 
 ## Chạy nhanh trên Windows
 
@@ -17,7 +17,7 @@ py -m venv .venv
 .venv\Scripts\python.exe app\app.py
 ```
 
-Mở `http://localhost:5000`. Database mặc định là `database.db` ở thư mục gốc dự án. SQLite và `init_db()` sẽ tự tạo hoặc nâng cấp schema khi ứng dụng khởi động.
+Mở `http://localhost:5000`. Cơ sở dữ liệu mặc định là `database.db` ở thư mục gốc dự án. SQLite và `init_db()` sẽ tự tạo hoặc nâng cấp schema khi ứng dụng khởi động.
 
 ## Quản lý tài khoản admin
 
@@ -25,7 +25,7 @@ Mở `http://localhost:5000`. Database mặc định là `database.db` ở thư 
 .venv\Scripts\python.exe admin.py
 ```
 
-Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. Công cụ `admin.py` nằm ở thư mục gốc và không bắt buộc để web chạy.
+Để tạo tài khoản quản trị đầu tiên, chọn chức năng tạo admin trong menu. Công cụ `admin.py` nằm ở thư mục gốc; bạn chỉ cần chạy khi muốn quản lý tài khoản quản trị.
 
 ## Cấu trúc chính
 
@@ -39,22 +39,22 @@ Chọn chức năng tạo admin trong menu khi cần tài khoản đầu tiên. 
 - `security/`: local policy linter và công cụ audit database.
 - `terraform/`: hạ tầng AWS dưới dạng code.
 - `docker/`: image và Compose cho local/MySQL/AWS.
-- `tests/`: kiểm thử application, security controls và cấu hình triển khai.
+- `tests/`: kiểm thử application, biện pháp bảo mật và cấu hình triển khai.
 - `docs/`: tài liệu kiến trúc, bảo mật, phát triển và vận hành.
 
 ## Tài liệu
 
-Xem [docs/README.md](docs/README.md) để tra cứu toàn bộ tài liệu. Các điểm bắt
-đầu chính:
+Xem [docs/README.md](docs/README.md) để tra cứu toàn bộ tài liệu. Bạn có thể bắt đầu với các hướng dẫn sau:
 
-- [Tổng quan dự án](docs/PROJECT_OVERVIEW.md)
-- [Kiến trúc hệ thống](docs/ARCHITECTURE.md)
-- [Tổng quan bảo mật](docs/SECURITY.md)
-- [Cài đặt](docs/SETUP.md)
-- [REST API](docs/API.md)
-- [RBAC và quản trị](docs/RBAC.md)
-- [Quy trình kiểm thử](docs/TESTING.md)
+- [Tổng quan dự án](docs/overview/PROJECT_OVERVIEW.md)
+- [Kiến trúc hệ thống](docs/overview/ARCHITECTURE.md)
+- [Tổng quan bảo mật](docs/security/SECURITY.md)
+- [Cài đặt](docs/development/SETUP.md)
+- [REST API](docs/development/API.md)
+- [RBAC và quản trị](docs/security/RBAC.md)
+- [Quy trình kiểm thử](docs/testing/TESTING.md)
 - [Terraform/AWS](terraform/README.md)
+- [Báo cáo và hướng dẫn biên dịch](docs/reports/README.md)
 
 ## Kiểm thử
 
@@ -77,10 +77,10 @@ $applicationUrl = terraform -chdir=terraform output -raw application_url
 - Các route quản trị được bảo vệ bằng role/permission; tài liệu và chia sẻ kiểm tra quyền sở hữu hoặc quyền truy cập.
 - Form và API thay đổi dữ liệu được bảo vệ bằng CSRF token. JavaScript gửi token qua header `X-CSRFToken`.
 - Đăng nhập có rate limit, khóa tài khoản tạm thời sau nhiều lần sai và vô hiệu hóa phiên cũ khi đổi mật khẩu.
-- Upload giới hạn 16 MiB theo mặc định, kiểm tra phần mở rộng, MIME type và chữ ký tệp.
-- Upload có quota theo người dùng, SHA-256, storage key ngẫu nhiên và giới hạn chống ZIP bomb; permission tài liệu được enforce trên cả web và API.
+- Tệp tải lên được giới hạn 16 MiB theo mặc định, kiểm tra phần mở rộng, MIME type và chữ ký tệp.
+- Chức năng tải lên có hạn mức lưu trữ theo người dùng, SHA-256, storage key ngẫu nhiên và giới hạn chống ZIP bomb; quyền tài liệu được kiểm tra và áp dụng trên cả web và API.
 - Khi chạy nhiều worker/instance, cấu hình `RATELIMIT_STORAGE_URI` bằng Redis thay cho `memory://`.
-- AWS deployment dùng SES cho OTP khi cấu hình sender; nếu thiếu sender, OTP bị vô hiệu hóa thay vì xuất hiện trong log.
-- RDS có point-in-time recovery; AWS Backup và restore testing có thể bật riêng vì phát sinh chi phí.
+- AWS deployment dùng SES cho OTP khi cấu hình địa chỉ gửi; nếu thiếu địa chỉ gửi, OTP bị vô hiệu hóa thay vì xuất hiện trong log.
+- RDS có point-in-time recovery; AWS Backup và kiểm thử khôi phục có thể bật riêng vì phát sinh chi phí.
 - Triển khai công khai cần domain riêng và HTTPS; script smoke test kiểm tra TLS, header bảo mật, cookie và CSRF sau triển khai.
 - Sao lưu `database.db` trước khi migration hoặc thao tác dữ liệu quan trọng.

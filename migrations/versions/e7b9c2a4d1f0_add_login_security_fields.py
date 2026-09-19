@@ -1,7 +1,7 @@
-"""add login security fields
+"""Bổ sung các trường bảo mật đăng nhập
 
-Revision ID: e7b9c2a4d1f0
-Revises: d2348789afa3
+Mã phiên bản: e7b9c2a4d1f0
+Phiên bản trước: d2348789afa3
 """
 
 from alembic import op

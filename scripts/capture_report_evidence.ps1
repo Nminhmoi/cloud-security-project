@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path $projectRoot "docs\architecture\evidence"
+    $OutputDirectory = Join-Path $projectRoot "docs\reports\evidence\generated\windows"
 }
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 
@@ -115,8 +115,8 @@ try {
     $dockerLines.Add("Commit: $commit")
     Save-TerminalEvidence -Path (Join-Path $OutputDirectory "docker-compose-local.png") -Title "CloudBox - Docker runtime evidence" -Lines $dockerLines
 
-    # unittest ghi tiến độ ra stderr; tạm cho phép thu thập stream này như dữ liệu
-    # thay vì để PowerShell chuyển nó thành terminating error.
+    # unittest ghi tiến độ ra stderr; tạm cho phép thu thập luồng này như dữ liệu
+    # thay vì để PowerShell chuyển nó thành lỗi làm dừng thực thi.
     $previousErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     $applicationOutput = @(& $python -m unittest discover -s tests -v 2>&1 | ForEach-Object { [string]$_ })

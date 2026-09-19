@@ -1,7 +1,7 @@
-"""add document storage security metadata
+"""Bổ sung siêu dữ liệu bảo mật lưu trữ tài liệu
 
-Revision ID: f3c8a1d9b702
-Revises: e7b9c2a4d1f0
+Mã phiên bản: f3c8a1d9b702
+Phiên bản trước: e7b9c2a4d1f0
 """
 
 from alembic import op
@@ -34,8 +34,8 @@ def upgrade():
             "scan_status IN ('not_scanned', 'pending', 'clean', 'infected', 'failed')",
         )
 
-    # Existing rows used filename as the physical local/S3 key. Keeping that
-    # value in storage_key makes the migration backward compatible.
+    # Các bản ghi cũ dùng filename làm khóa lưu trữ thực tế ở cục bộ hoặc trên S3.
+    # Giữ giá trị này trong storage_key giúp bản di chuyển tương thích ngược.
     op.execute("UPDATE documents SET storage_key = filename WHERE storage_key IS NULL")
 
 

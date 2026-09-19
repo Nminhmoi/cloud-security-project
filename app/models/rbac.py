@@ -1,4 +1,4 @@
-"""Role and permission models."""
+"""Các mô hình vai trò và quyền."""
 
 from extensions import db
 

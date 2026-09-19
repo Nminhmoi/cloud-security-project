@@ -1,4 +1,4 @@
-# --- Optional Route 53 DNS and ACM-managed HTTPS ---
+# --- DNS Route 53 và HTTPS do ACM quản lý (tùy chọn) ---
 resource "aws_acm_certificate" "web" {
   count = local.managed_certificate ? 1 : 0
 

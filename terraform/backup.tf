@@ -1,4 +1,4 @@
-# --- Optional long-retention RDS backups and restore testing ---
+# --- Sao lưu RDS dài hạn và kiểm thử khôi phục (tùy chọn) ---
 data "aws_iam_policy_document" "backup_assume" {
   count = var.enable_aws_backup ? 1 : 0
 

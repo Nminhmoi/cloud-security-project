@@ -1,4 +1,4 @@
-# --- EC2 role ---
+# --- Vai trò EC2 ---
 resource "aws_iam_role" "ec2" {
   name = "${local.name_prefix}-ec2-role"
 

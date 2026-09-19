@@ -1,4 +1,4 @@
-"""Tests for IAM policy validation and read-only account auditing."""
+"""Kiểm thử xác minh chính sách IAM và kiểm toán tài khoản ở chế độ chỉ đọc."""
 
 import json
 import sqlite3

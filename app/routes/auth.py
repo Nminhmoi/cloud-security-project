@@ -1,4 +1,4 @@
-"""Browser authentication routes."""
+"""Các tuyến xác thực dành cho trình duyệt."""
 
 import re
 
@@ -32,26 +32,26 @@ auth_bp = Blueprint("auth", __name__)
 
 
 def _login_destination(role_name):
-    """Return the correct landing page for an authenticated role."""
+    """Trả về trang đích phù hợp với vai trò đã xác thực."""
     endpoint = "admin.dashboard" if role_name == "admin" else "documents.index"
     return redirect(url_for(endpoint))
 
 
 def _wants_json_response():
-    """Detect the explicit JSON response requested by the async login form."""
+    """Nhận biết yêu cầu phản hồi JSON từ biểu mẫu đăng nhập bất đồng bộ."""
     accepts = request.accept_mimetypes
     return accepts["application/json"] > accepts["text/html"]
 
 
 def _login_failure(message, status):
-    """Keep browser login failures on the login screen."""
+    """Giữ người dùng ở trang đăng nhập khi đăng nhập qua trình duyệt thất bại."""
     if _wants_json_response():
         return jsonify(error={"message": message, "status": status}), status
     return render_template("login.html", login_error=message), status
 
 
 def _registration_failure(message, status):
-    """Keep browser registration failures on the registration screen."""
+    """Giữ người dùng ở trang đăng ký khi đăng ký qua trình duyệt thất bại."""
     if _wants_json_response():
         return jsonify(error={"message": message, "status": status}), status
     return render_template("register.html", register_error=message), status

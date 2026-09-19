@@ -1,4 +1,4 @@
-"""Authentication state, lockout, and session helpers."""
+"""Các hàm hỗ trợ trạng thái xác thực, khóa tài khoản và quản lý phiên."""
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -37,7 +37,7 @@ def find_user(identifier):
 
 
 def authenticate_user(identifier, password):
-    """Authenticate and persist shared failed-login/lockout telemetry."""
+    """Xác thực và lưu dữ liệu theo dõi đăng nhập thất bại, khóa tài khoản dùng chung."""
 
     user = find_user(identifier)
     now = _utc_now_naive()

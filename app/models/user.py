@@ -1,4 +1,4 @@
-"""User model."""
+"""Mô hình người dùng."""
 
 from extensions import db
 

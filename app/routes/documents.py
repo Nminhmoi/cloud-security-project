@@ -1,4 +1,4 @@
-"""Browser routes for document management."""
+"""Các tuyến quản lý tài liệu dành cho trình duyệt."""
 
 from flask import Blueprint, abort, redirect, render_template, request, session, url_for
 from sqlalchemy import or_

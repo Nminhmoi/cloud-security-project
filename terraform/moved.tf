@@ -1,6 +1,6 @@
-# Preserve state addresses from the first Terraform implementation. Some
-# resources still require replacement because their immutable configuration
-# changes; always review the saved plan before applying.
+# Giữ nguyên địa chỉ tài nguyên trong trạng thái từ bản Terraform đầu tiên. Một số
+# tài nguyên vẫn cần được thay thế do thay đổi thuộc tính cấu hình bất biến;
+# luôn xem lại kế hoạch đã lưu trước khi áp dụng.
 moved {
   from = aws_vpc.main_vpc
   to   = aws_vpc.main

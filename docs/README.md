@@ -1,40 +1,65 @@
 # Tài liệu CloudBox
 
-Thư mục này là điểm bắt đầu cho tài liệu chi tiết của dự án. `README.md` ở thư
-mục gốc chỉ giới thiệu và hướng dẫn chạy nhanh; thông tin chuyên sâu được đặt ở
-đây để tránh làm trang chính quá dài.
+Các tài liệu trong thư mục này giải thích cách CloudBox hoạt động, cách cài đặt, kiểm thử và triển khai. Nếu chỉ cần chạy thử ứng dụng, bạn có thể làm theo `README.md` ở thư mục gốc trước.
+
+```text
+docs/
+├── README.md       # Mục lục tài liệu
+├── overview/       # Tổng quan và kiến trúc
+├── development/    # Cài đặt, API, cơ sở dữ liệu và Docker
+├── security/       # Bảo mật, phân quyền và kiểm tra tệp
+├── deployment/     # CI/CD, HTTPS, email và sao lưu
+├── testing/        # Quy trình kiểm thử và kiểm tra AWS
+└── reports/        # Báo cáo LaTeX, PDF và ảnh
+    ├── assets/     # Logo và hình trình bày
+    ├── evidence/   # Ảnh, dữ liệu kiểm thử và kết quả tạo tự động
+    └── build/      # File tạm biên dịch, không lưu trong Git
+```
 
 ## Tổng quan
 
-- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md): mục tiêu, phạm vi và giới hạn của bài tập lớn.
-- [ARCHITECTURE.md](ARCHITECTURE.md): kiến trúc ứng dụng, dữ liệu và AWS.
-- [SECURITY.md](SECURITY.md): mô hình đe dọa, biện pháp bảo vệ và các giới hạn đã biết.
+- [PROJECT_OVERVIEW.md](overview/PROJECT_OVERVIEW.md): mục tiêu, phạm vi và giới hạn của bài tập lớn.
+- [ARCHITECTURE.md](overview/ARCHITECTURE.md): kiến trúc ứng dụng, dữ liệu và AWS.
 
 ## Phát triển và sử dụng
 
-- [SETUP.md](SETUP.md): cài đặt và chạy bằng SQLite hoặc Docker/MySQL.
-- [API.md](API.md): REST API, phiên đăng nhập và CSRF.
-- [RBAC.md](RBAC.md): vai trò, quyền hạn, quyền trên tài nguyên và giao diện quản trị.
-- [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md): model và Alembic migration.
-- [DOCKER_MYSQL.md](DOCKER_MYSQL.md): kiểm thử nhiều container dùng chung MySQL.
-- [FILE_UPLOAD_SECURITY.md](FILE_UPLOAD_SECURITY.md): kiểm tra tải lên, quota và vòng đời file.
-- [TESTING.md](TESTING.md): quy trình kiểm thử, tiêu chí đạt và mẫu kết quả cho báo cáo.
+- [SETUP.md](development/SETUP.md): cài đặt và chạy bằng SQLite hoặc Docker/MySQL.
+- [API.md](development/API.md): REST API, phiên đăng nhập và CSRF.
+- [DATABASE_MIGRATIONS.md](development/DATABASE_MIGRATIONS.md): model và Alembic migration.
+- [DOCKER_MYSQL.md](development/DOCKER_MYSQL.md): kiểm thử nhiều container dùng chung MySQL.
+
+## Bảo mật
+
+- [SECURITY.md](security/SECURITY.md): mô hình đe dọa, biện pháp bảo vệ và các giới hạn đã biết.
+- [RBAC.md](security/RBAC.md): vai trò, quyền trên tài nguyên và giao diện quản trị.
+- [FILE_UPLOAD_SECURITY.md](security/FILE_UPLOAD_SECURITY.md): kiểm tra tệp tải lên, hạn mức lưu trữ và vòng đời tệp.
 
 ## AWS và vận hành
 
-- [../terraform/README.md](../terraform/README.md): Terraform và quy trình triển khai.
-- [CI_CD.md](CI_CD.md): các cổng bảo mật CI và triển khai thủ công qua OIDC.
-- [AWS_INTEGRATION_TESTING.md](AWS_INTEGRATION_TESTING.md): kiểm tra control plane sau triển khai.
-- [HTTPS_DEPLOYMENT.md](HTTPS_DEPLOYMENT.md): ACM, Route 53 và HTTPS.
-- [SES_OTP.md](SES_OTP.md): gửi OTP bằng Amazon SES.
-- [BACKUP_AND_RECOVERY.md](BACKUP_AND_RECOVERY.md): backup và khôi phục SQLite/RDS.
+- [Hướng dẫn Terraform](../terraform/README.md): cấu hình hạ tầng và quy trình triển khai. Tài liệu này đặt cạnh mã Terraform để tiện cập nhật.
+- [CI_CD.md](deployment/CI_CD.md): các bước kiểm tra bảo mật trong CI và triển khai thủ công qua OIDC.
+- [HTTPS_DEPLOYMENT.md](deployment/HTTPS_DEPLOYMENT.md): ACM, Route 53 và HTTPS.
+- [SES_OTP.md](deployment/SES_OTP.md): gửi OTP bằng Amazon SES.
+- [BACKUP_AND_RECOVERY.md](deployment/BACKUP_AND_RECOVERY.md): backup và khôi phục SQLite/RDS.
+
+## Kiểm thử
+
+- [TESTING.md](testing/TESTING.md): quy trình kiểm thử, tiêu chí đạt và cách ghi kết quả.
+- [AWS_INTEGRATION_TESTING.md](testing/AWS_INTEGRATION_TESTING.md): kiểm tra cấu hình và hoạt động của AWS sau triển khai.
+
+## Báo cáo
+
+- [Hướng dẫn chỉnh sửa và biên dịch](reports/README.md).
+- [Báo cáo PDF](reports/ATTT1.pdf) và [mã nguồn LaTeX](reports/ATTT1.tex).
+- [Danh mục ảnh bằng chứng](reports/evidence/README.md).
 
 ## Quy tắc duy trì tài liệu
 
-- Model trong `app/models/` và migration trong `migrations/` là nguồn sự thật
-  của schema; không duy trì một bản SQL schema thủ công song song.
-- Terraform là nguồn sự thật cho tài nguyên AWS; JSON trong `security/policies/`
+- Đặt tài liệu mới vào nhóm phù hợp; thư mục gốc `docs/` chỉ giữ mục lục này.
+- Giữ ảnh và dữ liệu kiểm thử của báo cáo trong `reports/evidence/`; kết quả tạo tự động đặt trong thư mục con `generated/`.
+- Model trong `app/models/` và migration trong `migrations/` mô tả cấu trúc cơ sở dữ liệu của dự án. Khi cần thay đổi cấu trúc, hãy cập nhật các file này thay vì giữ thêm một bản SQL viết tay.
+- Cấu hình tài nguyên AWS được quản lý bằng Terraform; JSON trong `security/policies/`
   chỉ là ví dụ dùng cho local linter.
-- Chỉ mô tả một control là “đã triển khai” khi có code hoặc test chứng minh.
+- Chỉ mô tả một biện pháp bảo mật là “đã triển khai” khi có code hoặc test chứng minh.
 - Khi đổi route, biến môi trường hay Terraform output, cập nhật tài liệu liên
   quan trong cùng pull request.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Point-in-time CloudBox application security audit.
+"""Kiểm toán bảo mật ứng dụng CloudBox tại thời điểm thực hiện.
 
-The monitor reports INCOMPLETE when brute-force telemetry is unavailable. It
-must never translate missing evidence into a claim that the system is secure.
+Công cụ giám sát báo INCOMPLETE khi thiếu dữ liệu theo dõi tấn công dò mật khẩu.
+Không được coi việc thiếu bằng chứng là cơ sở khẳng định hệ thống an toàn.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ class SecurityAuditResult:
 
 
 class SecurityMonitor:
-    """Run read-only account and login-abuse checks against SQLite or MySQL."""
+    """Kiểm tra tài khoản và hành vi lạm dụng đăng nhập trên SQLite hoặc MySQL ở chế độ chỉ đọc."""
 
     def __init__(self, db_path=None, database_url=None):
         self.db_path = db_path
@@ -171,7 +171,7 @@ class SecurityMonitor:
         return False
 
     def run_security_audit(self):
-        """Print the report and return whether the audit executed successfully."""
+        """In báo cáo và trả về kết quả cho biết kiểm toán có thực thi thành công hay không."""
 
         try:
             result = self.audit()

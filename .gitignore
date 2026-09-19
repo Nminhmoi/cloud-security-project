@@ -1,19 +1,19 @@
-# Python bytecode and caches
+# Mã bytecode và bộ nhớ đệm Python
 __pycache__/
 *.py[cod]
 
-# Local Python environments
+# Các môi trường Python cục bộ
 .venv/
 venv/
 
-# Runtime databases
+# Cơ sở dữ liệu khi chạy ứng dụng
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
 *.db.*backup*
 
-# Terraform plans can contain infrastructure and secret-derived values
+# Kế hoạch Terraform có thể chứa thông tin hạ tầng và giá trị được tạo từ dữ liệu bí mật
 *.tfplan
 tfplan
 tfplan.*
@@ -22,10 +22,23 @@ tfplan.*
 !*.tfvars.example
 backups/
 
-# User-uploaded runtime data
+# Dữ liệu người dùng tải lên khi ứng dụng hoạt động
 app/uploads/
 
-# Local secrets and configuration
+# Thông tin bí mật và cấu hình cục bộ
 .env
 .env.*
 !.env.example
+
+# File tạm khi biên dịch báo cáo; PDF hoàn chỉnh vẫn được lưu trong Git
+docs/reports/build/
+docs/reports/evidence/originals/
+docs/reports/*.aux
+docs/reports/*.log
+docs/reports/*.toc
+docs/reports/*.lof
+docs/reports/*.lot
+docs/reports/*.out
+docs/reports/*.fls
+docs/reports/*.fdb_latexmk
+docs/reports/*.synctex.gz

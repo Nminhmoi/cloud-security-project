@@ -1,11 +1,39 @@
+import subprocess
+import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from scripts.aws_integration_test import (
     AwsIntegrationChecker,
     AwsIntegrationError,
+    load_terraform_outputs,
     normalize_terraform_outputs,
 )
+
+
+class TerraformOutputEncodingTests(unittest.TestCase):
+    def run_with_output(self, script):
+        real_run = subprocess.run
+
+        def fake_terraform(command, **kwargs):
+            return real_run([sys.executable, "-c", script], **kwargs)
+
+        with patch("scripts.aws_integration_test.subprocess.run", side_effect=fake_terraform):
+            return load_terraform_outputs("terraform")
+
+    def test_reads_utf8_json(self):
+        payload = '{"label":{"value":"Tiếng Việt"}}'.encode("utf-8")
+        result = self.run_with_output(
+            f"import sys; sys.stdout.buffer.write({payload!r})"
+        )
+        self.assertEqual(result["label"], "Tiếng Việt")
+
+    def test_preserves_terraform_error_with_unicode_and_invalid_bytes(self):
+        payload = "╷\nError: ExpiredToken\n╵".encode("utf-8") + b"\xff"
+        with self.assertRaisesRegex(AwsIntegrationError, "ExpiredToken"):
+            self.run_with_output(
+                f"import sys; sys.stderr.buffer.write({payload!r}); sys.exit(1)"
+            )
 
 
 class AwsIntegrationTests(unittest.TestCase):
@@ -215,6 +243,20 @@ class AwsIntegrationTests(unittest.TestCase):
         }
         checker = AwsIntegrationChecker(self.outputs, clients=self.clients)
         self.assertIn("target is healthy", checker.check_load_balancer())
+
+    def test_unhealthy_target_reports_aws_reason(self):
+        self.clients["elbv2"].describe_target_health.return_value[
+            "TargetHealthDescriptions"
+        ][0]["TargetHealth"] = {
+            "State": "unhealthy",
+            "Reason": "Target.ResponseCodeMismatch",
+            "Description": "Health checks failed with these codes: [500]",
+        }
+        checker = AwsIntegrationChecker(self.outputs, clients=self.clients)
+        with self.assertRaisesRegex(
+            AwsIntegrationError, r"unhealthy.*Target.ResponseCodeMismatch.*500"
+        ):
+            checker.check_load_balancer()
 
     def test_rejects_unrestricted_iam_statement_in_list_form(self):
         self.clients["iam"].get_role_policy.return_value = {

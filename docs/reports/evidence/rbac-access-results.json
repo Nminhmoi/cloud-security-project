@@ -1,0 +1,26 @@
+{
+  "captured_at": "2026-09-19T10:42:25Z",
+  "environment": "Local application; isolated temporary SQLite database; test accounts",
+  "url": "http://127.0.0.1:5000/admin/users",
+  "steps": [
+    "Log in as adminh",
+    "Open /admin/users",
+    "Capture allowed",
+    "Log out through application form",
+    "Log in as minh@2026",
+    "Navigate directly to same URL",
+    "Capture denied"
+  ],
+  "admin": {
+    "username": "adminh",
+    "role": "admin",
+    "status": 200,
+    "screenshot": "admin-access-allowed.png"
+  },
+  "normal_user": {
+    "username": "minh@2026",
+    "role": "user",
+    "status": 403,
+    "screenshot": "normal-user-admin-denied.png"
+  }
+}

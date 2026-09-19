@@ -1,4 +1,4 @@
-/* Visual refinement layer: restrained, accessible, framework-free. */
+/* Lớp tinh chỉnh giao diện: tối giản, dễ tiếp cận, không dùng framework. */
 :root {
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
@@ -72,7 +72,7 @@ a:hover {
   outline-offset: 2px;
 }
 
-/* Authentication */
+/* Xác thực */
 .auth-page {
   position: relative;
   background:
@@ -273,7 +273,7 @@ a:hover {
   background: var(--ink);
 }
 
-/* Documents */
+/* Tài liệu */
 .document-page {
   --workspace-owned: #2563eb;
   --workspace-owned-soft: #eff6ff;
@@ -800,7 +800,7 @@ a:hover {
 .access-empty,
 .access-error { margin: 16px 0 0; color: var(--muted); font-size: 13px; }
 
-/* Keep the admin's purposeful line icons; align its surfaces with the product UI. */
+/* Giữ các biểu tượng nét của trang quản trị; đồng bộ các vùng giao diện với giao diện sản phẩm. */
 .admin-body {
   background: #f4f7fb;
 }
@@ -860,7 +860,7 @@ a:hover {
   }
 }
 
-/* Login persistence */
+/* Duy trì trạng thái đăng nhập */
 .auth-form-error[hidden] { display: none; }
 .auth-page .field input[aria-invalid="true"] {
   border-color: #e11d48;

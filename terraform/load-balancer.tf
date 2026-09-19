@@ -1,4 +1,4 @@
-# --- Load balancer ---
+# --- Bộ cân bằng tải ---
 resource "aws_lb" "web" {
   name               = substr("${local.name_prefix}-alb", 0, 32)
   load_balancer_type = "application"

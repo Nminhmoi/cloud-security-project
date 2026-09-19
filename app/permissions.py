@@ -1,4 +1,4 @@
-"""Role-based access control helpers and decorators."""
+"""Các hàm hỗ trợ và hàm bao kiểm soát truy cập theo vai trò."""
 
 from functools import wraps
 

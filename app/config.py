@@ -15,20 +15,20 @@ def _database_path():
     if not configured_path:
         return DEFAULT_DATABASE
 
-    # The workspace preview runner injects a disposable empty database. Using it
-    # would make accounts registered in preview disappear when the local server
-    # is opened, so local preview and local Flask share the project database.
+    # Trình chạy xem trước của không gian làm việc cung cấp cơ sở dữ liệu rỗng tạm thời.
+    # Nếu dùng cơ sở dữ liệu này, tài khoản đăng ký khi xem trước sẽ mất khi mở máy chủ
+    # cục bộ, nên chế độ xem trước và Flask cục bộ dùng chung cơ sở dữ liệu của dự án.
     if os.path.basename(configured_path).casefold() == ".overdrive-preview.db":
         return DEFAULT_DATABASE
     return configured_path
 
 
 def _database_uri():
-    """Return the SQLAlchemy URI while retaining SQLite as the local default."""
+    """Trả về URI SQLAlchemy, mặc định dùng SQLite trong môi trường cục bộ."""
     configured_uri = os.environ.get("DATABASE_URL", "").strip()
     if configured_uri:
-        # Accept the common short scheme but select the maintained PyMySQL
-        # driver explicitly for production deployments.
+        # Chấp nhận tiền tố URI rút gọn thông dụng nhưng chọn rõ trình điều khiển
+        # PyMySQL đang được duy trì cho môi trường triển khai thực tế.
         if configured_uri.startswith("mysql://"):
             return configured_uri.replace("mysql://", "mysql+pymysql://", 1)
         return configured_uri
@@ -50,8 +50,8 @@ def _database_uri():
         except ValueError as error:
             raise RuntimeError("DB_PORT must be an integer") from error
 
-        # URL.create safely escapes passwords containing characters such as
-        # @, :, or / before SQLAlchemy passes the URL to PyMySQL.
+        # URL.create mã hóa an toàn mật khẩu chứa các ký tự đặc biệt như
+        # @, : hoặc / trước khi SQLAlchemy chuyển URL cho PyMySQL.
         return URL.create(
             "mysql+pymysql",
             username=settings["DB_USER"],
@@ -68,8 +68,8 @@ def _database_uri():
 
 def _engine_options(database_uri):
     if database_uri.startswith("sqlite:"):
-        # SQLite is a local/test backend. Avoid retaining Windows file handles
-        # and let each short request own exactly one physical connection.
+        # SQLite dùng cho môi trường cục bộ hoặc kiểm thử. Tránh giữ tài nguyên tệp trên Windows
+        # và để mỗi yêu cầu ngắn sử dụng đúng một kết nối vật lý.
         return {"poolclass": NullPool}
     options = {"pool_pre_ping": True, "pool_recycle": 280}
     ssl_ca = os.environ.get("DB_SSL_CA", "").strip()

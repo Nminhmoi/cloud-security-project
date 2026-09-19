@@ -1,9 +1,8 @@
 # Hạ tầng AWS của CloudBox
 
-Root module này tạo VPC trên hai Availability Zone, ALB public, một EC2 chạy
-ứng dụng và được quản trị qua SSM, RDS MySQL private, S3 private có versioning,
-Secrets Manager, VPC Flow Logs và CloudWatch alarms. Port 5000 của EC2 chỉ nhận
-kết nối từ ALB; database không bao giờ được public.
+Cấu hình Terraform trong thư mục này tạo hạ tầng AWS cho CloudBox: VPC trải trên hai Availability Zone, ALB công khai, một EC2 chạy ứng dụng, RDS MySQL và S3 riêng tư có bật versioning. Hạ tầng còn dùng Secrets Manager, VPC Flow Logs và cảnh báo CloudWatch.
+
+EC2 được quản trị qua SSM; cổng 5000 chỉ nhận kết nối từ ALB. Cơ sở dữ liệu không được mở truy cập công khai.
 
 Cấu hình được chia theo chức năng (`data.tf`, `locals.tf`, `network.tf`,
 `security-groups.tf`, `database.tf`, `storage.tf`, `iam.tf`,
@@ -59,7 +58,7 @@ Commit `.terraform.lock.hcl`; không commit `.terraform/`, state, plan hoặc fi
 
 ## 3. Tạo kế hoạch với phiên bản ứng dụng cố định
 
-Triển khai chính xác một commit thay vì branch có thể thay đổi:
+Dùng commit SHA để xác định chính xác phiên bản ứng dụng cần triển khai:
 
 ```bash
 export APP_GIT_REF="$(git -C .. rev-parse HEAD)"
@@ -91,7 +90,7 @@ trả về custom HTTPS URL:
 ```
 
 Hosted zone phải public và domain thuộc quyền kiểm soát của bạn. Xem
-[HTTPS_DEPLOYMENT.md](../docs/HTTPS_DEPLOYMENT.md) để biết điều kiện và cách
+[HTTPS_DEPLOYMENT.md](../docs/deployment/HTTPS_DEPLOYMENT.md) để biết điều kiện và cách
 smoke test sau deployment.
 
 Nếu cần môi trường có khả năng bảo vệ cao hơn, có thể bật:
@@ -104,8 +103,7 @@ Nếu cần môi trường có khả năng bảo vệ cao hơn, có thể bật:
 
 Phải xác nhận SNS email subscription trước khi alarm có thể gửi thông báo.
 
-Upload mặc định tối đa 16 MiB mỗi file, quota 500 MiB mỗi user và giữ thùng rác
-30 ngày. Có thể đổi từng giá trị:
+Mặc định, mỗi tệp tải lên có kích thước tối đa 16 MiB, mỗi người dùng có 500 MiB dung lượng lưu trữ và tài liệu trong thùng rác được giữ 30 ngày. Bạn có thể thay đổi từng giá trị:
 
 ```bash
 -var="max_upload_bytes=16777216" \
@@ -113,11 +111,11 @@ Upload mặc định tối đa 16 MiB mỗi file, quota 500 MiB mỗi user và g
 -var="deleted_document_retention_days=30"
 ```
 
-Cloud-init bật systemd timer hằng ngày để xóa vĩnh viễn document record và
+Cloud-init bật systemd timer hằng ngày để xóa vĩnh viễn bản ghi tài liệu và
 object local/S3 hết hạn trong thùng rác. S3 Versioning giữ version object đã xóa
-theo lifecycle recovery window.
+trong thời gian khôi phục được quy định bởi chính sách vòng đời.
 
-Password-reset OTP dùng Amazon SES khi có sender đã xác minh:
+Password-reset OTP dùng Amazon SES khi có địa chỉ gửi đã xác minh:
 
 ```bash
 -var="ses_sender_email=owner@example.com"
@@ -125,9 +123,9 @@ Password-reset OTP dùng Amazon SES khi có sender đã xác minh:
 
 Terraform tạo email identity nhưng người dùng vẫn phải xác nhận email AWS gửi.
 SES sandbox chỉ gửi được tới recipient đã xác minh. Nếu không truyền biến này,
-OTP trên AWS bị tắt và không được ghi vào application log.
+OTP trên AWS bị tắt và không được ghi vào log ứng dụng.
 
-Point-in-time recovery của RDS mặc định giữ bảy ngày. AWS Backup và restore
+Point-in-time recovery của RDS mặc định giữ bảy ngày. AWS Backup và khôi phục
 testing là tùy chọn vì tạo thêm chi phí lưu trữ hoặc resource tạm:
 
 ```bash
@@ -137,12 +135,12 @@ testing là tùy chọn vì tạo thêm chi phí lưu trữ hoặc resource tạ
 -var="enable_restore_testing=true"
 ```
 
-Xem [BACKUP_AND_RECOVERY.md](../docs/BACKUP_AND_RECOVERY.md) và
-[SES_OTP.md](../docs/SES_OTP.md) để biết cách xác minh và khôi phục.
+Xem [BACKUP_AND_RECOVERY.md](../docs/deployment/BACKUP_AND_RECOVERY.md) và
+[SES_OTP.md](../docs/deployment/SES_OTP.md) để biết cách xác minh và khôi phục.
 
 ## 4. Vận hành
 
-Dùng `terraform output application_url` để lấy entry point công khai. Kết nối
+Dùng `terraform output application_url` để lấy địa chỉ truy cập công khai. Kết nối
 EC2 bằng AWS Systems Manager Session Manager; SSH không được mở. Log bootstrap
 nằm ở `/var/log/cloud-init-output.log`; log application container được gửi tới
 CloudWatch log group trong Terraform output.
@@ -157,5 +155,5 @@ $applicationUrl = terraform -chdir=terraform output -raw application_url
 ```
 
 Bỏ `--allow-http` khi HTTPS đã bật. Xem
-[AWS_INTEGRATION_TESTING.md](../docs/AWS_INTEGRATION_TESTING.md) để biết toàn bộ
+[AWS_INTEGRATION_TESTING.md](../docs/testing/AWS_INTEGRATION_TESTING.md) để biết toàn bộ
 quy trình nghiệm thu.

@@ -1,4 +1,4 @@
-"""Password reset OTP persistence."""
+"""Lưu trữ OTP đặt lại mật khẩu."""
 
 import secrets
 import time

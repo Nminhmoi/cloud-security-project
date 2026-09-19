@@ -44,7 +44,7 @@ output "rds_endpoint" {
 }
 
 output "rds_instance_id" {
-  value       = aws_db_instance.mysql.id
+  value       = aws_db_instance.mysql.identifier
   description = "RDS instance identifier used by operations and integration checks"
 }
 

@@ -1,4 +1,4 @@
-# --- Logs, alarms, and VPC flow logs ---
+# --- Nhật ký, cảnh báo và nhật ký luồng mạng VPC ---
 resource "aws_cloudwatch_log_group" "application" {
   name              = "/cloudbox/${var.environment}/application"
   retention_in_days = 30

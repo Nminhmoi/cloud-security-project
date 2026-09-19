@@ -5,22 +5,22 @@ from flask import current_app
 
 from alembic import context
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Đây là đối tượng Config của Alembic, cho phép truy cập
+# các giá trị trong tệp .ini đang sử dụng.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Đọc tệp cấu hình ghi nhật ký của Python.
+# Lệnh này thiết lập các bộ ghi nhật ký.
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
 
 def get_engine():
     try:
-        # this works with Flask-SQLAlchemy<3 and Alchemical
+        # Tương thích với Flask-SQLAlchemy<3 và Alchemical
         return current_app.extensions['migrate'].db.get_engine()
     except (TypeError, AttributeError):
-        # this works with Flask-SQLAlchemy>=3
+        # Tương thích với Flask-SQLAlchemy>=3
         return current_app.extensions['migrate'].db.engine
 
 
@@ -32,17 +32,17 @@ def get_engine_url():
         return str(get_engine().url).replace('%', '%%')
 
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# Thêm đối tượng MetaData của mô hình tại đây
+# để hỗ trợ chức năng 'autogenerate'
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 config.set_main_option('sqlalchemy.url', get_engine_url())
 target_db = current_app.extensions['migrate'].db
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
+# Các giá trị cấu hình khác, tùy theo nhu cầu của env.py,
+# có thể được lấy như sau:
 # my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# ... và các giá trị khác.
 
 
 def get_metadata():
@@ -52,15 +52,14 @@ def get_metadata():
 
 
 def run_migrations_offline():
-    """Run migrations in 'offline' mode.
+    """Chạy di chuyển cơ sở dữ liệu ở chế độ 'offline'.
 
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
+    Cấu hình ngữ cảnh chỉ bằng URL, không cần đối tượng Engine,
+    dù vẫn có thể sử dụng Engine tại đây. Bỏ qua bước tạo Engine
+    giúp không cần có sẵn DBAPI.
 
-    Calls to context.execute() here emit the given string to the
-    script output.
+    Các lệnh gọi context.execute() xuất chuỗi được cung cấp
+    ra đầu ra của tập lệnh.
 
     """
     url = config.get_main_option("sqlalchemy.url")
@@ -73,16 +72,16 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode.
+    """Chạy di chuyển cơ sở dữ liệu ở chế độ 'online'.
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
+    Trong trường hợp này, cần tạo đối tượng Engine
+    và gắn một kết nối với ngữ cảnh.
 
     """
 
-    # this callback is used to prevent an auto-migration from being generated
-    # when there are no changes to the schema
-    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    # Hàm gọi lại này ngăn việc tự động tạo bản di chuyển
+    # khi lược đồ không thay đổi
+    # Tham khảo: http://alembic.zzzcomputing.com/en/latest/cookbook.html
     def process_revision_directives(context, revision, directives):
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]

@@ -1,4 +1,4 @@
-"""Document metadata and sharing models."""
+"""Các mô hình siêu dữ liệu và chia sẻ tài liệu."""
 
 from extensions import db
 
@@ -51,7 +51,7 @@ class Document(db.Model):
 
     @property
     def storage_reference(self):
-        """Return the private object key, with a fallback for legacy rows."""
+        """Trả về khóa đối tượng riêng tư, có phương án dự phòng cho các bản ghi cũ."""
         return self.storage_key or self.filename
 
     def to_dict(self, include_owner=False):

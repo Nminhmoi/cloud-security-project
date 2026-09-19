@@ -1,4 +1,4 @@
-"""Read-only AWS control-plane integration test for a CloudBox deployment."""
+"""Kiểm thử tích hợp chỉ đọc trên lớp quản lý AWS cho bản triển khai CloudBox."""
 
 import argparse
 import json
@@ -12,7 +12,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 
 class AwsIntegrationError(RuntimeError):
-    """Raised when an AWS integration invariant is not satisfied."""
+    """Ngoại lệ khi một điều kiện bắt buộc của tích hợp AWS không được đáp ứng."""
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ def _contains_wildcard(value):
 
 
 def normalize_terraform_outputs(payload):
-    """Accept `terraform output -json` data or a direct name/value mapping."""
+    """Nhận dữ liệu từ `terraform output -json` hoặc ánh xạ trực tiếp tên/giá trị."""
     if not isinstance(payload, dict):
         raise AwsIntegrationError("Terraform outputs must be a JSON object")
     return {
@@ -51,6 +51,8 @@ def load_terraform_outputs(terraform_dir):
             ["terraform", f"-chdir={directory}", "output", "-json"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
     except OSError as error:
@@ -73,7 +75,7 @@ def load_outputs_file(filename):
 
 
 class AwsIntegrationChecker:
-    """Validate deployed resources without changing AWS state."""
+    """Kiểm tra tài nguyên đã triển khai mà không thay đổi trạng thái AWS."""
 
     REQUIRED_OUTPUTS = {
         "application_log_group_name",
@@ -267,9 +269,13 @@ class AwsIntegrationChecker:
             if target.get("Target", {}).get("Id") == self.outputs["web_server_id"]
         ]
         _require(matching, "EC2 is not registered in the target group")
+        health = matching[0].get("TargetHealth", {})
         _require(
-            matching[0].get("TargetHealth", {}).get("State") == "healthy",
-            "EC2 target is not healthy",
+            health.get("State") == "healthy",
+            "EC2 target is not healthy: "
+            f"state={health.get('State', 'unknown')}; "
+            f"reason={health.get('Reason', 'unknown')}; "
+            f"description={health.get('Description', 'not provided')}",
         )
         return "ALB is active and the EC2 target is healthy"
 

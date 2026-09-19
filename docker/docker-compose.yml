@@ -97,8 +97,8 @@ services:
     ports:
       - "${APP_PORT:-5000}:5000"
 
-  # Only starts with --profile integration. It is intentionally absent from
-  # the normal deployment and proves that two app containers share MySQL.
+  # Chỉ khởi chạy với --profile integration. Dịch vụ này không chạy trong
+  # triển khai thông thường, dùng để xác minh hai container ứng dụng dùng chung MySQL.
   web-secondary:
     <<: *web-service
     profiles: ["integration"]

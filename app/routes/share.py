@@ -1,4 +1,4 @@
-"""Browser routes for document sharing."""
+"""Các tuyến chia sẻ tài liệu dành cho trình duyệt."""
 
 from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 from sqlalchemy import func, or_

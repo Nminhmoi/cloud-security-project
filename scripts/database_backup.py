@@ -1,4 +1,4 @@
-"""Create, verify, and safely restore local SQLite backups."""
+"""Tạo, kiểm tra và khôi phục an toàn các bản sao lưu SQLite cục bộ."""
 
 import argparse
 import hashlib
@@ -63,7 +63,7 @@ def backup_database(source, destination=None):
 
 
 def restore_database(backup, output):
-    """Restore into a new file; never replace the active database in place."""
+    """Khôi phục vào tệp mới; không ghi đè cơ sở dữ liệu đang hoạt động."""
 
     return copy_database(backup, output)
 

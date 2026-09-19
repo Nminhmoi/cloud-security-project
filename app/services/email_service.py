@@ -7,7 +7,7 @@ from flask import current_app
 
 
 class EmailDeliveryError(RuntimeError):
-    """Raised when an OTP message cannot be delivered safely."""
+    """Ngoại lệ khi không thể gửi thư chứa OTP một cách an toàn."""
 
 
 def _message_content(otp):

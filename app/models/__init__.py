@@ -1,4 +1,4 @@
-"""Database models for CloudBox."""
+"""Các mô hình cơ sở dữ liệu của CloudBox."""
 
 from .activity_log import ActivityLog
 from .document import Document, DocumentShare

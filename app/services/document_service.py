@@ -1,4 +1,4 @@
-"""Document lifecycle operations that keep database and object storage aligned."""
+"""Các thao tác vòng đời tài liệu giúp đồng bộ cơ sở dữ liệu với kho lưu trữ đối tượng."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -11,15 +11,15 @@ from services.storage_service import delete_stored_file, save_upload, validate_u
 
 
 class StorageQuotaExceeded(ValueError):
-    """Raised when an upload would exceed the owner's configured quota."""
+    """Ngoại lệ khi tệp tải lên vượt hạn mức đã cấu hình của chủ sở hữu."""
 
 
 class DocumentScanPending(RuntimeError):
-    """Raised while an asynchronous malware scan has not completed."""
+    """Ngoại lệ khi quá trình quét mã độc bất đồng bộ chưa hoàn tất."""
 
 
 class UnsafeDocument(RuntimeError):
-    """Raised when a scan failed or marked a document as infected."""
+    """Ngoại lệ khi quét thất bại hoặc tài liệu bị đánh dấu nhiễm mã độc."""
 
 
 def _utcnow():
@@ -27,7 +27,7 @@ def _utcnow():
 
 
 def storage_used_by_user(user_id):
-    """Count active and trashed files because both still consume storage."""
+    """Đếm cả tệp đang sử dụng và tệp trong thùng rác vì cả hai đều chiếm dung lượng."""
     return db.session.scalar(
         db.select(func.coalesce(func.sum(Document.file_size), 0)).where(
             Document.user_id == user_id
@@ -88,7 +88,7 @@ def restore_document(document):
 
 
 def purge_expired_documents(retention_days=None):
-    """Permanently remove expired trash and return the number purged."""
+    """Xóa vĩnh viễn tài liệu hết hạn trong thùng rác và trả về số lượng đã xóa."""
     if retention_days is None:
         retention_days = current_app.config["DELETED_DOCUMENT_RETENTION_DAYS"]
     if retention_days < 0:
@@ -127,7 +127,7 @@ def purge_expired_documents(retention_days=None):
 
 
 def delete_storage_keys(storage_keys):
-    """Best-effort cleanup for keys whose database rows no longer exist."""
+    """Cố gắng dọn dẹp các khóa lưu trữ không còn bản ghi tương ứng trong cơ sở dữ liệu."""
     for storage_key in storage_keys:
         try:
             delete_stored_file(storage_key)

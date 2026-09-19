@@ -1,4 +1,4 @@
-"""Administrative audit log model."""
+"""Mô hình nhật ký kiểm toán hoạt động quản trị."""
 
 from extensions import db
 

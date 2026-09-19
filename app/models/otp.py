@@ -1,4 +1,4 @@
-"""Password reset OTP model."""
+"""Mô hình OTP đặt lại mật khẩu."""
 
 from extensions import db
 

@@ -1,4 +1,4 @@
-"""JSON REST API for authentication, documents, and document sharing."""
+"""REST API dạng JSON cho xác thực, quản lý và chia sẻ tài liệu."""
 
 import re
 from functools import wraps

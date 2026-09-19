@@ -1,4 +1,4 @@
-"""Tests for the point-in-time security audit and alarm example."""
+"""Kiểm thử kiểm toán bảo mật tại thời điểm thực hiện và cấu hình cảnh báo mẫu."""
 
 import json
 import sqlite3

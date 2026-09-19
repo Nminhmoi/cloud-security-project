@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only audit of CloudBox user accounts."""
+"""Kiểm toán tài khoản người dùng CloudBox ở chế độ chỉ đọc."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def _mask_email(value):
 
 
 def evaluate_user_accounts(database_url=None, db_path=None):
-    """Return account metadata without changing schema or exposing hashes."""
+    """Trả về siêu dữ liệu tài khoản mà không sửa lược đồ hoặc để lộ giá trị băm."""
 
     engine = create_audit_engine(database_url=database_url, db_path=db_path)
     try:
@@ -87,7 +87,7 @@ def evaluate_user_accounts(database_url=None, db_path=None):
 
 
 def list_user_accounts(database_url=None, db_path=None):
-    """Print a privacy-conscious account report and return execution success."""
+    """In báo cáo tài khoản có bảo vệ quyền riêng tư và trả về trạng thái thực thi thành công."""
 
     try:
         report = evaluate_user_accounts(database_url=database_url, db_path=db_path)

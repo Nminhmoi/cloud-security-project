@@ -1,4 +1,4 @@
-# --- Secrets and RDS ---
+# --- Thông tin bí mật và RDS ---
 resource "aws_secretsmanager_secret" "app" {
   name                    = "${local.name_prefix}/flask-secret-key"
   recovery_window_in_days = 7

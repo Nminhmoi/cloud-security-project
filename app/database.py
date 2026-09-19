@@ -1,4 +1,4 @@
-"""Database initialization and transitional SQLite compatibility helpers."""
+"""Khởi tạo cơ sở dữ liệu và hỗ trợ tương thích SQLite trong giai đoạn chuyển đổi."""
 
 import sqlite3
 
@@ -25,10 +25,10 @@ DEFAULT_PERMISSIONS = (
 
 
 def get_db_connection():
-    """Return a SQLAlchemy-managed raw SQLite connection.
+    """Trả về kết nối SQLite thô do SQLAlchemy quản lý.
 
-    This compatibility API remains temporarily for tests and legacy commands.
-    Application code uses ORM sessions and is therefore database independent.
+    API tương thích này được giữ tạm thời cho kiểm thử và các lệnh cũ.
+    Mã ứng dụng dùng phiên ORM nên không phụ thuộc vào hệ quản trị cơ sở dữ liệu.
     """
     connection = db.engine.raw_connection()
     if db.engine.dialect.name != "sqlite":
@@ -44,10 +44,10 @@ def get_db_connection():
 
 
 def init_db(app):
-    """Create a local schema and seed its RBAC reference data.
+    """Tạo lược đồ cục bộ và khởi tạo dữ liệu tham chiếu RBAC.
 
-    Production disables AUTO_CREATE_SCHEMA and runs ``flask db upgrade``.
-    The SQLite compatibility migration keeps existing database.db files usable.
+    Môi trường triển khai thực tế tắt AUTO_CREATE_SCHEMA và chạy ``flask db upgrade``.
+    Bản di chuyển tương thích SQLite cho phép tiếp tục sử dụng các tệp database.db hiện có.
     """
     with app.app_context():
         db.create_all()
@@ -117,7 +117,7 @@ def _add_column(connection, table, column, definition):
 
 
 def seed_reference_data():
-    """Idempotently seed the built-in roles and permissions."""
+    """Khởi tạo các vai trò và quyền có sẵn mà không tạo dữ liệu trùng khi chạy lại."""
     roles = {}
     for role_id, name, description in DEFAULT_ROLES:
         role = db.session.get(Role, role_id)

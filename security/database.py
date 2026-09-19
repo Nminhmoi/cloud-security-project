@@ -1,4 +1,4 @@
-"""Shared, read-only database connection helpers for security audits."""
+"""Các hàm kết nối cơ sở dữ liệu chỉ đọc dùng chung cho kiểm toán bảo mật."""
 
 from __future__ import annotations
 
@@ -14,11 +14,11 @@ DEFAULT_DB_PATH = PROJECT_ROOT / "database.db"
 
 
 def create_audit_engine(database_url=None, db_path=None):
-    """Create an engine used only by SELECT-based audit code.
+    """Tạo đối tượng kết nối chỉ dành cho mã kiểm toán sử dụng SELECT.
 
-    SQLite is opened by a read-only connection creator. MySQL uses the normal
-    SQLAlchemy URL, while callers in this package execute SELECT statements
-    only. DATABASE_URL takes precedence over DATABASE_PATH.
+    SQLite được mở bằng hàm tạo kết nối chỉ đọc. MySQL sử dụng URL
+    SQLAlchemy thông thường; các hàm gọi trong gói này chỉ thực thi
+    câu lệnh SELECT. DATABASE_URL được ưu tiên hơn DATABASE_PATH.
     """
 
     configured_url = (database_url or os.environ.get("DATABASE_URL", "")).strip()

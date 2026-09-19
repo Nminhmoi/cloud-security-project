@@ -1,5 +1,5 @@
 -r app/requirements.txt
 
-# CI security gates. Keep exact versions so local and hosted checks agree.
+# Các bước kiểm tra bảo mật CI. Cố định phiên bản để kết quả cục bộ và trên CI nhất quán.
 bandit==1.9.4
 pip-audit==2.10.1

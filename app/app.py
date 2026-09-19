@@ -11,7 +11,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 from database import init_db
 from extensions import csrf, db, limiter, migrate
-import models  # noqa: F401 - register model metadata before migrations run
+import models  # noqa: F401 - đăng ký siêu dữ liệu mô hình trước khi chạy di chuyển cơ sở dữ liệu
 from models import User
 from routes.auth import auth_bp
 from routes.documents import documents_bp
@@ -24,8 +24,8 @@ from services.document_service import purge_expired_documents
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    # The application is reachable only through the ALB security group, so one
-    # trusted X-Forwarded-For/Proto hop is expected.
+    # Ứng dụng chỉ có thể được truy cập qua nhóm bảo mật ALB, nên tin cậy
+    # một chặng proxy đối với các tiêu đề X-Forwarded-For/Proto.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -50,13 +50,13 @@ def create_app(config_class=Config):
         help="Override DELETED_DOCUMENT_RETENTION_DAYS for this run.",
     )
     def purge_deleted_documents_command(retention_days):
-        """Permanently remove document trash after its retention window."""
+        """Xóa vĩnh viễn tài liệu trong thùng rác khi hết thời hạn lưu giữ."""
         purged = purge_expired_documents(retention_days)
         click.echo(f"Purged {purged} expired document(s).")
 
     @app.before_request
     def reject_inactive_sessions():
-        """Invalidate existing sessions after an account is disabled/deleted."""
+        """Vô hiệu hóa các phiên hiện có khi tài khoản bị vô hiệu hóa hoặc xóa."""
         user_id = session.get("user_id")
         if user_id is None:
             return

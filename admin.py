@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command-line administrator management for CloudBox."""
+"""Quản lý tài khoản quản trị CloudBox qua dòng lệnh."""
 
 import os
 import sys
