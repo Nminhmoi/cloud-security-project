@@ -501,43 +501,43 @@ Trong mô hình hạ tầng truyền thống, tổ chức thường phải dự 
 \subsection{Đặc điểm của điện toán đám mây}
 NIST xác định năm đặc trưng cốt lõi của Cloud. Tự động hóa là cơ chế quan trọng hỗ trợ các đặc trưng đó, không phải đặc trưng thứ sáu trong định nghĩa NIST.\cite{nistcloud}
 
-\textbf{Tự phục vụ theo nhu cầu.} Người sử dụng có thể yêu cầu tài nguyên thông qua giao diện quản trị hoặc API mà không cần nhà cung cấp xử lý thủ công từng yêu cầu. Chẳng hạn, nhóm phát triển có thể tạo một môi trường thử nghiệm khi cần và thu hồi sau khi hoàn thành. Quyền tự phục vụ vẫn phải chịu sự kiểm soát của chính sách truy cập và hạn mức tài nguyên.
+Tự phục vụ theo nhu cầu: Người sử dụng có thể yêu cầu tài nguyên thông qua giao diện quản trị hoặc API mà không cần nhà cung cấp xử lý thủ công từng yêu cầu. Chẳng hạn, nhóm phát triển có thể tạo một môi trường thử nghiệm khi cần và thu hồi sau khi hoàn thành. Quyền tự phục vụ vẫn phải chịu sự kiểm soát của chính sách truy cập và hạn mức tài nguyên.
 
-\textbf{Truy cập rộng qua mạng.} Dịch vụ được cung cấp bằng các cơ chế mạng tiêu chuẩn để nhiều loại thiết bị có thể sử dụng. Khả năng này thuận lợi cho làm việc từ xa, nhưng không đồng nghĩa mọi tài nguyên phải công khai trên Internet. Cơ sở dữ liệu và dịch vụ nội bộ vẫn có thể chỉ được truy cập qua mạng riêng.
+Truy cập rộng qua mạng: Dịch vụ được cung cấp bằng các cơ chế mạng tiêu chuẩn để nhiều loại thiết bị có thể sử dụng. Khả năng này thuận lợi cho làm việc từ xa, nhưng không đồng nghĩa mọi tài nguyên phải công khai trên Internet. Cơ sở dữ liệu và dịch vụ nội bộ vẫn có thể chỉ được truy cập qua mạng riêng.
 
-\textbf{Gộp và chia sẻ tài nguyên.} Nhà cung cấp tập hợp tài nguyên để phục vụ nhiều khách hàng, rồi phân bổ theo nhu cầu. Sự chia sẻ có thể diễn ra ở mức phần cứng, nền tảng hoặc ứng dụng. Điều kiện quan trọng là phải duy trì sự cách ly phù hợp giữa các khách hàng để việc dùng chung tài nguyên không trở thành quyền truy cập dữ liệu của nhau.
+Gộp và chia sẻ tài nguyên: Nhà cung cấp tập hợp tài nguyên để phục vụ nhiều khách hàng, rồi phân bổ theo nhu cầu. Sự chia sẻ có thể diễn ra ở mức phần cứng, nền tảng hoặc ứng dụng. Điều kiện quan trọng là phải duy trì sự cách ly phù hợp giữa các khách hàng để việc dùng chung tài nguyên không trở thành quyền truy cập dữ liệu của nhau.
 
-\textbf{Co giãn nhanh.} Năng lực phục vụ có thể tăng khi tải cao và giảm khi nhu cầu giảm. Co giãn khác với việc chỉ mua thêm tài nguyên theo kế hoạch dài hạn: nó chú trọng điều chỉnh gần với nhu cầu thực tế. Tuy nhiên, ứng dụng phải có kiến trúc phù hợp; việc tăng số máy chủ không tự giải quyết các điểm nghẽn ở cơ sở dữ liệu hoặc trạng thái phiên.
+Co giãn nhanh: Năng lực phục vụ có thể tăng khi tải cao và giảm khi nhu cầu giảm. Co giãn khác với việc chỉ mua thêm tài nguyên theo kế hoạch dài hạn: nó chú trọng điều chỉnh gần với nhu cầu thực tế. Tuy nhiên, ứng dụng phải có kiến trúc phù hợp; việc tăng số máy chủ không tự giải quyết các điểm nghẽn ở cơ sở dữ liệu hoặc trạng thái phiên.
 
-\textbf{Đo lường dịch vụ.} Việc sử dụng tài nguyên được theo dõi qua các đại lượng như thời gian xử lý, dung lượng và lưu lượng truyền. Đo lường hỗ trợ tính phí, giám sát và tối ưu vận hành. Người quản trị cần hiểu từng loại chi phí thay vì chỉ quan tâm giá của máy chủ.
+Đo lường dịch vụ: Việc sử dụng tài nguyên được theo dõi qua các đại lượng như thời gian xử lý, dung lượng và lưu lượng truyền. Đo lường hỗ trợ tính phí, giám sát và tối ưu vận hành. Người quản trị cần hiểu từng loại chi phí thay vì chỉ quan tâm giá của máy chủ.
 
-\textbf{Tự động hóa cấp phát.} Công cụ điều phối và Infrastructure as Code giúp tạo môi trường từ mô tả cấu hình có thể lưu phiên bản. Với CloudBox, Terraform là phương án mô tả hạ tầng nhất quán. Dù vậy, tự động hóa cũng có thể lặp lại một cấu hình sai trên nhiều tài nguyên, vì vậy mã hạ tầng cần được rà soát như mã ứng dụng.
+Tự động hóa cấp phát: Công cụ điều phối và Infrastructure as Code giúp tạo môi trường từ mô tả cấu hình có thể lưu phiên bản. Với CloudBox, Terraform là phương án mô tả hạ tầng nhất quán. Dù vậy, tự động hóa cũng có thể lặp lại một cấu hình sai trên nhiều tài nguyên, vì vậy mã hạ tầng cần được rà soát như mã ứng dụng.
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Ưu điểm của điện toán đám mây}
-\textbf{Giảm chi phí đầu tư ban đầu.} Tổ chức có thể bắt đầu với tài nguyên vừa đủ mà không cần mua trước toàn bộ thiết bị. Điều này phù hợp với đồ án và ứng dụng mới có lượng người dùng chưa ổn định. Lợi ích nằm ở khả năng điều chỉnh mức đầu tư; tổng chi phí sử dụng lâu dài vẫn phụ thuộc vào tải, kiến trúc và cách quản trị.
+Giảm chi phí đầu tư ban đầu: Tổ chức có thể bắt đầu với tài nguyên vừa đủ mà không cần mua trước toàn bộ thiết bị. Điều này phù hợp với đồ án và ứng dụng mới có lượng người dùng chưa ổn định. Lợi ích nằm ở khả năng điều chỉnh mức đầu tư; tổng chi phí sử dụng lâu dài vẫn phụ thuộc vào tải, kiến trúc và cách quản trị.
 
-\textbf{Rút ngắn thời gian triển khai.} Môi trường có thể được tạo từ cấu hình hoặc mẫu có sẵn, giúp nhóm phát triển tập trung vào chức năng. Khả năng tạo lại môi trường cũng hỗ trợ kiểm thử, đào tạo và khôi phục sau lỗi cấu hình.
+Rút ngắn thời gian triển khai: Môi trường có thể được tạo từ cấu hình hoặc mẫu có sẵn, giúp nhóm phát triển tập trung vào chức năng. Khả năng tạo lại môi trường cũng hỗ trợ kiểm thử, đào tạo và khôi phục sau lỗi cấu hình.
 
-\textbf{Mở rộng linh hoạt.} Khi nhu cầu tăng, ứng dụng có thể được nâng cấu hình hoặc phân phối tải cho nhiều thành phần. Khả năng mở rộng chỉ phát huy hiệu quả nếu các thành phần hỗ trợ chạy song song và không phụ thuộc vào trạng thái cục bộ không được chia sẻ.
+Mở rộng linh hoạt: Khi nhu cầu tăng, ứng dụng có thể được nâng cấu hình hoặc phân phối tải cho nhiều thành phần. Khả năng mở rộng chỉ phát huy hiệu quả nếu các thành phần hỗ trợ chạy song song và không phụ thuộc vào trạng thái cục bộ không được chia sẻ.
 
-\textbf{Hỗ trợ sao lưu và phục hồi.} Các dịch vụ quản lý cung cấp những cơ chế giúp giảm công việc xây dựng hạ tầng dự phòng. Tuy nhiên, nhóm vận hành vẫn phải chọn lịch sao lưu, thời gian giữ bản sao và kiểm tra khả năng phục hồi. Có dịch vụ sao lưu không đồng nghĩa dữ liệu đã được bảo vệ đúng yêu cầu.
+Hỗ trợ sao lưu và phục hồi: Các dịch vụ quản lý cung cấp những cơ chế giúp giảm công việc xây dựng hạ tầng dự phòng. Tuy nhiên, nhóm vận hành vẫn phải chọn lịch sao lưu, thời gian giữ bản sao và kiểm tra khả năng phục hồi. Có dịch vụ sao lưu không đồng nghĩa dữ liệu đã được bảo vệ đúng yêu cầu.
 
-\textbf{Truy cập từ nhiều vị trí.} Người dùng có thể khai thác tài liệu từ nhiều thiết bị nếu có kết nối và được cấp quyền. Trong CloudBox, đặc điểm này hỗ trợ chia sẻ tài liệu giữa các thành viên, đồng thời làm cho xác thực và kiểm soát quyền trên từng tệp trở thành yêu cầu thiết yếu.
+Truy cập từ nhiều vị trí: Người dùng có thể khai thác tài liệu từ nhiều thiết bị nếu có kết nối và được cấp quyền. Trong CloudBox, đặc điểm này hỗ trợ chia sẻ tài liệu giữa các thành viên, đồng thời làm cho xác thực và kiểm soát quyền trên từng tệp trở thành yêu cầu thiết yếu.
 
-\textbf{Sử dụng dịch vụ được quản lý.} Dịch vụ cơ sở dữ liệu, lưu trữ, giám sát và quản lý bí mật giúp giảm khối lượng vận hành thủ công. Nhóm phát triển có thể ưu tiên logic nghiệp vụ, nhưng vẫn phải hiểu cấu hình, giới hạn và trách nhiệm của mình đối với từng dịch vụ.
+Sử dụng dịch vụ được quản lý: Dịch vụ cơ sở dữ liệu, lưu trữ, giám sát và quản lý bí mật giúp giảm khối lượng vận hành thủ công. Nhóm phát triển có thể ưu tiên logic nghiệp vụ, nhưng vẫn phải hiểu cấu hình, giới hạn và trách nhiệm của mình đối với từng dịch vụ.
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Hạn chế của điện toán đám mây}
-\textbf{Phụ thuộc vào nhà cung cấp.} Việc sử dụng API hoặc dịch vụ chuyên biệt có thể khiến chuyển đổi sang nền tảng khác tốn công sức. Đối với CloudBox, lớp giao tiếp lưu trữ nên tách khỏi xử lý nghiệp vụ để giảm sự phụ thuộc giữa chức năng tài liệu và một dịch vụ cụ thể.
+Phụ thuộc vào nhà cung cấp: Việc sử dụng API hoặc dịch vụ chuyên biệt có thể khiến chuyển đổi sang nền tảng khác tốn công sức. Đối với CloudBox, lớp giao tiếp lưu trữ nên tách khỏi xử lý nghiệp vụ để giảm sự phụ thuộc giữa chức năng tài liệu và một dịch vụ cụ thể.
 
-\textbf{Khó dự báo chi phí nếu thiếu giám sát.} Tài nguyên không được thu hồi, số lượng bản sao lớn hoặc lưu lượng tải xuống tăng có thể làm chi phí vượt dự kiến. Cần đặt ngân sách, theo dõi mức sử dụng và xác định người chịu trách nhiệm với tài nguyên được tạo.
+Khó dự báo chi phí nếu thiếu giám sát: Tài nguyên không được thu hồi, số lượng bản sao lớn hoặc lưu lượng tải xuống tăng có thể làm chi phí vượt dự kiến. Cần đặt ngân sách, theo dõi mức sử dụng và xác định người chịu trách nhiệm với tài nguyên được tạo.
 
-\textbf{Rủi ro cấu hình sai.} Quyền truy cập quá rộng hoặc dịch vụ nội bộ bị mở ra ngoài có thể làm mất tác dụng của các biện pháp bảo vệ khác. Việc chia sẻ hạ tầng và sử dụng công nghệ ảo hóa đòi hỏi cơ chế cách ly, giám sát và quản lý đặc quyền phù hợp.\cite{ccsp}
+Rủi ro cấu hình sai: Quyền truy cập quá rộng hoặc dịch vụ nội bộ bị mở ra ngoài có thể làm mất tác dụng của các biện pháp bảo vệ khác. Việc chia sẻ hạ tầng và sử dụng công nghệ ảo hóa đòi hỏi cơ chế cách ly, giám sát và quản lý đặc quyền phù hợp.\cite{ccsp}
 
-\textbf{Phụ thuộc kết nối và dịch vụ trung gian.} Mất đường truyền hoặc sự cố một thành phần có thể khiến người dùng không truy cập được ứng dụng dù dữ liệu còn nguyên vẹn. Vì vậy, thiết kế phải tính đến lỗi kết nối, thời gian chờ và khả năng phục hồi hoạt động.
+Phụ thuộc kết nối và dịch vụ trung gian: Mất đường truyền hoặc sự cố một thành phần có thể khiến người dùng không truy cập được ứng dụng dù dữ liệu còn nguyên vẹn. Vì vậy, thiết kế phải tính đến lỗi kết nối, thời gian chờ và khả năng phục hồi hoạt động.
 
-\textbf{Quyền riêng tư và tuân thủ.} Tổ chức cần xác định dữ liệu nào được thu thập, ai được phép xử lý, thời gian lưu giữ và điều kiện chia sẻ. Việc lựa chọn khu vực lưu dữ liệu và nhà cung cấp cần phù hợp với yêu cầu áp dụng cho tổ chức. Chứng nhận của nhà cung cấp không tự động chứng minh toàn bộ ứng dụng của khách hàng đáp ứng các yêu cầu đó.
+Quyền riêng tư và tuân thủ: Tổ chức cần xác định dữ liệu nào được thu thập, ai được phép xử lý, thời gian lưu giữ và điều kiện chia sẻ. Việc lựa chọn khu vực lưu dữ liệu và nhà cung cấp cần phù hợp với yêu cầu áp dụng cho tổ chức. Chứng nhận của nhà cung cấp không tự động chứng minh toàn bộ ứng dụng của khách hàng đáp ứng các yêu cầu đó.
 
 % Bảng dùng tabularx để tự chia chiều rộng; X là cột có độ rộng linh hoạt.
 \begin{table}[htbp]
@@ -703,39 +703,39 @@ Secret key, thông tin kết nối cơ sở dữ liệu và quyền truy cập d
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Mối đe dọa, lỗ hổng và rủi ro}
-\textbf{Mối đe dọa} là yếu tố có khả năng gây hại đến tài sản, có thể xuất phát từ con người, lỗi kỹ thuật hoặc sự cố môi trường. \textbf{Lỗ hổng} là điểm yếu trong thiết kế, cấu hình, phần mềm hoặc quy trình mà mối đe dọa có thể tác động vào. \textbf{Tấn công} là hành động cố ý nhằm làm tổn hại hệ thống hoặc vượt qua các cơ chế bảo vệ.
+Mối đe dọa: yếu tố có khả năng gây hại đến tài sản, có thể xuất phát từ con người, lỗi kỹ thuật hoặc sự cố môi trường. Lỗ hổng: điểm yếu trong thiết kế, cấu hình, phần mềm hoặc quy trình mà mối đe dọa có thể tác động vào. Tấn công: hành động cố ý nhằm làm tổn hại hệ thống hoặc vượt qua các cơ chế bảo vệ.
 
-\textbf{Rủi ro} thể hiện khả năng và mức độ hậu quả khi một sự kiện bất lợi xảy ra. Đánh giá rủi ro cần quan tâm đến tài sản bị ảnh hưởng, điều kiện xảy ra và biện pháp kiểm soát hiện có. Một điểm yếu có thể dẫn đến mức rủi ro khác nhau tùy dữ liệu và phạm vi triển khai.
+Rủi ro: thể hiện khả năng và mức độ hậu quả khi một sự kiện bất lợi xảy ra. Đánh giá rủi ro cần quan tâm đến tài sản bị ảnh hưởng, điều kiện xảy ra và biện pháp kiểm soát hiện có. Một điểm yếu có thể dẫn đến mức rủi ro khác nhau tùy dữ liệu và phạm vi triển khai.
 
 Ví dụ, tài liệu riêng tư là tài sản; người không được cấp quyền là tác nhân có thể gây đe dọa; thiếu kiểm tra chủ sở hữu là lỗ hổng. Nếu người này truy cập được tài liệu của người khác, hậu quả là mất tính bí mật. Biện pháp phù hợp không chỉ là làm khó đoán mã tài liệu, mà là kiểm tra quyền ở phía máy chủ đối với mỗi yêu cầu.
 
-Trong đồ án có thể dùng thang định tính cho khả năng xảy ra và mức ảnh hưởng để xác định thứ tự xử lý. Nếu sử dụng tích hai điểm số làm chỉ số rủi ro, cần nêu rõ quy ước chấm điểm; kết quả không phải xác suất hay thiệt hại tiền tệ đã đo được. Rủi ro cần được theo dõi trong suốt quá trình thiết kế, triển khai và vận hành, thay vì chỉ được đánh giá tại một thời điểm.\cite{ccsp}
+Trong đồ án có thể dùng thang định tính cho khả năng xảy ra và mức ảnh hưởng để xác định thứ tự xử lý. Nếu sử dụng tích hai điểm số làm chỉ số rủi ro, cần nêu rõ quy ước chấm điểm; kết quả không phải xác suất hay thiệt hại tiền tệ đã đo được. Rủi ro cần được theo dõi trong suốt quá trình thiết kế, triển khai và vận hành, thay vì chỉ được đánh giá tại một thời điểm.\cite[tr.~119--120]{ccsp}
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Bộ ba CIA}
 Bộ ba CIA gồm tính bí mật (Confidentiality), tính toàn vẹn (Integrity) và tính sẵn sàng (Availability). Ba thuộc tính bổ sung cho nhau và là cơ sở để xác định mục tiêu bảo vệ dữ liệu.
 
-\textbf{Tính bí mật} yêu cầu thông tin chỉ được tiết lộ cho chủ thể được phép. Trong CloudBox, người dùng chỉ được xem hoặc tải tài liệu thuộc quyền sở hữu hoặc được chia sẻ hợp lệ. Tên tệp, danh sách tài liệu và nhật ký cũng phải được kiểm soát theo phạm vi người xem.
+Tính bí mật: thông tin chỉ được tiết lộ cho chủ thể được phép. Trong CloudBox, người dùng chỉ được xem hoặc tải tài liệu thuộc quyền sở hữu hoặc được chia sẻ hợp lệ. Tên tệp, danh sách tài liệu và nhật ký cũng phải được kiểm soát theo phạm vi người xem.
 
-\textbf{Tính toàn vẹn} yêu cầu dữ liệu được bảo vệ trước thay đổi hoặc phá hủy không phù hợp. Một tệp còn tồn tại nhưng bị thay đổi nội dung không đúng quyền vẫn là sự cố toàn vẹn. Đối với CloudBox, quyền sửa/xóa, ràng buộc cơ sở dữ liệu và kiểm tra nội dung tệp đều góp phần bảo vệ thuộc tính này.
+Tính toàn vẹn: dữ liệu được bảo vệ trước thay đổi hoặc phá hủy không phù hợp. Một tệp còn tồn tại nhưng bị thay đổi nội dung không đúng quyền vẫn là sự cố toàn vẹn. Đối với CloudBox, quyền sửa/xóa, ràng buộc cơ sở dữ liệu và kiểm tra nội dung tệp đều góp phần bảo vệ thuộc tính này.
 
-\textbf{Tính sẵn sàng} yêu cầu người có quyền có thể truy cập thông tin và dịch vụ khi cần. Hệ thống có thể mất sẵn sàng do lỗi kết nối, hết dung lượng, lỗi phần mềm hoặc tài nguyên bị sử dụng quá mức. Sao lưu, giám sát và quy trình phục hồi hỗ trợ mục tiêu này, nhưng phải được thiết kế theo nhu cầu thực tế.
+Tính sẵn sàng: người có quyền có thể truy cập thông tin và dịch vụ khi cần. Hệ thống có thể mất sẵn sàng do lỗi kết nối, hết dung lượng, lỗi phần mềm hoặc tài nguyên bị sử dụng quá mức. Sao lưu, giám sát và quy trình phục hồi hỗ trợ mục tiêu này, nhưng phải được thiết kế theo nhu cầu thực tế.
 
 Một cơ chế riêng lẻ không bảo đảm đồng thời cả ba thuộc tính. Mã hóa giúp bảo vệ bí mật nhưng không thay thế sao lưu; bản sao lưu giúp khôi phục nhưng nếu phân quyền sai lại trở thành nguồn rò rỉ. Do đó, CloudBox cần kết hợp nhiều cơ chế và kiểm thử từng mục tiêu một cách độc lập.
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Các nguyên tắc bảo mật}
-\textbf{Đặc quyền tối thiểu} yêu cầu chỉ cấp quyền cần thiết cho công việc, trong phạm vi và thời gian phù hợp. Tài khoản ứng dụng không cần quyền quản trị toàn bộ hạ tầng; người nhận tài liệu không mặc nhiên có quyền chia sẻ tiếp hoặc xóa tài liệu.
+Đặc quyền tối thiểu: chỉ cấp quyền cần thiết cho công việc, trong phạm vi và thời gian phù hợp. Tài khoản ứng dụng không cần quyền quản trị toàn bộ hạ tầng; người nhận tài liệu không mặc nhiên có quyền chia sẻ tiếp hoặc xóa tài liệu.
 
-\textbf{Phòng thủ nhiều lớp} kết hợp biện pháp ở danh tính, ứng dụng, lưu trữ và vận hành. Ví dụ, kết nối riêng tới cơ sở dữ liệu hỗ trợ giảm khả năng truy cập ngoài ý muốn, còn kiểm tra quyền ở route bảo vệ logic nghiệp vụ. Một lớp bị lỗi không nên khiến toàn bộ dữ liệu lập tức mất bảo vệ.
+Phòng thủ nhiều lớp: kết hợp biện pháp ở danh tính, ứng dụng, lưu trữ và vận hành. Ví dụ, kết nối riêng tới cơ sở dữ liệu hỗ trợ giảm khả năng truy cập ngoài ý muốn, còn kiểm tra quyền ở route bảo vệ logic nghiệp vụ. Một lớp bị lỗi không nên khiến toàn bộ dữ liệu lập tức mất bảo vệ.
 
-\textbf{Từ chối theo mặc định} nghĩa là một yêu cầu chỉ được chấp nhận khi có điều kiện cho phép rõ ràng. Chức năng mới và tài liệu mới cần có chính sách xác định, thay vì mở truy cập rồi mới bổ sung hạn chế sau.
+Từ chối theo mặc định: một yêu cầu chỉ được chấp nhận khi có điều kiện cho phép rõ ràng. Chức năng mới và tài liệu mới cần có chính sách xác định, thay vì mở truy cập rồi mới bổ sung hạn chế sau.
 
-\textbf{Phân tách nhiệm vụ} giảm việc một chủ thể tự thực hiện toàn bộ quy trình nhạy cảm mà không có kiểm tra. Trong nhóm nhỏ, có thể áp dụng bằng cách để người khác rà soát thay đổi quyền và cấu hình trước khi triển khai.
+Phân tách nhiệm vụ: giảm việc một chủ thể tự thực hiện toàn bộ quy trình nhạy cảm mà không có kiểm tra. Trong nhóm nhỏ, có thể áp dụng bằng cách để người khác rà soát thay đổi quyền và cấu hình trước khi triển khai.
 
-\textbf{Secure by Design} đặt yêu cầu bảo mật ngay từ phân tích và thiết kế. \textbf{Secure by Default} yêu cầu cấu hình ban đầu hạn chế quyền và khả năng để lộ không cần thiết. Ví dụ, chức năng chia sẻ tài liệu cần có cơ chế thu hồi ngay từ thiết kế, còn tài liệu mới nên mặc định là riêng tư.
+Secure by Design: đặt yêu cầu bảo mật ngay từ phân tích và thiết kế. Secure by Default: cấu hình ban đầu hạn chế quyền và khả năng để lộ không cần thiết. Ví dụ, chức năng chia sẻ tài liệu cần có cơ chế thu hồi ngay từ thiết kế, còn tài liệu mới nên mặc định là riêng tư.
 
-\textbf{Zero Trust} không cấp sự tin cậy chỉ vì thiết bị hoặc người dùng nằm trong mạng nội bộ. Quyết định truy cập cần dựa trên danh tính, tài nguyên và chính sách phù hợp. Với CloudBox, việc đã đăng nhập không đủ để truy cập mọi tệp; mỗi thao tác vẫn cần kiểm tra quyền. Áp dụng một số nguyên tắc này chưa có nghĩa đồ án đã xây dựng đầy đủ kiến trúc Zero Trust.\cite{zerotrust}
+Zero Trust: không cấp sự tin cậy chỉ vì thiết bị hoặc người dùng nằm trong mạng nội bộ. Quyết định truy cập cần dựa trên danh tính, tài nguyên và chính sách phù hợp. Với CloudBox, việc đã đăng nhập không đủ để truy cập mọi tệp; mỗi thao tác vẫn cần kiểm tra quyền. Áp dụng một số nguyên tắc này chưa có nghĩa đồ án đã xây dựng đầy đủ kiến trúc Zero Trust.\cite{zerotrust}
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Các cơ chế bảo vệ dữ liệu}
@@ -753,27 +753,27 @@ Trong thiết kế CloudBox, OTP khôi phục mật khẩu cần có thời hạ
 \subsection{Kiểm soát truy cập}
 Các mô hình kiểm soát truy cập mô tả cách xác định và áp dụng quyền của chủ thể đối với tài nguyên. Lựa chọn mô hình phụ thuộc vào mức linh hoạt, yêu cầu quản trị và đặc điểm dữ liệu.
 
-\textbf{DAC (Discretionary Access Control)} cho phép chủ sở hữu cấp quyền cho chủ thể khác trong phạm vi chính sách. Chức năng chia sẻ tài liệu do chủ sở hữu khởi tạo có nét tương đồng với cách tiếp cận này, nhưng ứng dụng vẫn có thể áp đặt giới hạn riêng.
+DAC (Discretionary Access Control): cho phép chủ sở hữu cấp quyền cho chủ thể khác trong phạm vi chính sách. Chức năng chia sẻ tài liệu do chủ sở hữu khởi tạo có nét tương đồng với cách tiếp cận này, nhưng ứng dụng vẫn có thể áp đặt giới hạn riêng.
 
-\textbf{MAC (Mandatory Access Control)} áp dụng chính sách tập trung, thường dựa vào nhãn phân loại và mức cho phép truy cập. Chủ sở hữu không được tự ý vượt qua chính sách bắt buộc. Mô hình phù hợp với môi trường yêu cầu kiểm soát chặt luồng thông tin giữa các mức phân loại.
+MAC (Mandatory Access Control): áp dụng chính sách tập trung, thường dựa vào nhãn phân loại và mức cho phép truy cập. Chủ sở hữu không được tự ý vượt qua chính sách bắt buộc. Mô hình phù hợp với môi trường yêu cầu kiểm soát chặt luồng thông tin giữa các mức phân loại.
 
-\textbf{RBAC (Role-Based Access Control)} gán quyền cho vai trò rồi gán người dùng vào vai trò. Với CloudBox, người dùng thường và quản trị viên có các tập quyền chức năng khác nhau. Tách vai trò khỏi danh sách quyền giúp điều chỉnh quyền mà không phải thay đổi từng tài khoản.
+RBAC (Role-Based Access Control): gán quyền cho vai trò rồi gán người dùng vào vai trò. Với CloudBox, người dùng thường và quản trị viên có các tập quyền chức năng khác nhau. Tách vai trò khỏi danh sách quyền giúp điều chỉnh quyền mà không phải thay đổi từng tài khoản.
 
-\textbf{ABAC (Attribute-Based Access Control)} đánh giá thuộc tính của chủ thể, tài nguyên, hành động và ngữ cảnh. Ví dụ, yêu cầu tải tệp có thể phụ thuộc vào trạng thái tài khoản, trạng thái tài liệu và thời hạn chia sẻ. ABAC linh hoạt nhưng cần kiểm soát độ phức tạp của chính sách.
+ABAC (Attribute-Based Access Control): đánh giá thuộc tính của chủ thể, tài nguyên, hành động và ngữ cảnh. Ví dụ, yêu cầu tải tệp có thể phụ thuộc vào trạng thái tài khoản, trạng thái tài liệu và thời hạn chia sẻ. ABAC linh hoạt nhưng cần kiểm soát độ phức tạp của chính sách.
 
 Đối với đề tài, RBAC kiểm soát quyền cấp chức năng, còn quyền cấp tài liệu phải dựa thêm vào chủ sở hữu hoặc quan hệ chia sẻ. Một người có quyền sử dụng chức năng tải xuống không có nghĩa được tải xuống mọi tài liệu. Kiểm tra phải thực hiện phía máy chủ trên mỗi yêu cầu, kể cả khi giao diện đã ẩn nút thao tác.\cite{authorization}
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Mã hóa và hàm băm}
-\textbf{Mã hóa đối xứng} sử dụng khóa bí mật cho quá trình bảo vệ và khôi phục dữ liệu. Đây là hướng phù hợp để xử lý lượng dữ liệu lớn, nhưng yêu cầu quản lý khóa cẩn thận. Khi thiết kế, cần dùng thư viện và chế độ mã hóa đã được đánh giá, thay vì tự xây dựng thuật toán hoặc ghép các bước mật mã tùy ý.
+Mã hóa đối xứng: sử dụng khóa bí mật cho quá trình bảo vệ và khôi phục dữ liệu. Đây là hướng phù hợp để xử lý lượng dữ liệu lớn, nhưng yêu cầu quản lý khóa cẩn thận. Khi thiết kế, cần dùng thư viện và chế độ mã hóa đã được đánh giá, thay vì tự xây dựng thuật toán hoặc ghép các bước mật mã tùy ý.
 
-\textbf{Mã hóa bất đối xứng} sử dụng cặp khóa công khai và khóa riêng. Tùy thuật toán và giao thức, mật mã bất đối xứng hỗ trợ trao đổi khóa, mã hóa hoặc chữ ký số. Trong thực tế, các hệ thống thường kết hợp hai loại mật mã để tận dụng khả năng thiết lập tin cậy và hiệu quả xử lý dữ liệu.
+Mã hóa bất đối xứng: sử dụng cặp khóa công khai và khóa riêng. Tùy thuật toán và giao thức, mật mã bất đối xứng hỗ trợ trao đổi khóa, mã hóa hoặc chữ ký số. Trong thực tế, các hệ thống thường kết hợp hai loại mật mã để tận dụng khả năng thiết lập tin cậy và hiệu quả xử lý dữ liệu.
 
-\textbf{Hàm băm} tạo giá trị có độ dài cố định từ dữ liệu đầu vào và không được thiết kế để giải mã ngược như mã hóa. SHA-256 có thể hỗ trợ so sánh nội dung tệp. Tuy nhiên, nếu đối tượng tấn công thay được cả tệp lẫn giá trị băm lưu kèm, phép so sánh không còn chứng minh được tính toàn vẹn. Giá trị đối chiếu phải được bảo vệ; khi cần xác thực nguồn gốc phải xem xét thêm MAC hoặc chữ ký số.
+Hàm băm: tạo giá trị có độ dài cố định từ dữ liệu đầu vào và không được thiết kế để giải mã ngược như mã hóa. SHA-256 có thể hỗ trợ so sánh nội dung tệp. Tuy nhiên, nếu đối tượng tấn công thay được cả tệp lẫn giá trị băm lưu kèm, phép so sánh không còn chứng minh được tính toàn vẹn. Giá trị đối chiếu phải được bảo vệ; khi cần xác thực nguồn gốc phải xem xét thêm MAC hoặc chữ ký số.
 
-\textbf{Băm mật khẩu} có yêu cầu khác với băm tệp. Các cơ chế chuyên dụng như Argon2id hoặc scrypt sử dụng salt và chi phí tính toán để làm tăng công sức dò mật khẩu khi dữ liệu xác minh bị lộ. Không nên dùng SHA-256 đơn thuần để lưu mật khẩu. Với CloudBox, cần xác định và kiểm tra thuật toán của thư viện sử dụng thay vì chỉ ghi chung rằng mật khẩu đã được băm.\cite{password}
+Băm mật khẩu: có yêu cầu khác với băm tệp. Các cơ chế chuyên dụng như Argon2id hoặc scrypt sử dụng salt và chi phí tính toán để làm tăng công sức dò mật khẩu khi dữ liệu xác minh bị lộ. Không nên dùng SHA-256 đơn thuần để lưu mật khẩu. Với CloudBox, cần xác định và kiểm tra thuật toán của thư viện sử dụng thay vì chỉ ghi chung rằng mật khẩu đã được băm.\cite{password}
 
-\textbf{Mã hóa khi truyền} bảo vệ dữ liệu trên các chặng kết nối, điển hình bằng TLS. Không chỉ kết nối từ trình duyệt đến ứng dụng mà kết nối từ ứng dụng đến dịch vụ dữ liệu cũng cần được xem xét. \textbf{Mã hóa khi lưu trữ} bảo vệ dữ liệu trên thiết bị hoặc trong dịch vụ lưu trữ. Cả hai đều cần quản lý khóa và quyền truy cập phù hợp; mã hóa không ngăn ứng dụng trả dữ liệu cho sai người nếu logic phân quyền bị lỗi.
+Mã hóa khi truyền: bảo vệ dữ liệu trên các chặng kết nối, điển hình bằng TLS. Không chỉ kết nối từ trình duyệt đến ứng dụng mà kết nối từ ứng dụng đến dịch vụ dữ liệu cũng cần được xem xét. Mã hóa khi lưu trữ: bảo vệ dữ liệu trên thiết bị hoặc trong dịch vụ lưu trữ. Cả hai đều cần quản lý khóa và quyền truy cập phù hợp; mã hóa không ngăn ứng dụng trả dữ liệu cho sai người nếu logic phân quyền bị lỗi.
 
 % subsection tạo tiểu mục; số thứ tự được sinh tự động.
 \subsection{Ghi log và giám sát}
@@ -781,7 +781,7 @@ Nhật ký ứng dụng phục vụ theo dõi hoạt động và chẩn đoán l
 
 Trong thiết kế CloudBox, một sự kiện nên cho biết thời điểm, chủ thể, hành động, tài nguyên liên quan và kết quả. Mã tương quan giúp kết nối các bản ghi của cùng yêu cầu khi chúng xuất hiện ở nhiều thành phần. Thời gian cần được thống nhất để phục vụ phân tích trình tự sự kiện.
 
-Giám sát chuyển các dấu vết thành tín hiệu phục vụ vận hành. Ví dụ, số lần đăng nhập thất bại tăng nhanh hoặc dung lượng lưu trữ gần ngưỡng cần tạo cảnh báo có người tiếp nhận. Thu thập log mà không có cơ chế rà soát và phản ứng chỉ tạo ra dữ liệu lưu trữ, chưa bảo đảm phát hiện sự cố kịp thời.
+Giám sát chuyển các dấu vết thành tín hiệu phục vụ vận hành. Ví dụ, số lần đăng nhập thất bại tăng nhanh hoặc dung lượng lưu trữ gần ngưỡng cần tạo cảnh báo có người tiếp nhận. Thu thập log mà không có cơ chế rà soát và phản ứng chỉ tạo ra dữ liệu lưu trữ, chưa bảo đảm phát hiện sự cố kịp thời. Haber, Chappell và Hills cũng nhấn mạnh việc ghi lại các hoạt động quan trọng như xác thực và thay đổi quyền, đồng thời kết hợp log với giám sát sự kiện để nhận biết hành vi bất thường.\cite[tr.~139--140]{cloudattacks}
 
 Bản thân log cũng cần được bảo vệ. Không ghi mật khẩu, OTP dạng rõ, phiên token hoặc secret vào nhật ký. Cần hạn chế quyền đọc, chỉnh sửa và xóa log, xác định thời gian giữ và tránh thu thập dữ liệu cá nhân vượt nhu cầu. Một bảng nhật ký mà tài khoản quản trị có thể sửa tùy ý chưa cung cấp bằng chứng chống sửa đổi đủ mạnh.
 
@@ -789,9 +789,9 @@ Bản thân log cũng cần được bảo vệ. Không ghi mật khẩu, OTP d�
 \subsection{Sao lưu và phục hồi}
 Sao lưu tạo bản dữ liệu có thể dùng để khôi phục khi dữ liệu chính bị mất hoặc hỏng. Sao lưu đầy đủ chụp toàn bộ tập dữ liệu trong phạm vi lựa chọn; sao lưu gia tăng chỉ lưu thay đổi kể từ lần sao lưu trước; sao lưu vi sai lưu thay đổi kể từ bản đầy đủ gần nhất. Mỗi cách có chi phí lưu trữ và yêu cầu khôi phục khác nhau.
 
-\textbf{RPO (Recovery Point Objective)} là mục tiêu về mức mất dữ liệu có thể chấp nhận, biểu diễn bằng khoảng thời gian trước sự cố. \textbf{RTO (Recovery Time Objective)} là mục tiêu về thời gian khôi phục hoạt động sau gián đoạn. Ví dụ minh họa: RPO một giờ hướng đến mất không quá khoảng một giờ dữ liệu; RTO hai giờ hướng đến phục hồi dịch vụ trong hai giờ. Đây là ví dụ giải thích khái niệm, không phải số liệu đã đo của CloudBox.
+RPO (Recovery Point Objective): mục tiêu về mức mất dữ liệu có thể chấp nhận, biểu diễn bằng khoảng thời gian trước sự cố. RTO (Recovery Time Objective): mục tiêu về thời gian khôi phục hoạt động sau gián đoạn. Ví dụ minh họa: RPO một giờ hướng đến mất không quá khoảng một giờ dữ liệu; RTO hai giờ hướng đến phục hồi dịch vụ trong hai giờ. Đây là ví dụ giải thích khái niệm, không phải số liệu đã đo của CloudBox.
 
-\textbf{Point-in-time recovery} cho phép khôi phục cơ sở dữ liệu đến một thời điểm trong phạm vi dữ liệu phục hồi được lưu giữ. Khả năng này thường dựa vào bản sao và nhật ký thay đổi của hệ quản trị. Phải kiểm tra thời gian giữ, thời điểm có thể chọn và những thao tác cần thiết để đưa hệ thống trở lại sử dụng.
+Point-in-time recovery: cho phép khôi phục cơ sở dữ liệu đến một thời điểm trong phạm vi dữ liệu phục hồi được lưu giữ. Khả năng này thường dựa vào bản sao và nhật ký thay đổi của hệ quản trị. Phải kiểm tra thời gian giữ, thời điểm có thể chọn và những thao tác cần thiết để đưa hệ thống trở lại sử dụng.
 
 Sao lưu cơ sở dữ liệu và sao lưu tệp của CloudBox cần có điểm nhất quán phù hợp. Khôi phục siêu dữ liệu mà thiếu tệp tương ứng có thể tạo ra tài liệu không tải được; khôi phục tệp mà thiếu quan hệ quyền có thể khiến ứng dụng không quản lý được chúng. Bản sao lưu cũng cần quyền truy cập và cơ chế bảo vệ tương xứng với dữ liệu chính.
 
@@ -801,17 +801,17 @@ Kiểm thử phục hồi cần được thực hiện trên môi trường riê
 \section{Một số tiêu chuẩn và khung tham chiếu}
 Các nguồn tham chiếu giúp biến yêu cầu bảo mật thành tiêu chí có thể kiểm tra. Mỗi nguồn có mục đích khác nhau: nhận diện nhóm rủi ro, xác minh ứng dụng, quản trị rủi ro hoặc rà soát cấu hình. Đề tài lựa chọn những nội dung phù hợp với CloudBox, không coi việc nhắc tên tiêu chuẩn là bằng chứng tuân thủ.
 
-\textbf{OWASP Top 10.} Đây là tài liệu nâng cao nhận thức về những nhóm rủi ro quan trọng đối với ứng dụng web. Bản năm 2025 được dùng làm nguồn tham khảo cho các vấn đề như kiểm soát truy cập và cấu hình bảo mật. Trong đề tài, tài liệu hỗ trợ định hướng phân tích nguy cơ, nhưng không thay thế danh sách kiểm thử đầy đủ.\cite{top10}
+OWASP Top 10: Đây là tài liệu nâng cao nhận thức về những nhóm rủi ro quan trọng đối với ứng dụng web. Bản năm 2025 được dùng làm nguồn tham khảo cho các vấn đề như kiểm soát truy cập và cấu hình bảo mật. Trong đề tài, tài liệu hỗ trợ định hướng phân tích nguy cơ, nhưng không thay thế danh sách kiểm thử đầy đủ.\cite{top10}
 
-\textbf{OWASP ASVS.} Application Security Verification Standard mô tả yêu cầu xác minh an toàn ứng dụng ở mức cụ thể hơn. Nhóm có thể chọn các yêu cầu phù hợp với xác thực, phiên, phân quyền và xử lý dữ liệu để xây dựng ca kiểm thử. Khi ghi nhận đáp ứng, cần chỉ rõ phiên bản, yêu cầu và bằng chứng; việc tham khảo ASVS không đồng nghĩa toàn bộ hệ thống đã được đánh giá đạt chuẩn.\cite{asvs}
+OWASP ASVS: Application Security Verification Standard mô tả yêu cầu xác minh an toàn ứng dụng ở mức cụ thể hơn. Nhóm có thể chọn các yêu cầu phù hợp với xác thực, phiên, phân quyền và xử lý dữ liệu để xây dựng ca kiểm thử. Khi ghi nhận đáp ứng, cần chỉ rõ phiên bản, yêu cầu và bằng chứng; việc tham khảo ASVS không đồng nghĩa toàn bộ hệ thống đã được đánh giá đạt chuẩn.\cite{asvs}
 
-\textbf{NIST Cybersecurity Framework.} CSF 2.0 tổ chức hoạt động quản trị rủi ro an ninh mạng theo sáu chức năng: Govern, Identify, Protect, Detect, Respond và Recover. Với CloudBox, có thể lần lượt liên hệ đến phân công trách nhiệm, nhận diện tài sản, áp dụng kiểm soát, giám sát, xử lý sự cố và phục hồi. Khung này giúp báo cáo quan tâm cả hoạt động vận hành, thay vì chỉ mô tả biện pháp ngăn chặn.\cite{csf}
+NIST Cybersecurity Framework: CSF 2.0 tổ chức hoạt động quản trị rủi ro an ninh mạng theo sáu chức năng: Govern, Identify, Protect, Detect, Respond và Recover. Với CloudBox, có thể lần lượt liên hệ đến phân công trách nhiệm, nhận diện tài sản, áp dụng kiểm soát, giám sát, xử lý sự cố và phục hồi. Khung này giúp báo cáo quan tâm cả hoạt động vận hành, thay vì chỉ mô tả biện pháp ngăn chặn.\cite{csf}
 
-\textbf{CIS AWS Foundations Benchmark.} Bộ hướng dẫn này cung cấp cơ sở rà soát cấu hình nền tảng AWS. Các nội dung được chọn phải phù hợp với tài nguyên thực tế và được ghi nhận theo phiên bản sử dụng. Đối với đồ án, nhóm có thể dùng nó làm nguồn xây dựng danh sách kiểm tra cấu hình; không tự gán trạng thái đáp ứng cho những tài nguyên chưa được triển khai hoặc kiểm tra.\cite{cis}
+CIS AWS Foundations Benchmark: Bộ hướng dẫn này cung cấp cơ sở rà soát cấu hình nền tảng AWS. Các nội dung được chọn phải phù hợp với tài nguyên thực tế và được ghi nhận theo phiên bản sử dụng. Đối với đồ án, nhóm có thể dùng nó làm nguồn xây dựng danh sách kiểm tra cấu hình; không tự gán trạng thái đáp ứng cho những tài nguyên chưa được triển khai hoặc kiểm tra.\cite{cis}
 
-\textbf{AWS Well-Architected Security Pillar.} Trụ cột bảo mật cung cấp định hướng đánh giá kiến trúc AWS, bao gồm quản lý danh tính, bảo vệ dữ liệu, phát hiện và ứng phó. Trong CloudBox, nguồn này hỗ trợ rà soát quan hệ giữa ứng dụng, dịch vụ lưu trữ và quyền vận hành, đồng thời giúp xác định phần còn thiếu trong kiến trúc đề xuất.\cite{pillar}
+AWS Well-Architected Security Pillar: Trụ cột bảo mật cung cấp định hướng đánh giá kiến trúc AWS, bao gồm quản lý danh tính, bảo vệ dữ liệu, phát hiện và ứng phó. Trong CloudBox, nguồn này hỗ trợ rà soát quan hệ giữa ứng dụng, dịch vụ lưu trữ và quyền vận hành, đồng thời giúp xác định phần còn thiếu trong kiến trúc đề xuất.\cite{pillar}
 
-\textbf{ISO/IEC 27001.} ISO/IEC 27001:2022 quy định yêu cầu đối với hệ thống quản lý an toàn thông tin. Trọng tâm không chỉ là công cụ kỹ thuật mà còn có quản trị, đánh giá rủi ro và cải tiến. Đồ án sử dụng định hướng quản lý để làm rõ phạm vi, tài sản và trách nhiệm; không tuyên bố đạt chứng nhận ISO từ việc xây dựng một ứng dụng thử nghiệm.\cite{iso}
+ISO/IEC 27001: ISO/IEC 27001:2022 quy định yêu cầu đối với hệ thống quản lý an toàn thông tin. Trọng tâm không chỉ là công cụ kỹ thuật mà còn có quản trị, đánh giá rủi ro và cải tiến. Đồ án sử dụng định hướng quản lý để làm rõ phạm vi, tài sản và trách nhiệm; không tuyên bố đạt chứng nhận ISO từ việc xây dựng một ứng dụng thử nghiệm.\cite{iso}
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Kết luận chương}
@@ -1108,31 +1108,31 @@ truy cập và truy vết sự kiện.
 
 % itemize tạo danh sách; mỗi item là một mục tiêu.
 \begin{itemize}
-    \item \textbf{Bảo đảm tính bí mật:}
+    \item Bảo đảm tính bí mật:
     chỉ người dùng đã xác thực và có quyền hợp lệ mới được
     truy cập tài liệu; dữ liệu lưu trữ trên S3 và RDS không
     được công khai trực tiếp.
 
-    \item \textbf{Bảo đảm tính toàn vẹn:}
+    \item Bảo đảm tính toàn vẹn:
     dữ liệu nghiệp vụ được bảo vệ bằng ràng buộc cơ sở dữ liệu,
     quyền sở hữu và giá trị SHA-256 của nội dung tệp được
     lưu trong siêu dữ liệu.
 
-    \item \textbf{Hỗ trợ tính sẵn sàng:}
+    \item Hỗ trợ tính sẵn sàng:
     áp dụng giới hạn kích thước, hạn mức lưu trữ, health check,
     RDS automated backup và S3 Versioning để giảm tác động
     của lỗi vận hành và việc xóa nhầm.
 
-    \item \textbf{Kiểm soát truy cập:}
+    \item Kiểm soát truy cập:
     kết hợp RBAC ở cấp chức năng với kiểm tra chủ sở hữu
     hoặc quan hệ chia sẻ ở cấp tài liệu.
 
-    \item \textbf{Tăng khả năng truy vết:}
+    \item Tăng khả năng truy vết:
     ghi nhận các sự kiện xác thực và quản trị quan trọng,
     tập trung log ứng dụng và VPC Flow Logs trên CloudWatch
     trong môi trường AWS.
 
-    \item \textbf{Giảm cấu hình thủ công:}
+    \item Giảm cấu hình thủ công:
     sử dụng Docker để đóng gói ứng dụng và Terraform để
     quản lý hạ tầng AWS dưới dạng mã.
 \end{itemize}
@@ -1945,7 +1945,7 @@ Các test backup chạy với SQLite, kiểm tra sao lưu nhất quán, kiểm t
 
 Các ca lỗi tải lên mô phỏng thất bại của cơ sở dữ liệu và xác nhận hành vi dọn nội dung đã lưu. Điều này hỗ trợ đánh giá cơ chế bù trừ, nhưng chưa bao phủ mọi lỗi đồng thời của cơ sở dữ liệu và kho tệp. Khi cả commit và cleanup gặp lỗi, vẫn cần đối soát tệp mồ côi.
 
-Tích hợp S3 được kiểm tra bằng mock. Kết quả không xác nhận bucket policy, thông tin xác thực, mạng hoặc quyền thực tế. Phục hồi SQLite cũng không phải phục hồi RDS/S3 đồng bộ; chưa có số đo RPO/RTO cho toàn hệ thống.
+Tích hợp S3 trong bộ unit test được kiểm tra bằng mock. Ngoài bộ test này, đợt nghiệm thu ngày 20-09-2026 đã thực hiện khôi phục một object thử trên bucket thật bằng S3 Versioning và phục hồi một snapshot RDS thành instance riêng. Hai phép thử xác nhận từng cơ chế phục hồi hoạt động độc lập, nhưng chưa phải phục hồi đồng bộ siêu dữ liệu RDS với nội dung S3 và chưa cung cấp số đo RPO/RTO cho toàn hệ thống.
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Kiểm thử triển khai AWS}
@@ -1957,9 +1957,45 @@ Bảy test tích hợp AWS trong bộ 78 test ứng dụng đã được chụp 
 
 Rà soát Terraform và kiểm tra sau triển khai tập trung vào S3 riêng tư, versioning, SSE-S3, policy từ chối HTTP; RDS không mở công khai, mã hóa và yêu cầu secure transport; EC2 yêu cầu IMDSv2, dùng instance profile, đăng ký SSM và không có ingress SSH; ALB active với máy đích ở trạng thái hoạt động bình thường. Các điều kiện phụ thuộc biến như HTTPS, Multi-AZ, SNS và kiểm thử khôi phục phải được báo cáo theo giá trị output thực tế của lần apply.
 
-Terraform apply đã tạo môi trường AWS thử nghiệm; bằng chứng tương ứng được đánh mã AWS-01 đến AWS-08 tại Chương 4. Kết quả này xác nhận sự tồn tại và một số thuộc tính của tài nguyên ở thời điểm kiểm tra. Nó không tự động xác nhận email SES đã xác minh, alarm đã phát cảnh báo thực tế, backup có thể phục hồi hoặc HTTPS đã bật; các thuộc tính đó chỉ được đánh dấu đạt khi có bằng chứng riêng.
+Terraform apply đã tạo môi trường AWS thử nghiệm; bằng chứng tương ứng được đánh mã AWS-01 đến AWS-08 tại Chương 4. Kết quả này xác nhận sự tồn tại và một số thuộc tính của tài nguyên ở thời điểm kiểm tra. Bản thân lần apply không tự động xác nhận email SES đã xác minh, alarm đã chuyển trạng thái, backup có thể phục hồi hoặc HTTPS đã bật; cảnh báo và hai cơ chế phục hồi được kiểm tra riêng trong đợt nghiệm thu ngày 20-09-2026 dưới đây.
 
 Kết quả chạy thật được thể hiện tại Hình~\ref{fig:aws-resources}: cả chín kiểm tra tích hợp đều đạt, bao gồm định danh phiên AWS, EC2/SSM, RDS, S3, ALB/target, IAM, Secrets Manager và observability. Khả năng truy cập giao diện qua endpoint ALB được đối chiếu riêng tại Hình~\ref{fig:cloudbox-alb}.
+
+\subsection{Diễn tập cảnh báo và phục hồi trên AWS}
+
+Alarm \texttt{dev-cloudbox-ec2-high-cpu} được đưa thủ công từ trạng thái \texttt{OK} sang \texttt{ALARM} bằng API CloudWatch để kiểm tra đường chuyển trạng thái. Lịch sử tại Hình~\ref{fig:cloudwatch-alarm-history} ghi nhận sự kiện lúc 13:40:26 ngày 20-09-2026 theo múi giờ UTC+7. Sau khi xác nhận subscription email và gắn topic SNS vào alarm, nhóm thực hiện thêm một lần chuyển trạng thái để kiểm tra thông báo đến người nhận.
+
+\AnhBangChung{evidence/cloudwatch-alarm.png}
+{Lịch sử CloudWatch ghi nhận alarm EC2 chuyển từ OK sang ALARM trong phép thử}
+{fig:cloudwatch-alarm-history}
+
+Hình~\ref{fig:cloudwatch-sns-email} ghi nhận email cảnh báo nhận được, với trạng thái \texttt{OK -> ALARM}, lý do \texttt{CloudBox SNS email evidence} và thời điểm 09:01:54 UTC ngày 20-09-2026 (16:01:54 UTC+7). Bằng chứng xác nhận luồng CloudWatch--SNS--hộp thư hoạt động trong phép thử kích hoạt thủ công. Mô tả ngưỡng CPU trong email là cấu hình của alarm; phép thử chưa chứng minh CPU thực sự vượt 80\% trong 15 phút và không phải kiểm thử gửi OTP qua SES.
+
+\begin{figure}[htbp]
+    \centering
+    % Chỉ trình bày phần thư chứa kết quả; cắt phần cuối còn ARN tài khoản.
+    \includegraphics[width=\textwidth,trim=0 180bp 0 0,clip]{evidence/sns-email.png}
+    \caption{Email SNS nhận được khi kích hoạt thủ công alarm EC2 trên CloudWatch}
+    \label{fig:cloudwatch-sns-email}
+\end{figure}
+
+Đối với S3, nhóm tải một object thử lên bucket đã bật versioning, xóa object để tạo delete marker rồi xóa đúng phiên bản delete marker. Sau thao tác này, lệnh \texttt{get-object} truy xuất lại phiên bản trước, trả metadata mã hóa \texttt{AES256} và nội dung đối chiếu ``CloudBox S3 restore evidence -- 2026-09-20'' như Hình~\ref{fig:s3-version-restore}. Kết quả xác nhận phục hồi một object bị xóa logic; nó không chứng minh phục hồi hàng loạt hoặc tính nhất quán với bản ghi RDS.
+
+\AnhBangChung{evidence/s3-version-restore.png}
+{Phục hồi object S3 bằng cách loại bỏ delete marker và đọc lại phiên bản trước}
+{fig:s3-version-restore}
+
+Đối với RDS, snapshot thủ công \texttt{dev-cloudbox-mysql-report-20260920} của database chính đạt trạng thái \texttt{available} và có mã hóa. Snapshot được phục hồi thành instance độc lập \texttt{dev-cloudbox-mysql-restore-test}; kết quả truy vấn sau khôi phục cho thấy lớp \texttt{db.t3.micro}, trạng thái \texttt{available}, storage mã hóa và \texttt{Public=False}. Hình~\ref{fig:rds-snapshot-restore} chứng minh khả năng tạo instance từ snapshot mà không ghi đè database chính. Phép thử chưa chuyển kết nối ứng dụng sang instance phục hồi và chưa đối chiếu nội dung bảng, quyền chia sẻ hay tính nhất quán với S3; vì vậy không suy rộng thành diễn tập phục hồi toàn hệ thống.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=.72\textwidth,keepaspectratio]{evidence/rds-snapshot.png}
+    \vspace{.7em}
+
+    \includegraphics[width=\textwidth,keepaspectratio]{evidence/rds-restore.png}
+    \caption{Snapshot RDS mã hóa và instance phục hồi độc lập đạt trạng thái available}
+    \label{fig:rds-snapshot-restore}
+\end{figure}
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Kiểm thử CI/CD}
@@ -2115,7 +2151,7 @@ Pip check & Không lỗi thư viện phụ thuộc & Tương thích yêu cầu p
 Bandit High & Không có High & Còn thống kê Low/Medium; không thay pentest\\
 Docker/MySQL & Healthy sau khởi động lại & Hai bản tệp có SHA-256 trùng nhau; chưa kiểm chứng lại quyền chia sẻ\\
 Smoke test local & HTTP 200; headers đạt & Endpoint đăng nhập, CSRF và chính sách phản hồi trong chế độ HTTP\\
-Terraform/AWS & Đã apply môi trường thử nghiệm & Chứng minh triển khai; chưa thay kiểm thử phục hồi\\
+Terraform/AWS & Đã apply và thử phục hồi riêng lẻ & Đã nhận email SNS từ CloudWatch; S3 Versioning và RDS snapshot phục hồi đạt; chưa kiểm thử đồng bộ\\
 Mô phỏng tấn công & ATK-01--ATK-10 & Kết quả theo Bảng~\ref{tab:attack-simulation} và hồ sơ ảnh\\
 Pip-audit/Trivy & CI số 5 thành công & Đạt theo ngưỡng và ngoại lệ cấu hình; không chứng minh sạch mọi lỗ hổng\\\bottomrule
 \end{tabularx}\end{table}
@@ -2142,7 +2178,7 @@ Kiến trúc một EC2, bộ đếm yêu cầu trong bộ nhớ và chưa kiểm
 \subsection{Khả năng phát hiện và truy vết}
 Nhật ký hoạt động phản ánh một số sự kiện xác thực và quản trị, hỗ trợ phân tích thay đổi quyền. CloudWatch và VPC Flow Logs cung cấp điểm tập trung log trong môi trường AWS đã triển khai. Tuy nhiên, log nghiệp vụ chưa bao phủ đầy đủ mọi lần tải lên, tải xuống và chia sẻ.
 
-Cảnh báo tài nguyên chưa thay thế giám sát hành vi bảo mật. Cần bổ sung điều kiện cảnh báo, người tiếp nhận và diễn tập phản ứng. Nhật ký hiện tại hỗ trợ truy vết một số hoạt động, nhưng chưa đáp ứng đầy đủ chức năng của SIEM hoặc bảo đảm bản ghi không bị sửa đổi.
+Cảnh báo tài nguyên chưa thay thế giám sát hành vi bảo mật. Phép thử đã xác nhận người nhận nhận được email SNS khi kích hoạt thủ công alarm EC2; cần bổ sung kiểm thử vượt ngưỡng thật và diễn tập phản ứng. Nhật ký hiện tại hỗ trợ truy vết một số hoạt động, nhưng chưa đáp ứng đầy đủ chức năng của SIEM hoặc bảo đảm bản ghi không bị sửa đổi.
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Ưu điểm của mô hình}
@@ -2154,7 +2190,7 @@ Docker và IaC làm rõ kiến trúc đồng thời tăng khả năng tái lập
 \section{Hạn chế của mô hình}
 Các hạn chế quan trọng được xác định trực tiếp từ mã nguồn và phạm vi thực nghiệm. Không có bộ quét mã độc hoàn chỉnh; not\_scanned vẫn tải được. Bộ đếm giới hạn yêu cầu trong bộ nhớ không tổng hợp qua các worker. Việc kiểm tra dung lượng và ghi dữ liệu diễn ra ở hai bước riêng, nên chưa thể khẳng định hệ thống ngăn được vượt hạn mức khi nhiều yêu cầu đến cùng lúc.
 
-Luồng đặt lại mật khẩu chưa có token giao dịch một lần phía máy chủ sau OTP; đăng xuất chưa thu hồi mọi bản sao cookie. Ứng dụng chạy trên AWS sử dụng thông tin xác thực của tài khoản quản trị RDS và có quyền sửa secret ứng dụng. Log chưa toàn diện và chưa chống sửa đổi độc lập. CI số 5 bổ sung bằng chứng quét image theo ngưỡng cấu hình; vẫn chưa có kiểm thử tải, phát cảnh báo thực tế hoặc diễn tập phục hồi đồng bộ RDS/S3. Kết quả đối chiếu tệp sau khởi động lại chưa thay thế kiểm thử phục hồi và xác minh lại quyền tài liệu.
+Luồng đặt lại mật khẩu chưa có token giao dịch một lần phía máy chủ sau OTP; đăng xuất chưa thu hồi mọi bản sao cookie. Ứng dụng chạy trên AWS sử dụng thông tin xác thực của tài khoản quản trị RDS và có quyền sửa secret ứng dụng. Log chưa toàn diện và chưa chống sửa đổi độc lập. CI số 5 bổ sung bằng chứng quét image theo ngưỡng cấu hình; CloudWatch đã được thử chuyển trạng thái và nhận email SNS nhưng chưa kiểm thử tạo tải thật, còn phục hồi RDS và S3 mới được kiểm tra riêng lẻ chứ chưa đồng bộ. Kết quả đối chiếu tệp sau khởi động lại chưa thay thế việc xác minh lại dữ liệu và quyền tài liệu sau phục hồi.
 
 Kết quả 88 bài kiểm thử đạt cho thấy các tình huống đã kiểm tra hoạt động như mong đợi. Những hạn chế nêu trên thuộc các tình huống hoặc yêu cầu chưa được kiểm chứng đầy đủ. Ở giai đoạn tiếp theo, nhóm cần bổ sung biện pháp xử lý và bài kiểm thử cho từng hạn chế này.
 
@@ -2176,7 +2212,7 @@ Thứ tự ưu tiên dựa trên ảnh hưởng đến danh tính và dữ liệ
 
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Kết luận chương}
-Thực nghiệm xác nhận 88 bài kiểm thử tự động thành công, môi trường Docker/MySQL hoạt động trên máy ảo Ubuntu và hạ tầng thử nghiệm được triển khai trên AWS bằng Terraform. Các kịch bản ATK-01--ATK-10 liên kết nguy cơ với phản hồi của kiểm soát. Kết quả hỗ trợ đánh giá nền tảng chức năng, triển khai và một số lớp bảo vệ; các khoảng trống về quét mã độc, đặt lại mật khẩu, giới hạn quyền của tài khoản dịch vụ và khôi phục dữ liệu trên đám mây vẫn cần xử lý trước khi mở rộng phạm vi sử dụng.
+Thực nghiệm xác nhận 88 bài kiểm thử tự động thành công, môi trường Docker/MySQL hoạt động trên máy ảo Ubuntu và hạ tầng thử nghiệm được triển khai trên AWS bằng Terraform. Các kịch bản ATK-01--ATK-10 liên kết nguy cơ với phản hồi của kiểm soát. Kết quả hỗ trợ đánh giá nền tảng chức năng, triển khai và một số lớp bảo vệ; đợt nghiệm thu bổ sung xác nhận chuyển trạng thái CloudWatch cùng phục hồi riêng lẻ S3/RDS, nhưng các khoảng trống về quét mã độc, đặt lại mật khẩu, giới hạn quyền tài khoản dịch vụ và phục hồi đồng bộ vẫn cần xử lý trước khi mở rộng phạm vi sử dụng.
 \PhanKhongSo{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
 \MucKhongSo{1. Kết luận}
 Đề tài đã hệ thống hóa cơ sở lý thuyết điện toán đám mây và an toàn thông tin, nhận diện tài sản của ứng dụng lưu trữ tài liệu, phân tích nguy cơ theo các lớp và xây dựng ma trận ưu tiên. Từ đó, mô hình bảo vệ dữ liệu được đề xuất với sự phối hợp của xác thực, quyền cấp tài liệu, kiểm tra tải lên, bảo vệ dữ liệu và vận hành.
@@ -2188,12 +2224,12 @@ Qua đề tài, nhóm đã đối chiếu từng nguy cơ với yêu cầu bảo
 \MucKhongSo{2. Hạn chế}
 Thực nghiệm đã triển khai môi trường AWS thử nghiệm và chạy Docker/MySQL nhưng chưa có pentest độc lập, kiểm thử tải lớn hoặc kiến trúc nhiều instance. Một số tính năng có khung hỗ trợ nhưng chưa hoàn chỉnh, tiêu biểu là quét mã độc và giám sát đầy đủ vòng đời tài liệu. Kết quả AWS chỉ xác nhận các điều kiện vận hành đã kiểm tra ở thời điểm nghiệm thu, không phải chứng nhận an toàn hay sẵn sàng vận hành ở quy mô doanh nghiệp.
 
-Rà soát còn chỉ ra nhu cầu hoàn thiện token đặt lại mật khẩu một lần, thu hồi phiên, tài khoản cơ sở dữ liệu dùng khi chạy ứng dụng, giới hạn tốc độ dùng chung và cơ chế kiểm tra và cập nhật dung lượng trong cùng một thao tác. Bản sao lưu SQLite đã được kiểm tra trong phạm vi script, nhưng chưa chứng minh phục hồi đồng bộ siêu dữ liệu và nội dung trên AWS. Do đó, chưa có căn cứ đặt ra số đo RPO/RTO đạt được cho toàn hệ thống.
+Rà soát còn chỉ ra nhu cầu hoàn thiện token đặt lại mật khẩu một lần, thu hồi phiên, tài khoản cơ sở dữ liệu dùng khi chạy ứng dụng, giới hạn tốc độ dùng chung và cơ chế kiểm tra và cập nhật dung lượng trong cùng một thao tác. Bản sao lưu SQLite đã được kiểm tra trong phạm vi script; S3 Versioning và RDS snapshot cũng đã được phục hồi riêng lẻ, nhưng chưa chứng minh phục hồi đồng bộ siêu dữ liệu và nội dung trên AWS. Do đó, chưa có căn cứ đặt ra số đo RPO/RTO đạt được cho toàn hệ thống.
 
 \MucKhongSo{3. Hướng phát triển}
 Giai đoạn tiếp theo ưu tiên hoàn thiện những điểm tác động trực tiếp đến quyền và nội dung: token đặt lại mật khẩu ngắn hạn một lần, chính sách thu hồi phiên, quét mã độc có cách ly và tách quyền tài khoản cơ sở dữ liệu. Mỗi thay đổi cần đi cùng bài kiểm thử các trường hợp phải bị từ chối, kể cả tình huống lỗi dịch vụ hoặc yêu cầu đồng thời.
 
-Sau đó, chuyển limiter sang kho dùng chung, bổ sung cơ chế kiểm tra và cập nhật dung lượng trong cùng một thao tác, đối soát tệp mồ côi và mở rộng nhật ký kiểm toán. Trên AWS, cần hoàn thiện HTTPS nếu lần triển khai hiện tại còn dùng HTTP, tách tài khoản cơ sở dữ liệu dùng khi chạy ứng dụng, thử gửi cảnh báo và thử khôi phục, đo thời gian thực hiện cùng kiểm tra tính nhất quán giữa RDS và S3.
+Sau đó, chuyển limiter sang kho dùng chung, bổ sung cơ chế kiểm tra và cập nhật dung lượng trong cùng một thao tác, đối soát tệp mồ côi và mở rộng nhật ký kiểm toán. Trên AWS, cần hoàn thiện HTTPS nếu lần triển khai hiện tại còn dùng HTTP, tách tài khoản cơ sở dữ liệu dùng khi chạy ứng dụng, kiểm thử cảnh báo dưới tải thật và quy trình phản ứng sau email SNS, rồi diễn tập chuyển kết nối cùng kiểm tra nội dung, quyền và tính nhất quán giữa RDS với S3.
 
 Khi có nhu cầu tải và mức sẵn sàng rõ ràng, có thể đánh giá nhiều instance, Auto Scaling, RDS Multi-AZ, WAF, quản lý khóa chi tiết và lưu log độc lập. Những lựa chọn này phải dựa vào rủi ro, yêu cầu vận hành và chi phí; không bổ sung chỉ để tăng số lượng dịch vụ trong kiến trúc.
 \clearpage
@@ -2202,47 +2238,51 @@ Khi có nhu cầu tải và mức sẵn sàng rõ ràng, có thể đánh giá n
 \addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
 \begin{thebibliography}{99}
 \small
-\bibitem{nistcloud} NIST, \textit{The NIST Definition of Cloud Computing}, SP 800-145, 2011. [Trực tuyến]. \url{https://csrc.nist.gov/pubs/sp/800/145/final}. Truy cập: 16-09-2026.
+\bibitem{nistcloud} NIST, \textit{The NIST Definition of Cloud Computing}, SP 800-145, 2011. [Trực tuyến]. \url{https://csrc.nist.gov/pubs/sp/800/145/final}.
 
-\bibitem{ccsp} A. Kraus, \textit{The Official (ISC)2 CCSP CBK Reference}, 4th ed. Wiley, 2023.
+\bibitem{ccsp} A. Kraus, \textit{The Official (ISC)\textsuperscript{2} CCSP CBK Reference}, ấn bản thứ 4. John Wiley \& Sons, 2023. ISBN: 978-1-119-90901-9. [PDF].
 
-\bibitem{shared} AWS, \textit{Shared Responsibility Model}. [Trực tuyến]. \url{https://aws.amazon.com/compliance/shared-responsibility-model/}. Truy cập: 16-09-2026.
+\bibitem{shared} AWS, \textit{Shared Responsibility Model}. [Trực tuyến]. \url{https://aws.amazon.com/compliance/shared-responsibility-model/}.
 
-\bibitem{s3security} AWS, \textit{Security best practices for Amazon S3}. [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html}. Truy cập: 16-09-2026.
+\bibitem{s3security} AWS, \textit{Security best practices for Amazon S3}. [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html}.
 
-\bibitem{rdssecurity} AWS, \textit{Security in Amazon RDS}. [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.html}. Truy cập: 16-09-2026.
+\bibitem{rdssecurity} AWS, \textit{Security in Amazon RDS}. [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.html}.
 
-\bibitem{zerotrust} NIST, \textit{Zero Trust Architecture}, SP 800-207, 2020. [Trực tuyến]. \url{https://csrc.nist.gov/pubs/sp/800/207/final}. Truy cập: 16-09-2026.
+\bibitem{zerotrust} NIST, \textit{Zero Trust Architecture}, SP 800-207, 2020. [Trực tuyến]. \url{https://csrc.nist.gov/pubs/sp/800/207/final}.
 
-\bibitem{auth} OWASP, \textit{Authentication Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html}. Truy cập: 16-09-2026.
+\bibitem{auth} OWASP, \textit{Authentication Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html}.
 
-\bibitem{authorization} OWASP, \textit{Authorization Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html}. Truy cập: 16-09-2026.
+\bibitem{authorization} OWASP, \textit{Authorization Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html}.
 
-\bibitem{password} OWASP, \textit{Password Storage Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html}. Truy cập: 16-09-2026.
+\bibitem{password} OWASP, \textit{Password Storage Cheat Sheet}. [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html}.
 
-\bibitem{top10} OWASP, \textit{OWASP Top 10:2025}. [Trực tuyến]. \url{https://top10.owasp.org/2025/}. Truy cập: 16-09-2026.
+\bibitem{top10} OWASP, \textit{OWASP Top 10:2025}. [Trực tuyến]. \url{https://top10.owasp.org/2025/}.
 
-\bibitem{asvs} OWASP, \textit{Application Security Verification Standard}, kho dự án chính thức. [Trực tuyến]. \url{https://github.com/OWASP/ASVS}. Truy cập: 16-09-2026.
+\bibitem{asvs} OWASP, \textit{Application Security Verification Standard}, kho dự án chính thức. [Trực tuyến]. \url{https://github.com/OWASP/ASVS}.
 
-\bibitem{csf} NIST, \textit{Cybersecurity Framework}, CSF 2.0. [Trực tuyến]. \url{https://www.nist.gov/cyberframework}. Truy cập: 16-09-2026.
+\bibitem{csf} NIST, \textit{Cybersecurity Framework}, CSF 2.0. [Trực tuyến]. \url{https://www.nist.gov/cyberframework}.
 
-\bibitem{cis} CIS, \textit{CIS Amazon Web Services Benchmarks}. [Trực tuyến]. \url{https://www.cisecurity.org/benchmark/amazon_web_services}. Truy cập: 16-09-2026.
+\bibitem{cis} CIS, \textit{CIS Amazon Web Services Benchmarks}. [Trực tuyến]. \url{https://www.cisecurity.org/benchmark/amazon_web_services}.
 
-\bibitem{pillar} AWS, \textit{Security Pillar -- AWS Well-Architected Framework}. [Trực tuyến]. \url{https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html}. Truy cập: 16-09-2026.
+\bibitem{pillar} AWS, \textit{Security Pillar -- AWS Well-Architected Framework}. [Trực tuyến]. \url{https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html}.
 
-\bibitem{iso} ISO, \textit{ISO/IEC 27001:2022 -- Information security management systems}. [Trực tuyến]. \url{https://www.iso.org/standard/27001}. Truy cập: 16-09-2026.
+\bibitem{iso} ISO, \textit{ISO/IEC 27001:2022 -- Information security management systems}. [Trực tuyến]. \url{https://www.iso.org/standard/27001}.
 
 \bibitem{estrin} E. Estrin, \textit{Cloud Security Handbook: Find out how to effectively secure cloud environments using AWS, Azure, and GCP}. Packt, 2022.
 
-\bibitem{upload} OWASP, “File Upload Cheat Sheet.” [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html}. Truy cập: 16-09-2026.
+\bibitem{upload} OWASP, “File Upload Cheat Sheet.” [Trực tuyến]. \url{https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html}.
 
-\bibitem{sses3} AWS, “Using server-side encryption with Amazon S3 managed keys (SSE-S3).” [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html}. Truy cập: 16-09-2026.
+\bibitem{sses3} AWS, “Using server-side encryption with Amazon S3 managed keys (SSE-S3).” [Trực tuyến]. \url{https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html}.
 
 \bibitem{mishra} A. Mishra, \textit{Cloud Security Handbook for Architects: Practical Strategies and Solutions for Architecting Enterprise Cloud Security using SECaaS and DevSecOps}. Orange Education, 2023.
 
 \bibitem{auditing} S. Majumdar et al., \textit{Cloud Security Auditing}, Advances in Information Security, vol. 76. Springer, 2019. doi: 10.1007/978-3-030-23128-6.
 
-\bibitem{flask} Pallets Projects, “Security Considerations,” \textit{Flask Documentation 3.1.x}. [Trực tuyến]. \url{https://flask.palletsprojects.com/en/stable/web-security/}. Truy cập: 16-09-2026.
+\bibitem{flask} Pallets Projects, “Security Considerations,” \textit{Flask Documentation 3.1.x}. [Trực tuyến]. \url{https://flask.palletsprojects.com/en/stable/web-security/}.
+
+% Các PDF bổ sung đã được đối chiếu với trang tên và thông tin xuất bản.
+% Không suy ra năm xuất bản từ thời gian tạo tệp hoặc tên thư mục.
+\bibitem{cloudattacks} M. J. Haber, B. Chappell và C. Hills, \textit{Cloud Attack Vectors: Building Effective Cyber-Defense Strategies to Protect Cloud Resources}. Apress, 2022. doi: 10.1007/978-1-4842-8236-6. [PDF].
 
 \end{thebibliography}
 % PHẦN 4: Phụ lục đặt sau tài liệu tham khảo.
@@ -2250,7 +2290,8 @@ Khi có nhu cầu tải và mức sẵn sàng rõ ràng, có thể đánh giá n
 \appendix
 \renewcommand{\chaptername}{PHỤ LỤC}
 % chapter bắt đầu chương mới, tự đánh số và cập nhật mục lục.
-\chapter{Hướng dẫn cài đặt và chạy kiểm thử cục bộ}
+\chapter{Hướng dẫn cài đặt và kiểm chứng hệ thống}
+\section{Cài đặt và chạy kiểm thử cục bộ}
 Các lệnh dưới đây thực hiện tại thư mục gốc dự án và dùng dữ liệu thử. Python 3.12 là nhánh được khai báo trong môi trường CI/container. Trên Windows, lệnh kích hoạt môi trường ảo khác với Linux nhưng các lệnh Python sau kích hoạt giữ cùng mục đích.
 % verbatim in nguyên lệnh; không cần escape dấu gạch dưới bên trong môi trường này.
 \begin{verbatim}
@@ -2278,9 +2319,9 @@ pip check:        No broken requirements found.
 Thời gian phụ thuộc máy chạy. Bộ test có thể in lỗi do các tình huống được mô phỏng có chủ ý; cần đọc kết quả cuối và mã thoát. Không chạy test trên cơ sở dữ liệu sử dụng thật vì setup của test có thao tác xóa dữ liệu thử.
 
 % chapter bắt đầu chương mới, tự đánh số và cập nhật mục lục.
-\chapter{Hướng dẫn kiểm chứng Docker và Terraform}
+\section{Kiểm chứng Docker và Terraform}
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
-\section{Docker}
+\subsection{Docker}
 Chuẩn bị các biến theo cấu hình Compose, tạo secret riêng và xác định volume dành cho thử nghiệm. Tệp Compose nằm trong thư mục docker; chạy từ gốc dự án để đường dẫn build đúng. Đây là các lệnh tái lập môi trường Docker/MySQL đã dùng trên máy ảo Ubuntu:
 \begin{verbatim}
 docker compose -f docker/docker-compose.yml config
@@ -2291,7 +2332,7 @@ docker compose -f docker/docker-compose.yml logs web
 \end{verbatim}
 Kiểm tra migration hoàn tất, MySQL khỏe, web phản hồi và dữ liệu vẫn còn sau khi khởi động lại container. Ghi lại phiên bản Ubuntu, Docker, Compose và mã commit trước khi chụp bằng chứng. Không đưa đầu ra cấu hình có secret vào báo cáo hoặc Git. Phần kiểm tra nhiều instance cần dùng profile tích hợp theo Compose và thay limiter memory nếu đánh giá giới hạn chung.
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
-\section{Terraform}
+\subsection{Terraform}
 Trước khi tạo tài nguyên cần chọn region, tên môi trường, nguồn mã và các biến tùy chọn như chứng chỉ, email, Multi-AZ và backup. Kiểm tra tĩnh có thể thực hiện mà chưa áp dụng hạ tầng:
 \begin{verbatim}
 terraform -chdir=terraform fmt -check -recursive
@@ -2305,7 +2346,8 @@ terraform -chdir=terraform apply tfplan
 python scripts/aws_integration_test.py --region ap-southeast-1
 \end{verbatim}
 
-% chapter bắt đầu chương mới, tự đánh số và cập nhật mục lục.
+% Danh sách API chi tiết được giữ trong mã nguồn nhưng không đưa vào bản in.
+\iffalse
 \chapter{Danh sách API chính}
 Tiền tố chung là \nolinkurl{/api/v1}. API sử dụng cookie phiên; các thao tác thay đổi trạng thái chịu bảo vệ CSRF khi cơ chế này bật. Bảng rút gọn chỉ trình bày hợp đồng chính; các điều kiện owner/share và trạng thái vẫn được áp dụng tại route.
 {\small\begin{longtable}{P{1.8cm}P{5.7cm}P{5.2cm}}
@@ -2329,10 +2371,36 @@ POST & \nolinkurl{/documents/<id>/shares} & Tạo chia sẻ; kiểm tra người
 DELETE & \texttt{/documents/<id>/}\newline\texttt{shares/<user>} & Thu hồi chia sẻ bởi chủ sở hữu\\\bottomrule
 \end{longtable}}
 JSON thành công chủ yếu đặt dữ liệu trong trường \texttt{data}; JSON lỗi dùng \texttt{error} với message và status. Tải lên thành công trả 201, một số thao tác xóa thành công trả 204. Trường hợp tài liệu không tồn tại hoặc không thuộc phạm vi truy cập dùng phản hồi phù hợp để hạn chế tiết lộ. Luồng OTP được hiện thực ở các route giao diện và không thuộc nhóm API nêu trong bảng.
+\fi
 
 % chapter bắt đầu chương mới, tự đánh số và cập nhật mục lục.
-\chapter{Danh mục kiểm thử đã thực thi}
-Bảng sau trích tên phương thức trực tiếp từ bộ kiểm thử để hỗ trợ tra cứu mã nguồn. Mỗi dòng là một phương thức test; một phương thức có thể chứa nhiều điều kiện kiểm tra. Toàn bộ các phương thức liệt kê đã chạy thành công trong hai suite của lần thực nghiệm. Tên test không được xem như tuyên bố bao phủ mọi trường hợp của một nguy cơ.
+\chapter{Tổng hợp kiểm thử đã thực hiện}
+Bảng sau tổng hợp các phương thức kiểm thử theo tệp và nhóm chức năng. Một phương thức có thể chứa nhiều điều kiện kiểm tra. Toàn bộ 78 kiểm thử ứng dụng và 10 kiểm thử mô-đun bảo mật đã chạy thành công trong lần thực nghiệm; số lượng này không được xem như tuyên bố bao phủ mọi trường hợp của một nguy cơ.
+
+{\small\begin{longtable}{P{5.2cm}P{5.7cm}P{1.6cm}}
+\caption{Tổng hợp các nhóm kiểm thử đã thực hiện}\\\toprule
+\textbf{Tệp/nhóm kiểm thử}&\textbf{Phạm vi chính}&\textbf{Số lượng}\\\midrule\endfirsthead
+\toprule Tệp/nhóm kiểm thử&Phạm vi chính&Số lượng\\\midrule\endhead
+\nolinkurl{test_admin_rbac.py} & Đăng nhập, vai trò, quản trị và nhật ký kiểm toán & 22\\
+\nolinkurl{test_api.py} & API tài liệu, chia sẻ, tải lên và quyền truy cập & 16\\
+\nolinkurl{test_aws_integration.py} & Kiểm tra bất biến cấu hình AWS & 7\\
+\nolinkurl{test_ci_configuration.py} & Cấu hình CI/CD và các cổng kiểm tra bảo mật & 7\\
+\nolinkurl{test_config.py} & Cấu hình kết nối MySQL và TLS & 5\\
+\nolinkurl{test_database_backup.py} & Sao lưu, xác minh và phục hồi cơ sở dữ liệu & 3\\
+\nolinkurl{test_deployment_smoke.py} & Header bảo mật, cookie và phiên triển khai & 3\\
+\nolinkurl{test_email_service.py} & Gửi OTP và xử lý lỗi dịch vụ email & 3\\
+\nolinkurl{test_security_controls.py} & CSRF, rate limit, khóa tài khoản và tải tệp & 8\\
+\nolinkurl{test_storage_service.py} & S3, checksum, đường dẫn và tệp nén & 4\\
+\textit{Tổng bộ kiểm thử ứng dụng} & & 78\\\midrule
+Mô-đun IAM & Chính sách IAM và kiểm tra quyền quá rộng & 6\\
+Mô-đun giám sát & Schema cảnh báo và dữ liệu đăng nhập thất bại & 4\\
+\textit{Tổng bộ kiểm thử bảo mật} & & 10\\\bottomrule
+\end{longtable}}
+
+Danh sách chi tiết tên từng phương thức được lưu cùng mã nguồn trong các thư mục \texttt{tests/} và \texttt{security/}; báo cáo chỉ giữ số liệu tổng hợp cần thiết để đối chiếu kết quả.
+
+% Danh sách chi tiết được giữ trong mã nguồn nhưng không đưa vào bản in.
+\iffalse
 % section tạo mục cấp 1; sửa tiêu đề trong ngoặc nhọn.
 \section{Bộ kiểm thử ứng dụng}
 {\footnotesize
@@ -2437,6 +2505,7 @@ S09 & \nolinkurl{monitoring/test_monitoring.py} & \nolinkurl{test_failed_login_t
 S10 & \nolinkurl{monitoring/test_monitoring.py} & \nolinkurl{test_missing_database_fails_without_creating_it} \\
 \bottomrule
 \end{longtable}}
+\fi
 % chapter bắt đầu chương mới, tự đánh số và cập nhật mục lục.
 \chapter{Ma trận hiện thực và bằng chứng}
 {\small\begin{longtable}{P{3.2cm}P{4.8cm}P{4.7cm}}

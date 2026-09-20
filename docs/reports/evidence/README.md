@@ -12,6 +12,11 @@ Thư mục này lưu tập trung các ảnh và dữ liệu kiểm thử đượ
 - `aws-ec2-runtime.png`: container EC2 healthy và endpoint cục bộ trả HTTP 200.
 - `aws-integration-unit-tests-10.png`: 10 unit test của mô-đun kiểm tra AWS đều đạt.
 - `cloudbox-alb-access.png`: ứng dụng hoạt động qua URL của Application Load Balancer.
+- `cloudwatch-alarm.png`: lịch sử CloudWatch ghi nhận alarm chuyển từ OK sang ALARM.
+- `sns-email.png`: email SNS nhận được sau kích hoạt alarm thủ công ngày 20-09-2026; không chứng minh tải CPU vượt ngưỡng hoặc gửi SES. PDF cắt phần cuối ảnh còn chứa account ID trong SNS ARN; ảnh nguồn vẫn giữ nguyên.
+- `s3-version-restore.png`: xóa delete marker và đọc lại phiên bản object S3 trước đó.
+- `rds-snapshot.png`: snapshot RDS mã hóa đạt trạng thái available.
+- `rds-restore.png`: instance phục hồi từ snapshot đạt trạng thái available, mã hóa và không public.
 
 ## Docker và kiểm thử ứng dụng
 
