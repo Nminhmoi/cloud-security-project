@@ -84,3 +84,4 @@ $applicationUrl = terraform -chdir=terraform output -raw application_url
 - RDS có point-in-time recovery; AWS Backup và kiểm thử khôi phục có thể bật riêng vì phát sinh chi phí.
 - Triển khai công khai cần domain riêng và HTTPS; script smoke test kiểm tra TLS, header bảo mật, cookie và CSRF sau triển khai.
 - Sao lưu `database.db` trước khi migration hoặc thao tác dữ liệu quan trọng.
+
